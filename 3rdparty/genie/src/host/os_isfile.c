@@ -18,11 +18,19 @@ int os_isfile(lua_State* L)
 
 int do_isfile(const char* filename)
 {
+#if PLATFORM_WINDOWS && !PLATFORM_CYGWIN
+	DWORD dwAttrib = GetFileAttributes(filename);
+	if(dwAttrib != INVALID_FILE_ATTRIBUTES)
+	{
+		return !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
+	}
+#else
 	struct stat buf;
 	if (stat(filename, &buf) == 0)
 	{
 		return ((buf.st_mode & S_IFDIR) == 0);
 	}
+#endif
 	else
 	{
 		return 0;

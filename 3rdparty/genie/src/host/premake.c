@@ -128,7 +128,7 @@ int premake_locate(lua_State* L, const char* argv0)
 	char buffer[PATH_MAX];
 	const char* path = NULL;
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS && !PLATFORM_CYGWIN
 	DWORD len = GetModuleFileName(NULL, buffer, PATH_MAX);
 	if (len > 0)
 		path = buffer;
@@ -141,7 +141,7 @@ int premake_locate(lua_State* L, const char* argv0)
 		path = buffer;
 #endif
 
-#if PLATFORM_LINUX
+#if PLATFORM_LINUX || PLATFORM_CYGWIN
 	int len = readlink("/proc/self/exe", buffer, PATH_MAX);
 	if (len > 0)
 		path = buffer;

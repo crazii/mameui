@@ -30,6 +30,11 @@
 #else
 #define PLATFORM_WINDOWS  (1)
 #define PLATFORM_STRING   "windows"
+#if defined(__CYGWIN__)
+#define PLATFORM_CYGWIN   (1)
+#else
+#define PLATFORM_CYGWIN   (0)
+#endif
 #endif
 
 

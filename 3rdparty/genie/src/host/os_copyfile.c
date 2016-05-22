@@ -13,7 +13,7 @@ int os_copyfile(lua_State* L)
 	const char* src = luaL_checkstring(L, 1);
 	const char* dst = luaL_checkstring(L, 2);
 
-#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS && !PLATFORM_CYGWIN
 	z = CopyFile(src, dst, FALSE);
 #else
 	lua_pushfstring(L, "cp %s %s", src, dst);
