@@ -503,7 +503,7 @@ static struct DriversInfo* GetDriversInfo(int driver_index)
 		bFirst = false;
 
 		drivers_info.clear();
-		drivers_info.reserve(driver_list::total());
+		drivers_info.resize(driver_list::total());
 
 		InitDriversCache();
 	}

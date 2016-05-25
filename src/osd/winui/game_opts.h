@@ -77,7 +77,7 @@ public:
 	game_options()
 	{
 		m_total = driver_list::total();
-		m_list.reserve(m_total);
+		m_list.resize(m_total);
 
 		driver_options option = { -1, -1, -1, 0, 0 };
 

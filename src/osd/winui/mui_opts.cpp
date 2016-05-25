@@ -2527,7 +2527,6 @@ void load_options(windows_options &opts, int game_num)
 
 	if (game_num > -2)
 	{
-		driver = &driver_list::driver(game_num);
 		// Now try global ini
 		fname = std::string(GetIniDir()) + PATH_SEPARATOR + std::string(emulator_info::get_configname()).append(".ini");
 		LoadSettingsFile(opts, fname.c_str());

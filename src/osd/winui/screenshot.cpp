@@ -31,6 +31,7 @@
 #include "mui_util.h"
 #include "winui.h"
 #include "drivenum.h"
+#include "libjpeg/jpeglib.h"
 
 /***************************************************************************
     Static global variables
@@ -128,7 +129,7 @@ int GetScreenShotWidth(void)
 
 int GetScreenShotHeight(void)
 {
-	return ((LPBITMAPINFO)m_hDIB)->bmiHeader.biHeight;
+	return abs( ((LPBITMAPINFO)m_hDIB)->bmiHeader.biHeight );
 }
 
 /* Delete the HPALETTE and Free the HDIB memory */
@@ -326,6 +327,111 @@ static int png_read_bitmap_gui(util::core_file &mfile, HGLOBAL *phDIB, HPALETTE 
 }
 
 
+struct mameui_jpeg_error_mgr {
+	struct jpeg_error_mgr pub;	/* "public" fields */
+	jmp_buf setjmp_buffer;	/* for return to caller */
+};
+
+METHODDEF(void) mameui_jpeg_error_exit(j_common_ptr cinfo)
+{
+	mameui_jpeg_error_mgr* myerr = (mameui_jpeg_error_mgr*)cinfo->err;
+	(*cinfo->err->output_message) (cinfo);
+	longjmp(myerr->setjmp_buffer, 1);
+}
+
+static int jpeg_read_bitmap_gui(util::core_file &mfile, HGLOBAL *phDIB, HPALETTE *pPAL)
+{
+	uint64_t bytes = mfile.size();
+	unsigned char* content = (unsigned char*)::malloc(bytes * sizeof(unsigned char));
+	::memcpy(content, mfile.buffer(), bytes);
+
+	*pPAL = NULL;
+	HGLOBAL 			hDIB = NULL;
+	jpeg_decompress_struct info;
+	mameui_jpeg_error_mgr  err;
+	info.err = jpeg_std_error(&err.pub);
+	err.pub.error_exit = mameui_jpeg_error_exit;
+
+	if (setjmp(err.setjmp_buffer)) {
+		jpeg_destroy_decompress(&info);
+		::free(content);
+		copy_size = 0;
+		pixel_ptr = NULL;
+		effWidth = 0;
+		row = 0;
+		if (hDIB)
+			::GlobalFree(hDIB);
+		return 0;
+	}
+
+	jpeg_create_decompress(&info);
+	jpeg_mem_src(&info, content, bytes);
+	jpeg_read_header(&info, TRUE);
+	if (info.num_components != 3 || info.out_color_space != JCS_RGB)
+	{
+		jpeg_destroy_decompress(&info);
+		::free(content);
+		return 0;
+	}
+
+	BITMAPINFOHEADER	bi;
+	LPBITMAPINFOHEADER	lpbi;
+	LPBITMAPINFO		bmInfo;
+	LPVOID				lpDIBBits = 0;
+	int 				lineWidth = 0;
+	LPSTR				pRgb;
+	copy_size = 0;
+	pixel_ptr = NULL;
+	row = info.image_height;
+	lineWidth = info.image_width;
+
+	bi.biSize = sizeof(BITMAPINFOHEADER);
+	bi.biWidth = info.image_width;
+	bi.biHeight = -info.image_height;	//top down bitmap
+	bi.biPlanes = 1;
+	bi.biBitCount = 24;
+	bi.biCompression = BI_RGB;
+	bi.biSizeImage = 0;
+	bi.biXPelsPerMeter = 2835;
+	bi.biYPelsPerMeter = 2835;
+	bi.biClrUsed = 0;
+	bi.biClrImportant = 0;
+
+	effWidth = (long)(((long)lineWidth*bi.biBitCount + 31) / 32) * 4;
+	int dibSize = (effWidth * info.image_height);
+	hDIB = ::GlobalAlloc(GMEM_FIXED, bi.biSize + dibSize);
+
+	if (!hDIB)
+	{
+		::free(content);
+		return FALSE;
+	}
+
+	jpeg_start_decompress(&info);
+
+	lpbi = (LPBITMAPINFOHEADER)hDIB;
+	::memcpy(lpbi, &bi, sizeof(BITMAPINFOHEADER));
+	pRgb = (LPSTR)lpbi + bi.biSize;
+	lpDIBBits = (LPVOID)((LPSTR)lpbi + bi.biSize);
+
+	while (info.output_scanline < info.output_height) // loop
+	{
+		unsigned char* cacheRow[1] = { (unsigned char*)pRgb };
+		jpeg_read_scanlines(&info, cacheRow, 1);
+		//rgb to win32 bgr
+		for (JDIMENSION i = 0; i < info.output_width; ++i)
+			std::swap(cacheRow[0][i * 3 + 0], cacheRow[0][i * 3 + 2]);
+		pRgb += effWidth;
+	}
+	jpeg_finish_decompress(&info);
+	jpeg_destroy_decompress(&info);
+
+	bmInfo = (LPBITMAPINFO)hDIB;
+	copy_size = dibSize;
+	pixel_ptr = (char*)lpDIBBits;
+	*phDIB = hDIB;
+	return 1;
+}
 
 /***************************************************************************
     File search functions
@@ -525,85 +631,94 @@ static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pi
 	dir_name1[i++] = ';';
 	dir_name1[i] = '\0';
 
-	// Support multiple paths
-	char* dir_one = strtok(dir_name1, ";");
+	char ext[][5] = { ".png", ".jpg" };
+#ifdef _MSC_VER
+#define countof _countof
+#endif
 
-	while (dir_one && filerr != osd_file::error::NONE)
+	for (size_t i = 0; i < countof(ext); ++i)
 	{
-		//Add handling for the displaying of all the different supported snapshot pattern types
-		//%g
-
-		// Do software checks first
-		if (ok)
+		// Support multiple paths
+		char* dir_one = strtok(dir_name1, ";");
+		while (dir_one && filerr != osd_file::error::NONE)
 		{
-			// Try dir/system/game.png
-			fname = std::string(system_name) + PATH_SEPARATOR + std::string(file_name) + ".png";
-			filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
+			//Add handling for the displaying of all the different supported snapshot pattern types
+			//%g
 
-			// Try dir/system.zip/game.png
-			if (filerr != osd_file::error::NONE)
+			// Do software checks first
+			if (ok)
 			{
-				fname = std::string(file_name) + ".png";
-				filerr = OpenZipDIBFile(dir_one, system_name, fname.c_str(), file, &buffer);
+				// Try dir/system/game.png
+				fname = std::string(system_name) + PATH_SEPARATOR + std::string(file_name) + ext[i];
+				filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
+
+				// Try dir/system.zip/game.png
+				if (filerr != osd_file::error::NONE)
+				{
+					fname = std::string(file_name) + ext[i];
+					filerr = OpenZipDIBFile(dir_one, system_name, fname.c_str(), file, &buffer);
+				}
+
+				// Try dir/system.zip/system/game.png
+				if (filerr != osd_file::error::NONE)
+				{
+					fname = std::string(system_name) + "/" + std::string(file_name) + ext[i];
+					filerr = OpenZipDIBFile(dir_one, system_name, fname.c_str(), file, &buffer);
+				}
+
+				// Try dir/zipfile/system/game.png
+				if (filerr != osd_file::error::NONE)
+				{
+					filerr = OpenZipDIBFile(dir_one, zip_name, fname.c_str(), file, &buffer);
+				}
 			}
 
-			// Try dir/system.zip/system/game.png
+			// give up on software-specific, try dir/system.png
 			if (filerr != osd_file::error::NONE)
 			{
-				fname = std::string(system_name) + "/" + std::string(file_name) + ".png";
-				filerr = OpenZipDIBFile(dir_one, system_name, fname.c_str(), file, &buffer);
+				fname = std::string(system_name) + ext[i];
+				filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
 			}
 
-			// Try dir/zipfile/system/game.png
+			// For SNAPS only, try filenames with 0000.
+			if (pic_type == TAB_SCREENSHOT)
+			{
+				if (filerr != osd_file::error::NONE)
+				{
+					//%g/%i
+					fname = std::string(system_name) + PATH_SEPARATOR + "0000" + ext[i];
+					filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
+				}
+				if (filerr != osd_file::error::NONE)
+				{
+					//%g%i
+					fname = std::string(system_name) + "0000" + ext[i];
+					filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
+				}
+				if (filerr != osd_file::error::NONE)
+				{
+					//%g/%g%i
+					fname = std::string(system_name) + PATH_SEPARATOR + std::string(system_name) + "0000" + ext[i];
+					filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
+				}
+			}
+
+			// Try dir/zipfile/system.png
 			if (filerr != osd_file::error::NONE)
 			{
+				fname = std::string(file_name) + ext[i];
 				filerr = OpenZipDIBFile(dir_one, zip_name, fname.c_str(), file, &buffer);
 			}
+			dir_one = strtok(NULL, ";");
 		}
-
-		// give up on software-specific, try dir/system.png
-		if (filerr != osd_file::error::NONE)
-		{
-			fname = std::string(system_name) + ".png";
-			filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
-		}
-
-		// For SNAPS only, try filenames with 0000.
-		if (pic_type == TAB_SCREENSHOT)
-		{
-			if (filerr != osd_file::error::NONE)
-			{
-				//%g/%i
-				fname = std::string(system_name) + PATH_SEPARATOR + "0000.png";
-				filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
-			}
-			if (filerr != osd_file::error::NONE)
-			{
-				//%g%i
-				fname = std::string(system_name) + "0000.png";
-				filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
-			}
-			if (filerr != osd_file::error::NONE)
-			{
-				//%g/%g%i
-				fname = std::string(system_name) + PATH_SEPARATOR + std::string(system_name) + "0000.png";
-				filerr = OpenRawDIBFile(dir_one, fname.c_str(), file);
-			}
-		}
-
-		// Try dir/zipfile/system.png
-		if (filerr != osd_file::error::NONE)
-		{
-			fname = std::string(file_name) + ".png";
-			filerr = OpenZipDIBFile(dir_one, zip_name, fname.c_str(), file, &buffer);
-		}
-
-		dir_one = strtok(NULL, ";");
 	}
 
 	if (filerr == osd_file::error::NONE)
 	{
-		success = png_read_bitmap_gui(*file, phDIB, pPal);
+		if (fname.size() > 4 && ::memcmp(&fname[fname.size() - 3], "png", 4) == 0 )
+			success = png_read_bitmap_gui(*file, phDIB, pPal);
+		else
+			success = jpeg_read_bitmap_gui(*file, phDIB, pPal);
 		file.reset();
 	}
 
