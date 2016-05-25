@@ -54,6 +54,10 @@ void ui_menu_main::populate()
 
 	item_append(_("Input (this Machine)"), nullptr, 0, (void *)INPUT_SPECIFIC);
 
+#ifdef USE_CUSTOM_BUTTON
+	item_append(_("Custom Buttons"), NULL, 0, (void *)CUSTOM_BUTTON);
+#endif /* USE_CUSTOM_BUTTON */
+
 	/* add optional input-related menus */
 	if (machine().ioport().has_analog())
 		item_append(_("Analog Controls"), nullptr, 0, (void *)ANALOG);
@@ -168,6 +172,12 @@ void ui_menu_main::handle()
 		case INPUT_SPECIFIC:
 			ui_menu::stack_push(global_alloc_clear<ui_menu_input_specific>(ui(), container));
 			break;
+
+#ifdef USE_CUSTOM_BUTTON
+		case CUSTOM_BUTTON:
+			ui_menu::stack_push(global_alloc_clear<ui_menu_custom_button>(ui(), container));
+			break;
+#endif /* USE_CUSTOM_BUTTON */
 
 		case SETTINGS_DIP_SWITCHES:
 			ui_menu::stack_push(global_alloc_clear<ui_menu_settings_dip_switches>(ui(), container));

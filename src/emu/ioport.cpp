@@ -662,7 +662,131 @@ void ioport_list::append(device_t &device, std::string &errorbuf)
 		port.collapse_fields(errorbuf);
 }
 
+#ifdef USE_CUSTOM_BUTTON
+static INPUT_PORTS_START(custom1p)
+PORT_START("CUSTOM1P")
+//PORT_BIT(1 << 0, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(1) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(1)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(1)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(1)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(1)
+INPUT_PORTS_END
 
+static INPUT_PORTS_START(custom2p)
+PORT_START("CUSTOM2P")
+//PORT_BIT(1 << 1, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(2) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(2)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(2)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(2)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(2)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom3p)
+PORT_START("CUSTOM3P")
+//PORT_BIT(1 << 2, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(3) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(3)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(3)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(3)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(3)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom4p)
+PORT_START("CUSTOM4P")
+//PORT_BIT(1 << 3, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(4) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(4)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(4)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(4)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(4)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom5p)
+PORT_START("CUSTOM5P")
+//PORT_BIT(1 << 4, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(5) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(5)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(5)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(5)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(5)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom6p)
+PORT_START("CUSTOM6P")
+//PORT_BIT(1 << 5, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(6) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(6)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(6)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(6)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(6)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom7p)
+PORT_START("CUSTOM7P")
+//PORT_BIT(1 << 6, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(7) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(7)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(7)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(7)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(7)
+INPUT_PORTS_END
+
+static INPUT_PORTS_START(custom8p)
+PORT_START("CUSTOM8P")
+//PORT_BIT(1 << 7, IP_ACTIVE_HIGH, IPT_UI_TOGGLE_AUTOFIRE) PORT_PLAYER(8) PORT_TOGGLE
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM1) PORT_PLAYER(8)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM2) PORT_PLAYER(8)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM3) PORT_PLAYER(8)
+PORT_BIT(0, IP_ACTIVE_LOW, IPT_CUSTOM4) PORT_PLAYER(8)
+INPUT_PORTS_END
+
+/*-------------------------------------------------
+input_port_list_custom - initialize an input
+port list structure and allocate ports
+according to the given tokens
+-------------------------------------------------*/
+
+void ioport_list::append_custom(device_t &device, std::string &errorbuf)
+{
+	ioport_field *field;
+	int nplayer = 0;
+
+	// no constructor, no list
+	ioport_constructor constructor = device.input_ports();
+	if (constructor == NULL)
+		return;
+
+	// reset error buffer
+	errorbuf.clear();
+
+	// detokenize into the list
+	(*constructor)(device, *this, errorbuf);
+
+	// collapse fields and sort the list 
+	for (ioport_port *port = first(); port != NULL; port = port->next())
+	{
+		for (field = port->fields().first(); field != NULL; field = field->next())
+		{
+			if (nplayer < field->player() + 1)
+				nplayer = field->player() + 1;
+		}
+		port->collapse_fields(errorbuf);
+	}
+
+	// mamep: append custom ports if needed
+	if (nplayer > 0)
+		INPUT_PORTS_NAME(custom1p)(device, *this, errorbuf);
+	if (nplayer > 1)
+		INPUT_PORTS_NAME(custom2p)(device, *this, errorbuf);
+	if (nplayer > 2)
+		INPUT_PORTS_NAME(custom3p)(device, *this, errorbuf);
+	if (nplayer > 3)
+		INPUT_PORTS_NAME(custom4p)(device, *this, errorbuf);
+	if (nplayer > 4)
+		INPUT_PORTS_NAME(custom5p)(device, *this, errorbuf);
+	if (nplayer > 5)
+		INPUT_PORTS_NAME(custom6p)(device, *this, errorbuf);
+	if (nplayer > 6)
+		INPUT_PORTS_NAME(custom7p)(device, *this, errorbuf);
+	if (nplayer > 7)
+		INPUT_PORTS_NAME(custom8p)(device, *this, errorbuf);
+}
+#endif /* USE_CUSTOM_BUTTON */
 
 //**************************************************************************
 //  INPUT TYPE ENTRY
@@ -1865,8 +1989,28 @@ void ioport_field::frame_update(ioport_value &result)
 	if (machine().ui().is_menu_active())
 		return;
 
+	bool custom_mapped_state = false;
+#ifdef USE_CUSTOM_BUTTON
+	if (this->type() >= IPT_BUTTON1 && this->type() < IPT_BUTTON1 + MAX_ACTION_BUTTONS)
+	{
+		UINT16 button_mask = 1 << (this->type() - IPT_BUTTON1);
+
+		for (int custom = 0; custom < MAX_CUSTOM_BUTTONS; custom++)
+		{
+			if (machine().ioport().m_custom_button[this->player()][custom] & button_mask)
+			{
+				ioport_field *custom_info = machine().ioport().m_custom_button_info[this->player()][custom];
+				custom_mapped_state = (custom_info != NULL && custom_info->live().last);
+				if (custom_mapped_state)
+					break;
+			}
+		}	
+	}
+#endif
+
 	// if the state changed, look for switch down/switch up
-	bool curstate = m_digital_value || machine().input().seq_pressed(seq());
+	bool curstate = m_digital_value || machine().input().seq_pressed(seq()) || custom_mapped_state;
+
 	if (m_live->autofire && !machine().ioport().get_autofire_toggle())
 	{
 		if (curstate)
@@ -2461,6 +2605,11 @@ ioport_manager::ioport_manager(running_machine &machine)
 		m_autofire_delay(3)                 // 1 seems too fast for a bunch of games
 {
 	memset(m_type_to_entry, 0, sizeof(m_type_to_entry));
+
+#ifdef USE_CUSTOM_BUTTON
+	memset(m_custom_button, 0, sizeof(m_custom_button));
+	memset(m_custom_button_info, 0, sizeof(m_custom_button_info));
+#endif /* USE_CUSTOM_BUTTON */
 }
 
 
@@ -2483,7 +2632,11 @@ time_t ioport_manager::initialize()
 	for (device_t &device : iter)
 	{
 		std::string errors;
+#ifdef USE_CUSTOM_BUTTON
+		m_portlist.append_custom(device, errors);
+#else
 		m_portlist.append(device, errors);
+#endif /* USE_CUSTOM_BUTTON */
 		if (!errors.empty())
 			osd_printf_error("Input port errors:\n%s", errors.c_str());
 	}
@@ -2498,11 +2651,17 @@ time_t ioport_manager::initialize()
 			if (&port.device() == &device)
 			{
 				for (ioport_field &field : port.fields())
-					if (field.type_class()==INPUT_CLASS_CONTROLLER)
+				{
+					if (field.type_class() == INPUT_CLASS_CONTROLLER)
 					{
 						if (players < field.player() + 1) players = field.player() + 1;
 						field.set_player(field.player() + player_offset);
 					}
+#ifdef USE_CUSTOM_BUTTON
+					if (field.type() >= IPT_CUSTOM1 && field.type() < IPT_CUSTOM1 + MAX_CUSTOM_BUTTONS)
+						m_custom_button_info[field.player()][field.type() - IPT_CUSTOM1] = &field;
+#endif /* USE_CUSTOM_BUTTON */
+				}
 			}
 		}
 		player_offset += players;
@@ -2876,6 +3035,22 @@ g_profiler.start(PROFILER_INPUT);
 	for (ioport_port &port : m_portlist)
 		port.update_defvalue(false);
 
+#ifdef USE_CUSTOM_BUTTON
+	//update custom button first, before all others.(dependency)
+	for (int i = 0; i < MAX_CUSTOM_BUTTONS; ++i)
+	{
+		for (int j = 0; j < MAX_PLAYERS; ++j)
+		{
+			ioport_field* field = m_custom_button_info[j][i];
+			if (field != NULL && field->enabled())
+			{
+				ioport_value value = 0;
+				field->frame_update(value);
+			}
+		}
+	}
+#endif /* USE_CUSTOM_BUTTON */
+
 	// loop over all input ports
 	for (ioport_port &port : m_portlist)
 	{
@@ -3077,6 +3252,11 @@ bool ioport_manager::load_game_config(xml_data_node *portnode, int type, int pla
 						const char *togstring = xml_get_attribute_string(portnode, "toggle", nullptr);
 						if (togstring != nullptr)
 							field.live().toggle = (strcmp(togstring, "yes") == 0);
+
+#ifdef USE_CUSTOM_BUTTON
+						if (field.type() >= IPT_CUSTOM1 && field.type() < IPT_CUSTOM1 + MAX_CUSTOM_BUTTONS)
+							m_custom_button[field.player()][field.type() - IPT_CUSTOM1] = xml_get_attribute_int(portnode, "custom", 0);
+#endif /* USE_CUSTOM_BUTTON */
 					}
 
 					// for analog fields
@@ -3228,6 +3408,10 @@ void ioport_manager::save_game_inputs(xml_data_node *parentnode)
 				{
 					changed |= ((field.live().value & field.mask()) != (field.defvalue() & field.mask()));
 					changed |= (field.live().toggle != field.toggle());
+#ifdef USE_CUSTOM_BUTTON
+					changed |= field.type() >= IPT_CUSTOM1 && field.type() < IPT_CUSTOM1 + MAX_CUSTOM_BUTTONS &&
+						m_custom_button[field.player()][field.type() - IPT_CUSTOM1];
+#endif /* USE_CUSTOM_BUTTON */
 				}
 
 				// analog changes
@@ -3264,6 +3448,11 @@ void ioport_manager::save_game_inputs(xml_data_node *parentnode)
 								xml_set_attribute_int(portnode, "value", field.live().value & field.mask());
 							if (field.live().toggle != field.toggle())
 								xml_set_attribute(portnode, "toggle", field.live().toggle ? "yes" : "no");
+#ifdef USE_CUSTOM_BUTTON
+							if (field.type() >= IPT_CUSTOM1 && field.type() < IPT_CUSTOM1 + MAX_CUSTOM_BUTTONS &&
+								m_custom_button[field.player()][field.type() - IPT_CUSTOM1])
+								xml_set_attribute_int(portnode, "custom", m_custom_button[field.player()][field.type() - IPT_CUSTOM1]);
+#endif /* USE_CUSTOM_BUTTON */
 						}
 
 						// write out analog changes

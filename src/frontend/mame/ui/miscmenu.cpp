@@ -139,7 +139,123 @@ void ui_menu_bios_selection::handle()
 	}
 }
 
+#ifdef USE_CUSTOM_BUTTON
+#include "rendfont.h"
+/*-------------------------------------------------
+menu_custom_button - handle the custom button
+settings menu
+-------------------------------------------------*/
+ui_menu_custom_button::ui_menu_custom_button(mame_ui_manager &mui, render_container *container) : ui_menu(mui, container)
+{
+}
 
+ui_menu_custom_button::~ui_menu_custom_button()
+{
+}
+
+void ui_menu_custom_button::handle()
+{
+	const ui_menu_event *menu_event = process(0);
+	bool changed = false;
+	int custom_buttons_count = 0;
+	ioport_field *field;
+	ioport_port *port;
+
+	/* handle events */
+	if (menu_event != NULL && menu_event->itemref != NULL)
+	{
+		UINT16 *selected_custom_button = (UINT16 *)(FPTR)menu_event->itemref;
+		int i;
+
+		//count the number of custom buttons
+		for (port = machine().ioport().ports().first(); port != NULL; port = port->next())
+			for (field = port->fields().first(); field != NULL; field = field->next())
+			{
+				int type = field->type();
+
+				if (type >= IPT_BUTTON1 && type < IPT_BUTTON1 + MAX_ACTION_BUTTONS)
+				{
+					type -= IPT_BUTTON1;
+					if (type >= custom_buttons_count)
+						custom_buttons_count = type + 1;
+				}
+			}
+
+		input_item_id id = ITEM_ID_1;
+		for (i = 0; i < custom_buttons_count; i++, id++)
+		{
+			if (i == 9)
+				id = ITEM_ID_0;
+
+			if (machine().input().code_pressed_once(input_code(DEVICE_CLASS_KEYBOARD, 0, ITEM_CLASS_SWITCH, ITEM_MODIFIER_NONE, id)))
+			{
+				machine().input().reset_polling();	//fix code_pressed_once
+				*selected_custom_button ^= 1 << i;
+				changed = true;
+				break;
+			}
+		}
+	}
+
+	/* if something changed, rebuild the menu */
+	if (changed)
+		reset(UI_MENU_RESET_REMEMBER_REF);
+}
+
+
+/*-------------------------------------------------
+menu_custom_button_populate - populate the
+custom button menu
+-------------------------------------------------*/
+
+void ui_menu_custom_button::populate()
+{
+	std::string subtext;
+	ioport_field *field;
+	ioport_port *port;
+	int menu_items = 0;
+	int is_neogeo = !core_stricmp(machine().system().source_file + 17, "neogeo.c")
+		|| !core_stricmp(machine().system().source_file + 17, "neogeo_noslot.c");
+	int i;
+
+	item_append(_("Press 1-9 to Config"), NULL, MENU_FLAG_DISABLE, NULL);
+	item_append(MENU_SEPARATOR_ITEM, NULL, 0, NULL);
+
+	/* loop over the input ports and add autofire toggle items */
+	for (port = machine().ioport().ports().first(); port != NULL; port = port->next())
+		for (field = port->fields().first(); field != NULL; field = field->next())
+		{
+			int player = field->player();
+			int type = field->type();
+			const char *name = field->name();
+
+			if (name != NULL && type >= IPT_CUSTOM1 && type < IPT_CUSTOM1 + MAX_CUSTOM_BUTTONS)
+			{
+				const char colorbutton1 = is_neogeo ? 'A' : 'a';
+				int n = 1;
+
+				type -= IPT_CUSTOM1;
+				subtext.clear();
+
+				//unpack the custom button value
+				for (i = 0; i < MAX_ACTION_BUTTONS; i++, n <<= 1)
+					if (machine().ioport().m_custom_button[player][type] & n)
+					{
+						if (subtext.size() == 0)
+							subtext = "_";
+						else if (subtext.size() > 1)
+							subtext += "_+_";
+						subtext.append(1, (char)(colorbutton1 + i));
+					}
+
+				convert_command_glyph(subtext);
+				item_append(_(name), subtext.c_str(), 0, (void *)(FPTR)&machine().ioport().m_custom_button[player][type]);
+
+				menu_items++;
+			}
+		}
+}
+#endif /* USE_CUSTOM_BUTTON */
 
 ui_menu_network_devices::ui_menu_network_devices(mame_ui_manager &mui, render_container *container) : ui_menu(mui, container)
 {

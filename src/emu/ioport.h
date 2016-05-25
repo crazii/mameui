@@ -44,6 +44,10 @@ const unicode_char UCHAR_SHIFT_BEGIN = UCHAR_SHIFT_1;
 const unicode_char UCHAR_SHIFT_END = UCHAR_SHIFT_2;
 const unicode_char UCHAR_MAMEKEY_BEGIN = UCHAR_PRIVATE + 2;
 
+#ifdef USE_CUSTOM_BUTTON
+#define MAX_CUSTOM_BUTTONS		4
+#define MAX_ACTION_BUTTONS		10	//custom toggle using number 0-9
+#endif /* USE_CUSTOM_BUTTON */
 
 // sequence types for input_port_seq() call
 enum input_seq_type
@@ -188,6 +192,14 @@ enum ioport_type
 	IPT_BUTTON14,
 	IPT_BUTTON15,
 	IPT_BUTTON16,
+
+#ifdef USE_CUSTOM_BUTTON
+	// custom action buttons
+	IPT_CUSTOM1,
+	IPT_CUSTOM2,
+	IPT_CUSTOM3,
+	IPT_CUSTOM4,
+#endif /* USE_CUSTOM_BUTTON */
 
 	// mahjong inputs
 	IPT_MAHJONG_FIRST,
@@ -1274,6 +1286,9 @@ public:
 
 	using tagged_list<ioport_port>::append;
 	void append(device_t &device, std::string &errorbuf);
+#ifdef USE_CUSTOM_BUTTON
+	void append_custom(device_t &device, std::string &errorbuf);
+#endif /* USE_CUSTOM_BUTTON */
 };
 
 
@@ -1581,6 +1596,11 @@ private:
 	// autofire
 	bool                    m_autofire_toggle;      // autofire toggle
 	int                     m_autofire_delay;       // autofire delay
+#ifdef USE_CUSTOM_BUTTON
+public:
+	ioport_field *          m_custom_button_info[MAX_PLAYERS][MAX_CUSTOM_BUTTONS];
+	UINT16					m_custom_button[MAX_PLAYERS][MAX_CUSTOM_BUTTONS];
+#endif /* USE_CUSTOM_BUTTON */
 };
 
 

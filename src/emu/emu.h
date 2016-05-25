@@ -24,6 +24,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#define USE_CUSTOM_BUTTON
+
 // core emulator headers -- must be first
 #include "emucore.h"
 #include "eminline.h"

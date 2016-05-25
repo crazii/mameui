@@ -87,6 +87,16 @@ public:
 	virtual void handle() override;
 };
 
+#ifdef USE_CUSTOM_BUTTON
+class ui_menu_custom_button : public ui_menu {
+public:
+	ui_menu_custom_button(mame_ui_manager &mui, render_container *container);
+	virtual ~ui_menu_custom_button();
+	virtual void populate() override;
+	virtual void handle() override;
+};
+#endif /* USE_CUSTOM_BUTTON */
+
 
 //-------------------------------------------------
 //  export menu
