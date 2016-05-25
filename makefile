@@ -113,7 +113,7 @@ endif
 ##################   END USER-CONFIGURABLE OPTIONS   ######################
 ###########################################################################
 
-MAKEPARAMS := -R
+MAKEPARAMS := -R -j5
 
 #
 # Determine running OS

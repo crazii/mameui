@@ -14,7 +14,7 @@ int os_mkdir(lua_State* L)
 	const char* path = luaL_checkstring(L, 1);
 
 #if PLATFORM_WINDOWS && !PLATFORM_CYGWIN
-	z = CreateDirectory(path, NULL);
+	z = CreateDirectory(path, NULL) != ERROR_ALREADY_EXISTS;
 #else
 	z = (mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == 0);
 #endif
