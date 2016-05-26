@@ -22,6 +22,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
+#include <setjmp.h>
 
 // MAME/MAMEUI headers
 #include "emu.h"
@@ -376,7 +377,6 @@ static int jpeg_read_bitmap_gui(util::core_file &mfile, HGLOBAL *phDIB, HPALETTE
 
 	BITMAPINFOHEADER	bi;
 	LPBITMAPINFOHEADER	lpbi;
-	LPBITMAPINFO		bmInfo;
 	LPVOID				lpDIBBits = 0;
 	int 				lineWidth = 0;
 	LPSTR				pRgb;
@@ -425,8 +425,6 @@ static int jpeg_read_bitmap_gui(util::core_file &mfile, HGLOBAL *phDIB, HPALETTE
 	}
 	jpeg_finish_decompress(&info);
 	jpeg_destroy_decompress(&info);
-
-	bmInfo = (LPBITMAPINFO)hDIB;
 	copy_size = dibSize;
 	pixel_ptr = (char*)lpDIBBits;
 	*phDIB = hDIB;
@@ -633,7 +631,11 @@ static BOOL LoadDIB(const char *filename, HGLOBAL *phDIB, HPALETTE *pPal, int pi
 
 	char ext[][5] = { ".png", ".jpg" };
 #ifdef _MSC_VER
-#define countof _countof
+#	define countof _countof
+#elif __cplusplus >= 201103L
+#	define countof(v) std::extent< decltype(v) >::value
+#else
+#	define countof(v) (sizeof(v)/sizeof(v[0]))
 #endif
 
 	for (size_t i = 0; i < countof(ext); ++i)
