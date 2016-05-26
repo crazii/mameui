@@ -578,7 +578,7 @@ int renderer_d3d9::initialize()
 		return false;
 	}
 
-	// create the device immediately for the full screen case (defer for window mode in update_window_size())
+	// create the device immediately for the full screen case (defer for window mode)
 	auto win = assert_window();
 	if (win->fullscreen() && device_create(win->main_window()->platform_window<HWND>()))
 	{
@@ -841,7 +841,7 @@ try_again:
 	m_presentation.MultiSampleType               = D3DMULTISAMPLE_NONE;
 	m_presentation.SwapEffect                    = D3DSWAPEFFECT_DISCARD;
 	m_presentation.hDeviceWindow                 = win->platform_window<HWND>();
-	m_presentation.Windowed                      = !win->fullscreen() || !video_config.switchres || win->win_has_menu();
+	m_presentation.Windowed                      = !win->fullscreen() || win->win_has_menu();
 	m_presentation.EnableAutoDepthStencil        = FALSE;
 	m_presentation.AutoDepthStencilFormat        = D3DFMT_D16;
 	m_presentation.Flags                         = 0;
@@ -1557,7 +1557,7 @@ void renderer_d3d9::batch_vector(const render_primitive &prim, float line_time)
 
 	// determine the bounds of a quad to draw this line
 	render_bounds b0, b1;
-	render_line_to_quad(&prim.bounds, effwidth, &b0, &b1);
+	render_line_to_quad(&prim.bounds, effwidth, effwidth, &b0, &b1);
 
 	float dx = b1.x1 - b0.x1;
 	float dy = b1.y1 - b0.y1;
@@ -1663,7 +1663,7 @@ void renderer_d3d9::draw_line(const render_primitive &prim)
 
 	// determine the bounds of a quad to draw this line
 	render_bounds b0, b1;
-	render_line_to_quad(&prim.bounds, effwidth, &b0, &b1);
+	render_line_to_quad(&prim.bounds, effwidth, 0.0f, &b0, &b1);
 
 	// iterate over AA steps
 	for (const line_aa_step *step = PRIMFLAG_GET_ANTIALIAS(prim.flags) ? line_aa_4step : line_aa_1step;
