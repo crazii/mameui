@@ -15,6 +15,114 @@
 #include "drivenum.h"
 #include "sound/samples.h"
 #include "softlist.h"
+#include "util/unzip.h"
+#include <set>
+#include <map>
+
+//-------------------------------------------------
+//  internal helper
+//-------------------------------------------------
+void	check_archive(const char* paths, const char* subpaths, std::set<std::string>& valid_paths, std::set<std::string>& invalid_paths)
+{
+	typedef util::archive_file::error(*open_func)(const std::string &filename, util::archive_file::ptr &result);
+	char const *const suffixes[] = { ".zip", ".7z" };
+	open_func const open_funcs[ARRAY_LENGTH(suffixes)] = { &util::archive_file::open_zip, &util::archive_file::open_7z };
+
+	static std::map<std::string, bool> rootmap;
+
+	//root archive exist? i.e. roms.zip
+	std::map<std::string, bool>::iterator rootmap_iter = rootmap.find(paths);
+	if(rootmap_iter == rootmap.end() )
+	{
+		bool root_exist = false;
+		path_iterator media(paths);
+		std::string media_path;
+		while (media.next(media_path) && !root_exist)
+		{
+			if (media_path.empty())
+				continue;
+
+			for (unsigned i = 0; i < ARRAY_LENGTH(suffixes); i++)
+			{
+				// attempt to open the archive file
+				util::archive_file::ptr zip;
+				util::archive_file::error ziperr = open_funcs[i](media_path + suffixes[i], zip);
+				zip.reset();
+				if (ziperr == util::archive_file::error::NONE)
+				{
+					root_exist = true;
+					break;
+				}
+			}
+		}
+		rootmap_iter = rootmap.insert(std::make_pair(paths, root_exist)).first;
+	}
+	bool root_exist = rootmap_iter->second;
+
+	path_iterator iter(subpaths);
+	std::string path;
+	while (iter.next(path))
+	{
+		if(path.empty())
+			continue;
+		if(invalid_paths.find(path) != invalid_paths.end())
+			continue;
+		if (valid_paths.find(path) != valid_paths.end())
+			continue;
+
+		path_iterator media(paths);
+		std::string media_path;
+		while (media.next(media_path))
+		{
+			if(media_path.empty())
+				continue;
+
+			std::string fullpath = media_path + PATH_SEPARATOR + path;
+			osd_directory *dir = osd_opendir(fullpath.c_str());
+			if (dir != NULL)
+				valid_paths.insert(path);
+			if (dir)
+				osd_closedir(dir);
+			if(dir != NULL)
+				continue;
+
+			bool found = false;
+			for (unsigned i = 0; i < ARRAY_LENGTH(suffixes); i++)
+			{
+				// attempt to open the archive file
+				util::archive_file::ptr zip;
+				util::archive_file::error ziperr = open_funcs[i](fullpath + suffixes[i], zip);
+				zip.reset();
+				if (ziperr == util::archive_file::error::NONE)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found && root_exist)
+			{
+				//find folder in root archive. (roms.zip/xxx)
+				for (unsigned i = 0; i < ARRAY_LENGTH(suffixes); i++)
+				{
+					util::archive_file::ptr zip;
+					//check against any root folder. TODO: another map each folder?
+					util::archive_file::error ziperr = open_funcs[i](media_path + suffixes[i], zip);
+					if (ziperr == util::archive_file::error::NONE && (zip->search(path, true) || zip->search(path, false)))
+					{
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (found)
+				valid_paths.insert(path);
+			else
+				invalid_paths.insert(path);
+		}
+	}
+}
 
 //**************************************************************************
 //  CORE FUNCTIONS
@@ -45,9 +153,37 @@ media_auditor::summary media_auditor::audit_media(const char *validation)
 	// store validation for later
 	m_validation = validation;
 
-// temporary hack until romload is update: get the driver path and support it for
-// all searches
-const char *driverpath = m_enumerator.config().root_device().searchpath();
+	// temporary hack until romload is update: get the driver path and support it for
+	// all searches
+	const char *driverpath = m_enumerator.config().root_device().searchpath();
+	
+	//early exit if all directories/zips are invalid
+	std::set<std::string> root_pathset;
+	std::set<std::string> root_invalid_pathset;
+	check_archive(m_enumerator.options().media_path(), driverpath, root_pathset, root_invalid_pathset);
+
+	std::vector<std::set<std::string> > all_pathset;
+
+	int device_count = device_iterator(m_enumerator.config().root_device()).count();
+	all_pathset.resize( device_count, root_pathset);
+	{
+		size_t valid_count = 0;
+		size_t device_index = 0;
+		for (device_t &device : device_iterator(m_enumerator.config().root_device()))
+		{
+			if(device_index!=0)	//root already checked
+			{
+				std::set<std::string> invalid_pathset = root_invalid_pathset;
+				check_archive(m_enumerator.options().media_path(), device.searchpath(), all_pathset[device_index], invalid_pathset);
+				if (device.shortname())
+					check_archive(m_enumerator.options().media_path(), device.shortname(), all_pathset[device_index], invalid_pathset);				
+			}
+			valid_count += all_pathset[device_index].size();
+			++device_index;
+		}
+		if(valid_count == 0)
+			return NOTFOUND;
+	}
 
 	int found = 0;
 	int required = 0;
@@ -55,19 +191,43 @@ const char *driverpath = m_enumerator.config().root_device().searchpath();
 	int shared_required = 0;
 
 	// iterate over devices and regions
+	size_t device_index = 0;
 	for (device_t &device : device_iterator(m_enumerator.config().root_device()))
 	{
-		// determine the search path for this source and iterate through the regions
-		m_searchpath = device.searchpath();
-
+		std::string combinedpath = "";
+		
+		const std::set<std::string>& pathset = all_pathset[device_index++];
+		if( !pathset.empty() )
+		{
+			combinedpath = *pathset.begin();
+			for (std::set<std::string>::iterator iter = ++pathset.begin(); iter != pathset.end(); ++iter)
+				combinedpath += ";" + *iter;
+		}		
+		m_searchpath = combinedpath.c_str();
+		
 		// now iterate over regions and ROMs within
 		for (const rom_entry *region = rom_first_region(device); region != nullptr; region = rom_next_region(region))
 		{
-// temporary hack: add the driver path & region name
-std::string combinedpath = std::string(device.searchpath()).append(";").append(driverpath);
-if (device.shortname())
-	combinedpath.append(";").append(device.shortname());
-m_searchpath = combinedpath.c_str();
+			if (pathset.empty())
+			{
+				for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
+				{
+					const char *name = ROM_GETNAME(rom);
+					hash_collection hashes(ROM_GETHASHDATA(rom));
+					device_t *shared_device = find_shared_device(device, name, hashes, ROM_GETLENGTH(rom));
+					if (!hashes.flag(hash_collection::FLAG_NO_DUMP) && !ROM_ISOPTIONAL(rom))
+					{
+						required++;
+						if (shared_device != nullptr)
+							shared_required++;
+					}
+					audit_record::media_type tp = ROMREGION_ISROMDATA(region) ? audit_record::MEDIA_ROM : audit_record::MEDIA_DISK;
+					audit_record &record = m_record_list.append(*global_alloc(audit_record(*rom, tp)));
+					record.set_shared_device(shared_device);
+					compute_status(record, rom, false);
+				}
+				continue;
+			}
 
 			for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 			{
@@ -273,12 +433,29 @@ media_auditor::summary media_auditor::audit_samples()
 	for (samples_device &device : samples_device_iterator(m_enumerator.config().root_device()))
 	{
 		// by default we just search using the driver name
-		std::string searchpath(m_enumerator.driver().name);
+		std::set<std::string> pathset;
+		std::set<std::string> invalid_pathset;
+		check_archive(m_enumerator.options().sample_path(), m_enumerator.driver().name, pathset, invalid_pathset);
 
 		// add the alternate path if present
 		samples_iterator iter(device);
 		if (iter.altbasename() != nullptr)
-			searchpath.append(";").append(iter.altbasename());
+			check_archive(m_enumerator.options().sample_path(), iter.altbasename(), pathset, invalid_pathset);
+
+		if (pathset.empty())
+		{
+			for (const char *samplename = iter.first(); samplename != nullptr; samplename = iter.next())
+			{
+				++required;
+				audit_record &record = m_record_list.append(*global_alloc(audit_record(samplename, audit_record::MEDIA_SAMPLE)));
+				record.set_status(audit_record::STATUS_NOT_FOUND, audit_record::SUBSTATUS_NOT_FOUND);
+			}
+			continue;
+		}
+
+		std::string searchpath = *pathset.begin();
+		for (std::set<std::string>::iterator _iter = ++pathset.begin(); _iter != pathset.end(); ++_iter)
+			searchpath += ";" + *_iter;
 
 		// iterate over samples in this entry
 		for (const char *samplename = iter.first(); samplename != nullptr; samplename = iter.next())
