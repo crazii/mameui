@@ -80,23 +80,22 @@ void	check_archive(const char* paths, const char* subpaths, std::set<std::string
 			std::string fullpath = media_path + PATH_SEPARATOR + path;
 			osd_directory *dir = osd_opendir(fullpath.c_str());
 			if (dir != NULL)
-				valid_paths.insert(path);
-			if (dir)
 				osd_closedir(dir);
-			if(dir != NULL)
-				continue;
 
-			bool found = false;
-			for (unsigned i = 0; i < ARRAY_LENGTH(suffixes); i++)
+			bool found = dir != NULL;
+			if (!found)
 			{
-				// attempt to open the archive file
-				util::archive_file::ptr zip;
-				util::archive_file::error ziperr = open_funcs[i](fullpath + suffixes[i], zip);
-				zip.reset();
-				if (ziperr == util::archive_file::error::NONE)
+				for (unsigned i = 0; i < ARRAY_LENGTH(suffixes); i++)
 				{
-					found = true;
-					break;
+					// attempt to open the archive file
+					util::archive_file::ptr zip;
+					util::archive_file::error ziperr = open_funcs[i](fullpath + suffixes[i], zip);
+					zip.reset();
+					if (ziperr == util::archive_file::error::NONE)
+					{
+						found = true;
+						break;
+					}
 				}
 			}
 
@@ -108,7 +107,7 @@ void	check_archive(const char* paths, const char* subpaths, std::set<std::string
 					util::archive_file::ptr zip;
 					//check against any root folder. TODO: another map each folder?
 					util::archive_file::error ziperr = open_funcs[i](media_path + suffixes[i], zip);
-					if (ziperr == util::archive_file::error::NONE && (zip->search(path, true) || zip->search(path, false)))
+					if (ziperr == util::archive_file::error::NONE && (zip->search(path, true) >= 0 || zip->search(path, false) >= 0))
 					{
 						found = true;
 						break;
@@ -159,8 +158,8 @@ media_auditor::summary media_auditor::audit_media(const char *validation)
 	
 	//early exit if all directories/zips are invalid
 	std::set<std::string> root_pathset;
-	std::set<std::string> root_invalid_pathset;
-	check_archive(m_enumerator.options().media_path(), driverpath, root_pathset, root_invalid_pathset);
+	std::set<std::string> invalid_pathset;
+	check_archive(m_enumerator.options().media_path(), driverpath, root_pathset, invalid_pathset);
 
 	std::vector<std::set<std::string> > all_pathset;
 
@@ -173,7 +172,6 @@ media_auditor::summary media_auditor::audit_media(const char *validation)
 		{
 			if(device_index!=0)	//root already checked
 			{
-				std::set<std::string> invalid_pathset = root_invalid_pathset;
 				check_archive(m_enumerator.options().media_path(), device.searchpath(), all_pathset[device_index], invalid_pathset);
 				if (device.shortname())
 					check_archive(m_enumerator.options().media_path(), device.shortname(), all_pathset[device_index], invalid_pathset);				
