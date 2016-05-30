@@ -145,7 +145,6 @@ void menu_bios_selection::handle()
 }
 
 #ifdef USE_CUSTOM_BUTTON
-#include "rendfont.h"
 /*-------------------------------------------------
 menu_custom_button - handle the custom button
 settings menu
