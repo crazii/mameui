@@ -143,11 +143,12 @@ void menu_bios_selection::handle()
 
 #ifdef USE_CUSTOM_BUTTON
 #include "rendfont.h"
+#include "ui/cmdrender.h"
 /*-------------------------------------------------
 menu_custom_button - handle the custom button
 settings menu
 -------------------------------------------------*/
-ui_menu_custom_button::ui_menu_custom_button(mame_ui_manager &mui, render_container *container) : ui_menu(mui, container)
+ui_menu_custom_button::ui_menu_custom_button(mame_ui_manager &mui, render_container *container) : menu(mui, container)
 {
 }
 
@@ -157,7 +158,7 @@ ui_menu_custom_button::~ui_menu_custom_button()
 
 void ui_menu_custom_button::handle()
 {
-	const ui_menu_event *menu_event = process(0);
+	const event *menu_event = process(0);
 	bool changed = false;
 	int custom_buttons_count = 0;
 	ioport_field *field;
@@ -201,7 +202,7 @@ void ui_menu_custom_button::handle()
 
 	/* if something changed, rebuild the menu */
 	if (changed)
-		reset(UI_MENU_RESET_REMEMBER_REF);
+		reset(reset_options::REMEMBER_REF);
 }
 
 
@@ -220,7 +221,7 @@ void ui_menu_custom_button::populate()
 		|| !core_stricmp(machine().system().source_file + 17, "neogeo_noslot.c");
 	int i;
 
-	item_append(_("Press 1-9 to Config"), NULL, MENU_FLAG_DISABLE, NULL);
+	item_append(_("Press 1-9 to Config"), NULL, FLAG_DISABLE, NULL);
 	item_append(MENU_SEPARATOR_ITEM, NULL, 0, NULL);
 
 	/* loop over the input ports and add autofire toggle items */

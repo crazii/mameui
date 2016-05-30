@@ -177,7 +177,7 @@ void menu_main::handle()
 
 #ifdef USE_CUSTOM_BUTTON
 		case CUSTOM_BUTTON:
-			ui_menu::stack_push(global_alloc_clear<ui_menu_custom_button>(ui(), container));
+			menu::stack_push<ui_menu_custom_button>(ui(), container);
 			break;
 #endif /* USE_CUSTOM_BUTTON */
 
