@@ -25,6 +25,8 @@
 #define SHOW_COLUMN_ROMS
 #define SHOW_COLUMN_SAMPLES
 
+static const int LOCALE_BUFFER_SIZE = 512;
+
 enum
 {
 	UNKNOWN = -1,
