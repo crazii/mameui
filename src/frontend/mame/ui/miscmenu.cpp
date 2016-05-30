@@ -22,6 +22,9 @@
 #include "../info.h"
 #include "ui/inifile.h"
 #include "ui/submenu.h"
+#ifdef USE_CUSTOM_BUTTON
+#include "rendfont.h"
+#endif
 
 namespace ui {
 
@@ -143,7 +146,6 @@ void menu_bios_selection::handle()
 
 #ifdef USE_CUSTOM_BUTTON
 #include "rendfont.h"
-#include "ui/cmdrender.h"
 /*-------------------------------------------------
 menu_custom_button - handle the custom button
 settings menu
