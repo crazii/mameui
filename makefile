@@ -213,6 +213,10 @@ endif
 
 SUBTARGET_FULL := $(subst -,_,$(SUBTARGET))
 
+ifndef RESFLAGS
+RESFLAGS = -DAFX_TARG_ENU
+export RESFLAGS
+endif
 
 CONFIG = release
 ifdef DEBUG

@@ -88,7 +88,7 @@ private:
 	static const options_entry s_option_entries[];
 };
 
-BOOL OptionsInit(void);
+BOOL OptionsInit(HINSTANCE hInstance);
 void OptionsExit(void);
 
 #define OPTIONS_TYPE_GLOBAL		-1
@@ -116,7 +116,7 @@ void ResetGUI(void);
 void ResetGameDefaults(void);
 void ResetAllGameOptions(void);
 
-const char * GetImageTabLongName(int tab_index);
+const TCHAR * GetImageTabLongName(int tab_index);
 const char * GetImageTabShortName(int tab_index);
 
 void SetViewMode(int val);

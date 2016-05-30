@@ -30,6 +30,38 @@
 #define IDS_VIEW_CONTEXTFILTERS         90
 #define IDS_VIEW_CUSTOMIZEFIELDS        91
 #define ID_TOOLBAR_EDIT                 92
+#define IDS_COLUMN_MACHINE				93
+#define IDS_COLUMN_SOURCE				94
+#define IDS_COLUMN_DIRECTORY			95
+#define IDS_COLUMN_TYPE					96
+#define IDS_COLUMN_SCREEN				97
+#define IDS_COLUMN_MANUFACTURER			98
+#define IDS_COLUMN_YEAR					99
+#define IDS_COLUMN_PLAYCOUNT			100
+#define IDS_COLUMN_PLAYTIME				101
+#define IDS_COLUMN_CLONEOF				102
+#define IDS_COLUMN_TRACKBALL			103
+#define IDS_COLUMN_SAMPLES				104
+#define IDS_COLUMN_ROMS					105
+#define IDS_PROPERTIES_FORMAT			106
+#define IDS_PLAY_FORMAT					107
+#define IDS_TOOLTIP_TOGGLEFOLDERLIST	108
+#define IDS_TOOLTIP_TOGGLESCREENSHOT	109
+#define IDS_TOOLTIP_LARGEICON			110
+#define IDS_TOOLTIP_SMALLICON			111
+#define IDS_TOOLTIP_LIST				112
+#define IDS_TOOLTIP_DETAILS				113
+#define IDS_TOOLTIP_GROUPED				114
+#define IDS_TOOLTIP_ABOUT				115
+#define IDS_TOOLTIP_HELP				116
+#define IDS_TAB_SNAPSHOT				117
+#define IDS_TAB_FLYER					118
+#define IDS_TAB_CABINET					119
+#define IDS_TAB_MARQUEE					120
+#define IDS_TAB_TITLE					121
+#define IDS_TAB_CPANEL					122
+#define IDS_TAB_PCB						123
+#define IDS_TAB_HISTORY					124
 #define IDD_MAIN                        101
 #define IDA_TAB_KEYS                    106
 #define IDI_MAMEUI_ICON                 107
@@ -450,6 +482,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        192
 #define _APS_NEXT_COMMAND_VALUE         40103
 #define _APS_NEXT_CONTROL_VALUE         1337
-#define _APS_NEXT_SYMED_VALUE           93
+#define _APS_NEXT_SYMED_VALUE           125
 #endif
 #endif

@@ -261,7 +261,7 @@ extern const char g_szGameCountString[] = "%d systems";
 static const char g_szHistoryFileName[] = "history.dat";  // This can only be history.dat or sysinfo.dat
 static const char g_szMameInfoFileName[] = "messinfo.dat"; // This can only be mameinfo.dat or messinfo.dat
 #else
-extern const TCHAR g_szPlayGameString[] = TEXT("&Play %s");
+			TCHAR g_szPlayGameString[LOCALE_BUFFER_SIZE] = {TEXT("&Play %s")};
 extern const char g_szGameCountString[] = "%d games";
 extern const char g_szHistoryFileName[] = "history.dat";
 extern const char g_szMameInfoFileName[] = "mameinfo.dat";
@@ -270,4 +270,11 @@ extern const char g_szMameInfoFileName[] = "mameinfo.dat";
 static BOOL FilterAvailable(int driver_index)
 {
 	return !DriverUsesRoms(driver_index) || IsAuditResultYes(GetRomAuditResults(driver_index));
+}
+
+extern void Layout_InitLocalization(HINSTANCE hInstance)
+{
+#ifndef MESS
+	::LoadString(hInstance, IDS_PLAY_FORMAT, g_szPlayGameString, LOCALE_BUFFER_SIZE);
+#endif
 }

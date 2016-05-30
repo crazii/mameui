@@ -229,6 +229,7 @@ static int MIN_HEIGHT = DBU_MIN_HEIGHT;
 extern const ICONDATA g_iconData[];
 extern const TCHAR g_szPlayGameString[];
 extern const char g_szGameCountString[];
+extern void Layout_InitLocalization(HINSTANCE hInstance);
 UINT8 playopts_apply = 0;
 
 typedef struct _play_options play_options;
@@ -718,7 +719,7 @@ static const TBBUTTON tbb[] =
 
 #define NUM_TOOLTIPS 9
 
-static const TCHAR szTbStrings[NUM_TOOLTIPS + 1][30] =
+static LPCTSTR szTbStrings[NUM_TOOLTIPS + 1] =
 {
 	TEXT("Toggle Folder List"),
 	TEXT("Toggle Screen Shot"),
@@ -805,7 +806,7 @@ static HBITMAP          hBackground  = 0;
 static MYBITMAPINFO     bmDesc;
 
 /* List view Column text */
-extern const LPCTSTR column_names[COLUMN_MAX] =
+LPCTSTR column_names[COLUMN_MAX] =
 {
 	TEXT("Machine"),
 	TEXT("Source"),
@@ -1622,8 +1623,34 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 	int validity_failed = 0;
 	TCHAR* t_inpdir = NULL;
 	LONG_PTR l;
+	
+	//load localized string
+	{
+		int offset = COLUMN_TRACKBALL;
+		static TCHAR locale_columns[IDS_COLUMN_ROMS - IDS_COLUMN_MACHINE + 1][LOCALE_BUFFER_SIZE];
+		for(int i = 0; i < IDS_COLUMN_ROMS - IDS_COLUMN_MACHINE + 1; ++i)
+		{
+			if( ::LoadString(hInstance, IDS_COLUMN_MACHINE+i, locale_columns[i], LOCALE_BUFFER_SIZE) && i <= offset )
+				column_names[i] = locale_columns[i];
+		}
+		++offset;
+		#ifdef SHOW_COLUMN_SAMPLES
+		column_names[COLUMN_SAMPLES] = locale_columns[offset];
+		#endif
+		++offset;
+		#ifdef SHOW_COLUMN_ROMS
+		column_names[COLUMN_ROMS] = locale_columns[offset];
+		#endif
+		Layout_InitLocalization(hInstance);
+		
+		static TCHAR locale_tooltips[NUM_TOOLTIPS][LOCALE_BUFFER_SIZE];
+		for(int i = 0; i < NUM_TOOLTIPS; ++i)
+			if( ::LoadString(hInstance, IDS_TOOLTIP_TOGGLEFOLDERLIST+i, locale_tooltips[i], LOCALE_BUFFER_SIZE) )
+				szTbStrings[i] = locale_tooltips[i];
+	}
 
-	if (!OptionsInit())
+
+	if (!OptionsInit(hInstance))
 		return FALSE;
 
 	srand((unsigned)time(NULL));
@@ -6002,7 +6029,9 @@ void InitBodyContextMenu(HMENU hBodyContextMenu)
 		return;
 	}
 	lpFolder = GetFolderByName(FOLDER_SOURCE, GetDriverFilename(Picker_GetSelectedItem(hwndList)) );
-	_sntprintf(tmp,ARRAY_LENGTH(tmp),TEXT("Properties for %s"),lpFolder->m_lptTitle );
+	TCHAR localeProperty[LOCALE_BUFFER_SIZE] = {TEXT("Properties for %s")};
+	LoadString(hInst, IDS_PROPERTIES_FORMAT, localeProperty, LOCALE_BUFFER_SIZE);
+	_sntprintf(tmp,ARRAY_LENGTH(tmp),localeProperty,lpFolder->m_lptTitle );
 	mii.fMask = MIIM_TYPE | MIIM_ID;
 	mii.fType = MFT_STRING;
 	mii.dwTypeData = tmp;

@@ -28,6 +28,7 @@
 #include <ui/moptions.h>
 #include <stddef.h>
 #include <tchar.h>
+#include "resource.h"
 
 // MAME/MAMEUI headers
 #include "bitmask.h"
@@ -342,16 +343,16 @@ static const options_entry filterOptions[] =
 // Screen shot Page tab control text
 // these must match the order of the options flags in options.h
 // (TAB_...)
-static const char *const image_tabs_long_name[MAX_TAB_TYPES] =
+static const TCHAR * image_tabs_long_name[MAX_TAB_TYPES] =
 {
-	"Snapshot",
-	"Flyer",
-	"Cabinet",
-	"Marquee",
-	"Title",
-	"Control Panel",
-	"PCB",
-	"History",
+	TEXT("Snapshot"),
+	TEXT("Flyer"),
+	TEXT("Cabinet"),
+	TEXT("Marquee"),
+	TEXT("Title"),
+	TEXT("Control Panel"),
+	TEXT("PCB"),
+	TEXT("History"),
 };
 
 static const char *const image_tabs_short_name[MAX_TAB_TYPES] =
@@ -384,7 +385,7 @@ void CreateGameOptions(windows_options &opts, int driver_index)
 
 
 
-BOOL OptionsInit()
+BOOL OptionsInit(HINSTANCE hInstance)
 {
 	MessSetupSettings(settings);
 
@@ -415,6 +416,13 @@ BOOL OptionsInit()
 		}
 	}
 #endif
+
+	static TCHAR lcoaleTabName[MAX_TAB_TYPES][LOCALE_BUFFER_SIZE];
+	for(int i = 0; i < MAX_TAB_TYPES; ++i)
+	{
+		if( ::LoadString(hInstance, IDS_TAB_SNAPSHOT+i, lcoaleTabName[i], LOCALE_BUFFER_SIZE) )
+			image_tabs_long_name[i] = lcoaleTabName[i];
+	}
 
 	game_opts.add_entries();
 	// set up global options
@@ -448,7 +456,7 @@ void ResetGUI(void)
 	SaveOptions();
 }
 
-const char * GetImageTabLongName(int tab_index)
+const TCHAR * GetImageTabLongName(int tab_index)
 {
 	assert(tab_index >= 0);
 	assert(tab_index < ARRAY_LENGTH(image_tabs_long_name));
