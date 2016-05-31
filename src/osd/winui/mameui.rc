@@ -2898,6 +2898,7 @@ BEGIN
 	IDS_COLUMN_ROMS					"ROMs"
 	IDS_PROPERTIES_FORMAT			"%s 的属性"
 	IDS_PLAY_FORMAT					"开始游戏 %s"
+	IDS_GAMECOUNT_FORMAT			"%d 个游戏"
 	IDS_TOOLTIP_TOGGLEFOLDERLIST	"显示/隐藏文件夹列表"
 	IDS_TOOLTIP_TOGGLESCREENSHOT	"显示/隐藏插图区域"
 	IDS_TOOLTIP_LARGEICON			"大图标"
@@ -2915,6 +2916,7 @@ BEGIN
 	IDS_TAB_CPANEL					"控制板"
 	IDS_TAB_PCB						"基板"
 	IDS_TAB_HISTORY					"历史"
+	IDS_MENUTEXT_PLAY				"开始游戏"
 END
 #endif////Simplied Chinese (PRC) resoruces
 

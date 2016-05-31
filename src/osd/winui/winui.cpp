@@ -3043,10 +3043,17 @@ static void DisableSelection()
 	HMENU hMenu = GetMenu(hMain);
 	BOOL prev_have_selection = have_selection;
 
+	const TCHAR* playText = TEXT("&Play");
+	{
+		static TCHAR localePlayText[LOCALE_BUFFER_SIZE];
+		if (::LoadString(hInst, IDS_MENUTEXT_PLAY, localePlayText, LOCALE_BUFFER_SIZE))
+			playText = localePlayText;
+	}
+
 	mmi.cbSize = sizeof(mmi);
 	mmi.fMask = MIIM_TYPE;
 	mmi.fType = MFT_STRING;
-	mmi.dwTypeData = (TCHAR *) TEXT("&Play");
+	mmi.dwTypeData = (TCHAR *)playText;
 	mmi.cch = _tcslen(mmi.dwTypeData);
 	SetMenuItemInfo(hMenu, ID_FILE_PLAY, FALSE, &mmi);
 

@@ -262,7 +262,7 @@ static const char g_szHistoryFileName[] = "history.dat";  // This can only be hi
 static const char g_szMameInfoFileName[] = "messinfo.dat"; // This can only be mameinfo.dat or messinfo.dat
 #else
 			TCHAR g_szPlayGameString[LOCALE_BUFFER_SIZE] = {TEXT("&Play %s")};
-extern const char g_szGameCountString[] = "%d games";
+			TCHAR g_szGameCountString[] = { TEXT("%d games") };
 extern const char g_szHistoryFileName[] = "history.dat";
 extern const char g_szMameInfoFileName[] = "mameinfo.dat";
 #endif
@@ -276,5 +276,6 @@ extern void Layout_InitLocalization(HINSTANCE hInstance)
 {
 #ifndef MESS
 	::LoadString(hInstance, IDS_PLAY_FORMAT, g_szPlayGameString, LOCALE_BUFFER_SIZE);
+	::LoadString(hInstance, IDS_GAMECOUNT_FORMAT, g_szGameCountString, LOCALE_BUFFER_SIZE);
 #endif
 }
