@@ -13,6 +13,7 @@ commando.cpp
 cps1.cpp
 cps2.cpp
 cps3.cpp
+deco32.cpp
 ddragon.cpp
 ddragon3.cpp
 dmndrby.cpp
@@ -25,6 +26,7 @@ goldstar.cpp
 gunsmoke.cpp
 higemaru.cpp
 hng64.cpp
+hyprduel.cpp
 igs009.cpp
 igs011.cpp
 igs017.cpp
@@ -36,8 +38,10 @@ instantm.cpp
 iqblock.cpp
 jackie.cpp
 kenseim.cpp
+konamigx.cpp
 lasso.cpp
 lastduel.cpp
+legionna.cpp
 lordgun.cpp
 lwings.cpp
 mainsnk.cpp
@@ -62,9 +66,13 @@ snk6502.cpp
 snowbros.cpp
 sonson.cpp
 spoker.cpp
+seta2.cpp
 srumbler.cpp
+stv.cpp
 supduck.cpp
+taito_f3.cpp
 tigeroad.cpp
+tmnt.cpp
 toaplan1.cpp
 toaplan2.cpp
 tumblep.cpp

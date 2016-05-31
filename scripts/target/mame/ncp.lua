@@ -671,7 +671,10 @@ BUSES["VECTREX"] = true
 
 function linkProjects_mame_ncp(_target, _subtarget)
 	links {
+		"atlus",
 		"capcom",
+		"dataeast",
+		"konami",
 		"igs",
 		"neogeo",
 		"psikyo",
@@ -835,6 +838,33 @@ files {
 	MAME_DIR .. "src/mame/drivers/instantm.cpp",
 }
 
+createMAMEProjects(_target, _subtarget, "dataeast")
+files {
+	MAME_DIR .. "src/mame/machine/deco102.cpp",
+	MAME_DIR .. "src/mame/machine/deco102.h",
+	MAME_DIR .. "src/mame/machine/decocrpt.cpp",
+	MAME_DIR .. "src/mame/machine/decocrpt.h",
+	MAME_DIR .. "src/mame/machine/deco104.cpp",
+	MAME_DIR .. "src/mame/machine/deco104.h",
+	MAME_DIR .. "src/mame/machine/deco146.cpp",
+	MAME_DIR .. "src/mame/machine/deco146.h",
+	MAME_DIR .. "src/mame/video/decbac06.cpp",
+	MAME_DIR .. "src/mame/video/decbac06.h",
+	MAME_DIR .. "src/mame/video/deco16ic.cpp",
+	MAME_DIR .. "src/mame/video/deco16ic.h",
+	MAME_DIR .. "src/mame/video/decocomn.cpp",
+	MAME_DIR .. "src/mame/video/decocomn.h",
+	MAME_DIR .. "src/mame/video/decospr.cpp",
+	MAME_DIR .. "src/mame/video/decospr.h",
+	MAME_DIR .. "src/mame/drivers/tumblep.cpp",
+	MAME_DIR .. "src/mame/includes/tumblep.h",
+	MAME_DIR .. "src/mame/video/tumblep.cpp",
+	MAME_DIR .. "src/mame/video/decmxc06.cpp",
+	MAME_DIR .. "src/mame/video/decmxc06.h",
+	MAME_DIR .. "src/mame/video/deckarn.cpp",
+	MAME_DIR .. "src/mame/video/deckarn.h",
+}
+
 createMAMEProjects(_target, _subtarget, "igs")
 files {
 	MAME_DIR .. "src/mame/drivers/cabaret.cpp",
@@ -888,6 +918,45 @@ files {
 	MAME_DIR .. "src/mame/machine/igs028.cpp",
 	MAME_DIR .. "src/mame/machine/igs028.h",
 }
+
+createMAMEProjects(_target, _subtarget, "konami")
+files {
+	MAME_DIR .. "src/mame/video/konami_helper.cpp",
+	MAME_DIR .. "src/mame/video/konami_helper.h",
+	MAME_DIR .. "src/mame/drivers/konamigx.cpp",
+	MAME_DIR .. "src/mame/includes/konamigx.h",
+	MAME_DIR .. "src/mame/machine/konamigx.cpp",
+	MAME_DIR .. "src/mame/video/konamigx.cpp",
+	MAME_DIR .. "src/mame/drivers/mystwarr.cpp",
+	MAME_DIR .. "src/mame/includes/mystwarr.h",
+	MAME_DIR .. "src/mame/video/mystwarr.cpp",
+	MAME_DIR .. "src/mame/drivers/tmnt.cpp",
+	MAME_DIR .. "src/mame/includes/tmnt.h",
+	MAME_DIR .. "src/mame/video/tmnt.cpp",
+	MAME_DIR .. "src/mame/video/k053250.cpp",
+	MAME_DIR .. "src/mame/video/k053250.h",
+	MAME_DIR .. "src/mame/video/k054156_k054157_k056832.cpp",
+	MAME_DIR .. "src/mame/video/k054156_k054157_k056832.h",
+	MAME_DIR .. "src/mame/video/k053246_k053247_k055673.cpp",
+	MAME_DIR .. "src/mame/video/k053246_k053247_k055673.h",
+	MAME_DIR .. "src/mame/video/k055555.cpp",
+	MAME_DIR .. "src/mame/video/k055555.h",
+	MAME_DIR .. "src/mame/video/k054000.cpp",
+	MAME_DIR .. "src/mame/video/k054000.h",
+	MAME_DIR .. "src/mame/video/k054338.cpp",
+	MAME_DIR .. "src/mame/video/k054338.h",
+	MAME_DIR .. "src/mame/video/k053936.cpp",
+	MAME_DIR .. "src/mame/video/k053936.h",
+	MAME_DIR .. "src/mame/video/k001006.cpp",
+	MAME_DIR .. "src/mame/video/k001006.h",
+	MAME_DIR .. "src/mame/video/k001005.cpp",
+	MAME_DIR .. "src/mame/video/k001005.h",
+	MAME_DIR .. "src/mame/video/k001604.cpp",
+	MAME_DIR .. "src/mame/video/k001604.h",
+	MAME_DIR .. "src/mame/video/k057714.cpp",
+	MAME_DIR .. "src/mame/video/k057714.h",
+}
+
 
 createMAMEProjects(_target, _subtarget, "neogeo")
 files {
@@ -997,6 +1066,9 @@ files {
 createMAMEProjects(_target, _subtarget, "misc")
 files {
 	MAME_DIR .. "src/mame/drivers/1945kiii.cpp",
+	MAME_DIR .. "src/mame/drivers/cave.cpp",
+	MAME_DIR .. "src/mame/includes/cave.h",
+	MAME_DIR .. "src/mame/video/cave.cpp",
 }
 end
 
