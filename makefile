@@ -69,6 +69,8 @@
 # SDL_FRAMEWORK_PATH = $(HOME)/Library/Frameworks
 # USE_LIBSDL = 1
 # CYGWIN_BUILD = 1
+# USE_CUSTOM_BUTTON = 0
+# FRONTEND_LANG=ENU
 
 # BUILDDIR = build
 # TARGETOS = windows
@@ -113,7 +115,7 @@ endif
 ##################   END USER-CONFIGURABLE OPTIONS   ######################
 ###########################################################################
 
-MAKEPARAMS := -R -j5
+MAKEPARAMS := -R
 
 #
 # Determine running OS
@@ -212,11 +214,6 @@ SUBTARGET := $(TARGET)
 endif
 
 SUBTARGET_FULL := $(subst -,_,$(SUBTARGET))
-
-ifndef RESFLAGS
-RESFLAGS = -DAFX_TARG_ENU
-export RESFLAGS
-endif
 
 CONFIG = release
 ifdef DEBUG
@@ -639,6 +636,16 @@ endif
 
 ifdef CYGWIN_BUILD
 PARAMS += --CYGWIN_BUILD='$(CYGWIN_BUILD)'
+endif
+
+ifndef FRONTEND_LANG
+FRONTEND_LANG = ENU
+endif
+RESFLAGS = -DAFX_TARG_$(FRONTEND_LANG)
+export RESFLAGS
+
+ifdef USE_CUSTOM_BUTTON
+PARAMS += --USE_CUSTOM_BUTTON='$(USE_CUSTOM_BUTTON)'
 endif
 
 ifdef MESA_INSTALL_ROOT

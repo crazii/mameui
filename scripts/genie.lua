@@ -201,6 +201,15 @@ newoption {
 }
 
 newoption {
+	trigger = "USE_CUSTOM_BUTTON",
+	description = "enable custom button feature",
+	allowed = {
+		{ "0",  "Disable custom button"   },
+		{ "1",  "Enable  custom button"  },
+	},
+}
+
+newoption {
 	trigger = "OPTIMIZE",
 	description = "Optimization level.",
 }
@@ -568,6 +577,16 @@ configuration { }
 if _OPTIONS["PROFILER"]=="1" then
 	defines{
 		"MAME_PROFILER", -- define MAME_PROFILER if we are a profiling build
+	}
+end
+
+if not _OPTIONS["USE_CUSTOM_BUTTON"] then
+	_OPTIONS["USE_CUSTOM_BUTTON"] = "0"
+end
+
+if _OPTIONS["USE_CUSTOM_BUTTON"]=="1" then
+	defines{
+		"USE_CUSTOM_BUTTON",
 	}
 end
 
