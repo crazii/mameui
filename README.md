@@ -19,6 +19,45 @@ make SUBTARGET=arcade OSD=winui
 ```
 
 
+Any differences for original MAMEUI?
+===============
+
+
+##Simplied Chinese (简体中文) language
+
+
+use
+
+```
+make SUBTARGET=arcade OSD=winui FRONTEND_LANG=CHS
+```
+
+to enable Simplied Chinese.
+
+
+##Custom buttons
+
+For example keyboard 'J' for button 'A', keyboard 'K" for button 'B':
+usually you need both 'J'+'K' pressed for 'A+B'
+but with this feature, you can map 'L' to 'A+B' then one 'L' key is doing the job.
+
+Note: the "Custom buttons" codes comes from mameplus, which is out of date and latest version is MAME 0.168
+
+
+##Additional custom build scripts
+
+Minimal build for NeoGeo + CPS + PGM: NCP build.
+This build has a much smaller executable, and takes extremely short time to scan roms, but with only a limited set of games.
+It's a good choice if you don't play other games.
+
+use
+
+```
+make SUBTARGET=ncp OSD=winui
+```
+
+to perform NCP build. 
+
 
 Where can I find out more?
 ==========================
