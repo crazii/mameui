@@ -43,6 +43,12 @@ but with this feature, you can map 'L' to 'A+B' then one 'L' key is doing the jo
 
 Note: the "Custom buttons" codes comes from mameplus, which is out of date and latest version is MAME 0.168
 
+use
+```
+make OSD=winui USE_CUSTOM_BUTTON=1
+```
+to enable custom button
+
 
 ##Additional custom build scripts
 
