@@ -6,7 +6,6 @@
 // Generated Help ID header file
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "resource.hm"
-#undef APSTUDIO_HIDDEN_SYMBOLS
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -18,6 +17,8 @@
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
+
+#undef APSTUDIO_HIDDEN_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
 // English (USA) resources
@@ -900,9 +901,9 @@ BEGIN
     ICON            IDI_MAMEUI_ICON,IDC_STATIC,20,10,20,20
     LTEXT           "Title\nDirectory\nExtra",IDC_PROP_TITLE,52,9,161,25,
                     SS_NOPREFIX
-    CONTROL         "Draw antialiased vectors",IDC_ANTIALIAS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,40,92,10,0,
-                    HIDC_ANTIALIAS
+//    CONTROL         "Draw antialiased vectors",IDC_ANTIALIAS,"Button",
+//                    BS_AUTOCHECKBOX | WS_TABSTOP,10,40,92,10,0,
+//                    HIDC_ANTIALIAS
     GROUPBOX        "Beam width",IDC_BEAMTEXT,60,53,100,28
     CONTROL         "BeamSlider",IDC_BEAM,"msctls_trackbar32",TBS_BOTH |
                     TBS_NOTICKS | WS_TABSTOP,66,65,64,10,0,HIDC_BEAM
@@ -2332,9 +2333,9 @@ BEGIN
     ICON            IDI_MAMEUI_ICON,IDC_STATIC,20,10,20,20
     LTEXT           "标题\n文件夹\n额外",IDC_PROP_TITLE,52,9,161,25,
                     SS_NOPREFIX
-    CONTROL         "绘制抗锯齿矢量",IDC_ANTIALIAS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,40,92,10,0,
-                    HIDC_ANTIALIAS
+//    CONTROL         "绘制抗锯齿矢量",IDC_ANTIALIAS,"Button",
+//                    BS_AUTOCHECKBOX | WS_TABSTOP,10,40,92,10,0,
+//                    HIDC_ANTIALIAS
     GROUPBOX        "光束宽度",IDC_BEAMTEXT,60,53,100,28
     CONTROL         "BeamSlider",IDC_BEAM,"msctls_trackbar32",TBS_BOTH |
                     TBS_NOTICKS | WS_TABSTOP,66,65,64,10,0,HIDC_BEAM
@@ -2356,17 +2357,17 @@ CAPTION "MAMEUI - overwritten at runtime"
 CLASS "MainClass"
 FONT 8, "Verdana"
 BEGIN
-    CONTROL         "",IDC_DIVIDER,"Static",SS_ETCHEDHORZ,0,5,304,1
-    CONTROL         "Tree1",IDC_TREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_EDITLABELS |
-                    TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,5,28,48,172
-    CONTROL         "List1",IDC_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_AUTOARRANGE |
-                    LVS_SHAREIMAGELISTS | LVS_OWNERDRAWFIXED | WS_BORDER | WS_TABSTOP,65,28,42,172
-    GROUPBOX        "",IDC_SPLITTER,55,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
-    GROUPBOX        "",IDC_SPLITTER2,109,28,8,172,BS_NOTIFY | NOT WS_VISIBLE
-    CONTROL         "",IDC_SSFRAME,"Static",SS_ETCHEDFRAME | SS_NOTIFY,121,11,181,194
-    CONTROL         "",IDC_SSTAB,"SysTabControl32",TCS_HOTTRACK,121,0,181,18
-    CONTROL         "",IDC_SSPICTURE,"Static",SS_BITMAP | NOT WS_VISIBLE,141,18,141,127
-    EDITTEXT        IDC_HISTORY,129,150,167,49,ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,0,HIDC_HISTORY
+	CONTROL         "", IDC_DIVIDER, "Static", SS_ETCHEDHORZ, 0, 5, 304, 1
+	CONTROL         "Tree1", IDC_TREE, "SysTreeView32", TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_EDITLABELS |
+		TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP, 5, 28, 48, 172
+	CONTROL         "List1", IDC_LIST, "SysListView32", LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_AUTOARRANGE |
+		LVS_SHAREIMAGELISTS | LVS_OWNERDRAWFIXED | WS_BORDER | WS_TABSTOP, 65, 28, 42, 172
+	GROUPBOX        "", IDC_SPLITTER, 55, 28, 8, 172, BS_NOTIFY | NOT WS_VISIBLE
+	GROUPBOX        "", IDC_SPLITTER2, 109, 28, 8, 172, BS_NOTIFY | NOT WS_VISIBLE
+	CONTROL         "", IDC_SSFRAME, "Static", SS_ETCHEDFRAME | SS_NOTIFY, 121, 11, 181, 194
+	CONTROL         "", IDC_SSTAB, "SysTabControl32", TCS_HOTTRACK, 121, 0, 181, 18
+	CONTROL         "", IDC_SSPICTURE, "Static", SS_BITMAP | NOT WS_VISIBLE, 141, 18, 141, 127
+	EDITTEXT        IDC_HISTORY, 129, 150, 167, 49, ES_MULTILINE | ES_READONLY | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP, 0, HIDC_HISTORY
 END
 
 IDD_FILTERS DIALOGEX 0, 0, 190, 196

@@ -9,6 +9,11 @@
 
 #include "emu.h"
 #include "coreutil.h"
+#include "modules/output/output_module.h"
+
+
+#define OUTPUT_VERBOSE  0
+
 
 //**************************************************************************
 //  OUTPUT MANAGER
@@ -101,6 +106,9 @@ void output_manager::set_value(const char *outname, INT32 value)
 	/* if the value is different, signal the notifier */
 	if (oldval != value)
 	{
+		if (OUTPUT_VERBOSE)
+			machine().logerror("Output %s = %d (was %d)\n", outname, value, oldval);
+
 		/* call the local notifiers first */
 		for (auto notify : item->notifylist)
 			(*notify.m_notifier)(outname, value, notify.m_param);
@@ -210,10 +218,10 @@ void output_manager::set_notifier(const char *outname, output_notifier_func call
     notifier for all outputs
 -------------------------------------------------*/
 
-void output_manager::notify_all(output_notifier_func callback, void *param)
+void output_manager::notify_all(output_module *module)
 {
 	for (auto &item : m_itemtable)
-		(*callback)(item.second.name.c_str(), item.second.value, param);
+		module->notify(item.second.name.c_str(), item.second.value);
 }
 
 

@@ -1173,7 +1173,6 @@ static const pcb_type sw_pcbdefs[] =
 ti99_cartridge_device::ti99_cartridge_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 :   bus8z_device(mconfig, TI99CART, "TI-99 cartridge", tag, owner, clock, "cartridge", __FILE__),
 	device_image_interface(mconfig, *this),
-	m_softlist(false),
 	m_pcbtype(0),
 	m_slot(0),
 	m_pcb(nullptr),
@@ -1201,13 +1200,13 @@ void ti99_cartridge_device::prepare_cartridge()
 
 	for (int i=0; i < 5; i++) m_pcb->m_grom[i] = nullptr;
 
-	m_pcb->m_grom_size = m_softlist? get_software_region_length("grom") : m_rpk->get_resource_length("grom_socket");
+	m_pcb->m_grom_size = loaded_through_softlist() ? get_software_region_length("grom") : m_rpk->get_resource_length("grom_socket");
 	if (TRACE_CONFIG) logerror("grom_socket.size=0x%04x\n", m_pcb->m_grom_size);
 
 	if (m_pcb->m_grom_size > 0)
 	{
 		regg = memregion(CARTGROM_TAG);
-		grom_ptr = m_softlist? get_software_region("grom") : m_rpk->get_contents_of_socket("grom_socket");
+		grom_ptr = loaded_through_softlist() ? get_software_region("grom") : m_rpk->get_contents_of_socket("grom_socket");
 		memcpy(regg->base(), grom_ptr, m_pcb->m_grom_size);
 		m_pcb->m_grom_ptr = regg->base();   // for gromemu
 		m_pcb->m_grom_address = 0;          // for gromemu
@@ -1220,19 +1219,19 @@ void ti99_cartridge_device::prepare_cartridge()
 		if (m_pcb->m_grom_size > 0x8000) m_pcb->set_grom_pointer(4, subdevice(GROM7_TAG));
 	}
 
-	m_pcb->m_rom_size = m_softlist? get_software_region_length("rom") : m_rpk->get_resource_length("rom_socket");
+	m_pcb->m_rom_size = loaded_through_softlist() ? get_software_region_length("rom") : m_rpk->get_resource_length("rom_socket");
 	if (m_pcb->m_rom_size > 0)
 	{
 		if (TRACE_CONFIG) logerror("rom size=0x%04x\n", m_pcb->m_rom_size);
 		regr = memregion(CARTROM_TAG);
-		rom_ptr = m_softlist? get_software_region("rom") : m_rpk->get_contents_of_socket("rom_socket");
+		rom_ptr = loaded_through_softlist() ? get_software_region("rom") : m_rpk->get_contents_of_socket("rom_socket");
 		memcpy(regr->base(), rom_ptr, m_pcb->m_rom_size);
 		// Set both pointers to the same region for now
 		m_pcb->m_rom_ptr = regr->base();
 	}
 
 	// Softlist uses only one ROM area, no second socket
-	if (!m_softlist)
+	if (!loaded_through_softlist())
 	{
 		rom2_length = m_rpk->get_resource_length("rom2_socket");
 		if (rom2_length > 0)
@@ -1246,7 +1245,7 @@ void ti99_cartridge_device::prepare_cartridge()
 	}
 
 	// (NV)RAM cartridges
-	if (m_softlist)
+	if (loaded_through_softlist())
 	{
 		// Do we have NVRAM?
 		if (get_software_region("nvram")!=nullptr)
@@ -1300,7 +1299,7 @@ bool ti99_cartridge_device::call_load()
 	// return true = error
 	if (TRACE_CHANGE) logerror("Loading %s in slot %s\n", m_basename.c_str());
 
-	if (m_softlist)
+	if (loaded_through_softlist())
 	{
 		if (TRACE_CONFIG) logerror("Using softlists\n");
 		int i = 0;
@@ -1315,6 +1314,7 @@ bool ti99_cartridge_device::call_load()
 			i++;
 		} while (sw_pcbdefs[i].id != 0);
 		if (TRACE_CONFIG) logerror("Cartridge type is %s (%d)\n", pcb, m_pcbtype);
+		m_rpk = nullptr;
 	}
 	else
 	{
@@ -1337,47 +1337,47 @@ bool ti99_cartridge_device::call_load()
 	{
 	case PCB_STANDARD:
 		if (TRACE_CONFIG) logerror("Standard PCB\n");
-		m_pcb = new ti99_standard_cartridge();
+		m_pcb = std::make_unique<ti99_standard_cartridge>();
 		break;
 	case PCB_PAGED12K:
 		if (TRACE_CONFIG) logerror("Paged PCB 12K\n");
-		m_pcb = new ti99_paged12k_cartridge();
+		m_pcb = std::make_unique<ti99_paged12k_cartridge>();
 		break;
 	case PCB_PAGED16K:
 		if (TRACE_CONFIG) logerror("Paged PCB 16K\n");
-		m_pcb = new ti99_paged16k_cartridge();
+		m_pcb = std::make_unique<ti99_paged16k_cartridge>();
 		break;
 	case PCB_MINIMEM:
 		if (TRACE_CONFIG) logerror("Minimem PCB\n");
-		m_pcb = new ti99_minimem_cartridge();
+		m_pcb = std::make_unique<ti99_minimem_cartridge>();
 		break;
 	case PCB_SUPER:
 		if (TRACE_CONFIG) logerror("Superspace PCB\n");
-		m_pcb = new ti99_super_cartridge();
+		m_pcb = std::make_unique<ti99_super_cartridge>();
 		break;
 	case PCB_MBX:
 		if (TRACE_CONFIG) logerror("MBX PCB\n");
-		m_pcb = new ti99_mbx_cartridge();
+		m_pcb = std::make_unique<ti99_mbx_cartridge>();
 		break;
 	case PCB_PAGED379I:
 		if (TRACE_CONFIG) logerror("Paged379i PCB\n");
-		m_pcb = new ti99_paged379i_cartridge();
+		m_pcb = std::make_unique<ti99_paged379i_cartridge>();
 		break;
 	case PCB_PAGED378:
 		if (TRACE_CONFIG) logerror("Paged378 PCB\n");
-		m_pcb = new ti99_paged378_cartridge();
+		m_pcb = std::make_unique<ti99_paged378_cartridge>();
 		break;
 	case PCB_PAGED377:
 		if (TRACE_CONFIG) logerror("Paged377 PCB\n");
-		m_pcb = new ti99_paged377_cartridge();
+		m_pcb = std::make_unique<ti99_paged377_cartridge>();
 		break;
 	case PCB_PAGEDCRU:
 		if (TRACE_CONFIG) logerror("PagedCRU PCB\n");
-		m_pcb = new ti99_pagedcru_cartridge();
+		m_pcb = std::make_unique<ti99_pagedcru_cartridge>();
 		break;
 	case PCB_GROMEMU:
 		if (TRACE_CONFIG) logerror("Grom Emulation PCB\n");
-		m_pcb = new ti99_gromemu_cartridge();
+		m_pcb = std::make_unique<ti99_gromemu_cartridge>();
 		break;
 	}
 
@@ -1408,7 +1408,6 @@ void ti99_cartridge_device::call_unload()
 		}
 	}
 
-	delete m_pcb;
 	m_pcb = nullptr;
 	m_connector->remove(m_slot);
 }
@@ -1416,15 +1415,6 @@ void ti99_cartridge_device::call_unload()
 void ti99_cartridge_device::set_slot(int i)
 {
 	m_slot = i;
-}
-
-bool ti99_cartridge_device::call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry)
-{
-	if (TRACE_CONFIG) logerror("swlist = %s, swname = %s\n", swlist.list_name(), swname);
-	machine().rom_load().load_software_part_region(*this, swlist, swname, start_entry);
-	m_softlist = true;
-	m_rpk = nullptr;
-	return true;
 }
 
 READ8Z_MEMBER(ti99_cartridge_device::readz)
@@ -1479,7 +1469,6 @@ WRITE_LINE_MEMBER(ti99_cartridge_device::gclock_in)
 void ti99_cartridge_device::device_config_complete()
 {
 	update_names();
-	m_softlist = false;
 	m_connector = static_cast<ti99_cartridge_connector_device*>(owner());
 }
 
@@ -2447,7 +2436,7 @@ rpk::rpk(emu_options& options, const char* sysname)
 	:m_options(options), m_type(0)
 //,m_system_name(sysname)
 {
-	m_sockets.reset();
+	m_sockets.clear();
 }
 
 rpk::~rpk()
@@ -2460,9 +2449,9 @@ rpk::~rpk()
 */
 UINT8* rpk::get_contents_of_socket(const char *socket_name)
 {
-	rpk_socket *socket = m_sockets.find(socket_name);
-	if (socket==nullptr) return nullptr;
-	return socket->get_contents();
+	auto socket = m_sockets.find(socket_name);
+	if (socket == m_sockets.end()) return nullptr;
+	return socket->second->get_contents();
 }
 
 /*
@@ -2470,14 +2459,14 @@ UINT8* rpk::get_contents_of_socket(const char *socket_name)
 */
 int rpk::get_resource_length(const char *socket_name)
 {
-	rpk_socket *socket = m_sockets.find(socket_name);
-	if (socket==nullptr) return 0;
-	return socket->get_content_length();
+	auto socket = m_sockets.find(socket_name);
+	if (socket == m_sockets.end()) return 0;
+	return socket->second->get_content_length();
 }
 
-void rpk::add_socket(const char* id, rpk_socket *newsock)
+void rpk::add_socket(const char* id, std::unique_ptr<rpk_socket> newsock)
 {
-	m_sockets.append(id, *newsock);
+	m_sockets.emplace(id, std::move(newsock));
 }
 
 /*-------------------------------------------------
@@ -2488,22 +2477,20 @@ void rpk::add_socket(const char* id, rpk_socket *newsock)
 void rpk::close()
 {
 	// Save the NVRAM contents
-	rpk_socket *socket = m_sockets.first();
-	while (socket != nullptr)
+	for(auto &socket : m_sockets)
 	{
-		if (socket->persistent_ram())
+		if (socket.second->persistent_ram())
 		{
 			// try to open the battery file and write it if possible
-			assert_always(socket->get_contents() && (socket->get_content_length() > 0), "Buffer is null or length is 0");
+			assert_always(socket.second->get_contents() && (socket.second->get_content_length() > 0), "Buffer is null or length is 0");
 
 			emu_file file(m_options.nvram_directory(), OPEN_FLAG_WRITE | OPEN_FLAG_CREATE | OPEN_FLAG_CREATE_PATHS);
-			osd_file::error filerr = file.open(socket->get_pathname());
+			osd_file::error filerr = file.open(socket.second->get_pathname());
 			if (filerr == osd_file::error::NONE)
-				file.write(socket->get_contents(), socket->get_content_length());
+				file.write(socket.second->get_contents(), socket.second->get_content_length());
 
 		}
-		socket->cleanup();
-		socket = socket->m_next;
+		socket.second->cleanup();
 	}
 }
 
@@ -2513,12 +2500,12 @@ void rpk::close()
 ***************************************************************/
 
 rpk_socket::rpk_socket(const char* id, int length, UINT8* contents, const char *pathname)
-: m_id(id), m_length(length), m_next(nullptr), m_contents(contents), m_pathname(pathname)
+: m_id(id), m_length(length), m_contents(contents), m_pathname(pathname)
 {
 }
 
 rpk_socket::rpk_socket(const char* id, int length, UINT8* contents)
-: m_id(id), m_length(length), m_next(nullptr), m_contents(contents), m_pathname(nullptr)
+: m_id(id), m_length(length), m_contents(contents), m_pathname(nullptr)
 {
 }
 
@@ -2555,7 +2542,7 @@ int rpk_reader::find_file(util::archive_file &zip, const char *filename, UINT32 
 /*
     Load a rom resource and put it in a pcb socket instance.
 */
-rpk_socket* rpk_reader::load_rom_resource(util::archive_file &zip, xml_data_node* rom_resource_node, const char* socketname)
+std::unique_ptr<rpk_socket> rpk_reader::load_rom_resource(util::archive_file &zip, xml_data_node* rom_resource_node, const char* socketname)
 {
 	const char* file;
 	const char* crcstr;
@@ -2604,23 +2591,23 @@ rpk_socket* rpk_reader::load_rom_resource(util::archive_file &zip, xml_data_node
 	sha1 = xml_get_attribute_string(rom_resource_node, "sha1", nullptr);
 	if (sha1 != nullptr)
 	{
-		hash_collection actual_hashes;
-		actual_hashes.compute((const UINT8 *)contents, length, hash_collection::HASH_TYPES_CRC_SHA1);
+		util::hash_collection actual_hashes;
+		actual_hashes.compute((const UINT8 *)contents, length, util::hash_collection::HASH_TYPES_CRC_SHA1);
 
-		hash_collection expected_hashes;
-		expected_hashes.add_from_string(hash_collection::HASH_SHA1, sha1, strlen(sha1));
+		util::hash_collection expected_hashes;
+		expected_hashes.add_from_string(util::hash_collection::HASH_SHA1, sha1, strlen(sha1));
 
 		if (actual_hashes != expected_hashes) throw rpk_exception(RPK_INVALID_FILE_REF, "SHA1 check failed");
 	}
 
 	// Create a socket instance
-	return new rpk_socket(socketname, length, contents);
+	return std::make_unique<rpk_socket>(socketname, length, contents);
 }
 
 /*
     Load a ram resource and put it in a pcb socket instance.
 */
-rpk_socket* rpk_reader::load_ram_resource(emu_options &options, xml_data_node* ram_resource_node, const char* socketname, const char* system_name)
+std::unique_ptr<rpk_socket> rpk_reader::load_ram_resource(emu_options &options, xml_data_node* ram_resource_node, const char* socketname, const char* system_name)
 {
 	const char* length_string;
 	const char* ram_type;
@@ -2698,7 +2685,7 @@ rpk_socket* rpk_reader::load_ram_resource(emu_options &options, xml_data_node* r
 	}
 
 	// Create a socket instance
-	return new rpk_socket(socketname, length, contents, ram_pname);
+	return std::make_unique<rpk_socket>(socketname, length, contents, ram_pname);
 }
 
 /*-------------------------------------------------
@@ -2726,8 +2713,6 @@ rpk* rpk_reader::open(emu_options &options, const char *filename, const char *sy
 	xml_data_node *resource_node;
 	xml_data_node *socket_node;
 	xml_data_node *pcb_node;
-
-	rpk_socket *newsock;
 
 	int i;
 
@@ -2816,15 +2801,13 @@ rpk* rpk_reader::open(emu_options &options, const char *filename, const char *sy
 					// found it
 					if (strcmp(resource_node->name, "rom")==0)
 					{
-						newsock = load_rom_resource(*zipfile, resource_node, id);
-						newrpk->add_socket(id, newsock);
+						newrpk->add_socket(id, load_rom_resource(*zipfile, resource_node, id));
 					}
 					else
 					{
 						if (strcmp(resource_node->name, "ram")==0)
 						{
-							newsock = load_ram_resource(options, resource_node, id, system_name);
-							newrpk->add_socket(id, newsock);
+							newrpk->add_socket(id, load_ram_resource(options, resource_node, id, system_name));
 						}
 						else throw rpk_exception(RPK_INVALID_LAYOUT, "resource node must be <rom> or <ram>");
 					}

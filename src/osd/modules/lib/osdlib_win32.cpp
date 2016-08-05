@@ -17,6 +17,9 @@
 #include <unistd.h>
 #endif
 
+#include <cstdio>
+#include <memory>
+
 // MAME headers
 #include "osdlib.h"
 #include "osdcomm.h"
@@ -96,8 +99,10 @@ int osd_setenv(const char *name, const char *value, int overwrite)
 //  osd_process_kill
 //============================================================
 
-void osd_process_kill(void)
+void osd_process_kill()
 {
+	std::fflush(stdout);
+	std::fflush(stderr);
 	TerminateProcess(GetCurrentProcess(), -1);
 }
 
@@ -246,7 +251,7 @@ void osd_break_into_debugger(const char *message)
 //  get_clipboard_text_by_format
 //============================================================
 
-static char *get_clipboard_text_by_format(UINT format, char *(*convert)(LPCVOID data))
+static char *get_clipboard_text_by_format(UINT format, std::string (*convert)(LPCVOID data))
 {
 	char *result = nullptr;
 	HANDLE data_handle;
@@ -267,7 +272,12 @@ static char *get_clipboard_text_by_format(UINT format, char *(*convert)(LPCVOID 
 				if (data != nullptr)
 				{
 					// invoke the convert
-					result = (*convert)(data);
+					std::string s = (*convert)(data);
+
+					// copy the string
+					result = (char *) osd_malloc(s.size() + 1);
+					if (result != nullptr)
+						memcpy(result, s.data(), (s.size() + 1) * sizeof(*result));
 
 					// unlock the data
 					GlobalUnlock(data_handle);
@@ -285,7 +295,7 @@ static char *get_clipboard_text_by_format(UINT format, char *(*convert)(LPCVOID 
 //  convert_wide
 //============================================================
 
-static char *convert_wide(LPCVOID data)
+static std::string convert_wide(LPCVOID data)
 {
 	return utf8_from_wstring((LPCWSTR) data);
 }
@@ -294,7 +304,7 @@ static char *convert_wide(LPCVOID data)
 //  convert_ansi
 //============================================================
 
-static char *convert_ansi(LPCVOID data)
+static std::string convert_ansi(LPCVOID data)
 {
 	return utf8_from_astring((LPCSTR) data);
 }
@@ -314,3 +324,79 @@ char *osd_get_clipboard_text(void)
 
 	return result;
 }
+
+//============================================================
+//  osd_dynamic_bind
+//============================================================
+
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+// for classic desktop applications
+#define load_library(filename) LoadLibrary(filename)
+#else
+// for Windows Store universal applications
+#define load_library(filename) LoadPackagedLibrary(filename, 0)
+#endif
+
+namespace osd {
+class dynamic_module_win32_impl : public dynamic_module
+{
+public:
+	dynamic_module_win32_impl(std::vector<std::string> &libraries)
+		: m_module(nullptr)
+	{
+		m_libraries = libraries;
+	}
+
+	virtual ~dynamic_module_win32_impl() override
+	{
+		if (m_module != nullptr)
+			FreeLibrary(m_module);
+	};
+
+protected:
+	virtual generic_fptr_t get_symbol_address(char const *symbol) override
+	{
+		/*
+		 * given a list of libraries, if a first symbol is successfully loaded from
+		 * one of them, all additional symbols will be loaded from the same library
+		 */
+		if (m_module)
+		{
+			return reinterpret_cast<generic_fptr_t>(GetProcAddress(m_module, symbol));
+		}
+
+		for (auto const &library : m_libraries)
+		{
+			auto tempstr = tstring_from_utf8(library.c_str());
+			HMODULE module = load_library(tempstr.c_str());
+
+			if (module != nullptr)
+			{
+				generic_fptr_t function = reinterpret_cast<generic_fptr_t>(GetProcAddress(module, symbol));
+
+				if (function != nullptr)
+				{
+					m_module = module;
+					return function;
+				}
+				else
+				{
+					FreeLibrary(module);
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+private:
+	std::vector<std::string> m_libraries;
+	HMODULE                  m_module;
+};
+
+dynamic_module::ptr dynamic_module::open(std::vector<std::string> &&names)
+{
+	return std::make_unique<dynamic_module_win32_impl>(names);
+}
+
+} // namespace osd

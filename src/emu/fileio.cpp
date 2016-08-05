@@ -89,9 +89,6 @@ file_enumerator::file_enumerator(const char *searchpath)
 
 file_enumerator::~file_enumerator()
 {
-	// close anything open
-	if (m_curdir != nullptr)
-		osd_closedir(m_curdir);
 }
 
 
@@ -100,30 +97,29 @@ file_enumerator::~file_enumerator()
 //  in the search path
 //-------------------------------------------------
 
-const osd_directory_entry *file_enumerator::next()
+const osd::directory::entry *file_enumerator::next()
 {
 	// loop over potentially empty directories
 	while (1)
 	{
 		// if no open directory, get the next path
-		while (m_curdir == nullptr)
+		while (!m_curdir)
 		{
 			// if we fail to get anything more, we're done
 			if (!m_iterator.next(m_pathbuffer))
 				return nullptr;
 
 			// open the path
-			m_curdir = osd_opendir(m_pathbuffer.c_str());
+			m_curdir = osd::directory::open(m_pathbuffer);
 		}
 
 		// get the next entry from the current directory
-		const osd_directory_entry *result = osd_readdir(m_curdir);
+		const osd::directory::entry *result = m_curdir->read();
 		if (result != nullptr)
 			return result;
 
 		// we're done; close this directory
-		osd_closedir(m_curdir);
-		m_curdir = nullptr;
+		m_curdir.reset();
 	}
 }
 
@@ -201,7 +197,7 @@ emu_file::operator util::core_file &()
 //  hash - returns the hash for a file
 //-------------------------------------------------
 
-hash_collection &emu_file::hashes(const char *types)
+util::hash_collection &emu_file::hashes(const char *types)
 {
 	// determine the hashes we already have
 	std::string already_have = m_hashes.hash_types();
@@ -244,7 +240,7 @@ hash_collection &emu_file::hashes(const char *types)
 //  open - open a file by searching paths
 //-------------------------------------------------
 
-osd_file::error emu_file::open(const char *name)
+osd_file::error emu_file::open(const std::string &name)
 {
 	// remember the filename and CRC info
 	m_filename = name;
@@ -256,28 +252,25 @@ osd_file::error emu_file::open(const char *name)
 	return open_next();
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2);
-	return open(name.c_str());
+	return open(name1 + name2);
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2, const char *name3)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2, const std::string &name3)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2).append(name3);
-	return open(name.c_str());
+	return open(name1 + name2 + name3);
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2, const char *name3, const char *name4)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2, const std::string &name3, const std::string &name4)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2).append(name3).append(name4);
-	return open(name.c_str());
+	return open(name1 + name2 + name3 + name4);
 }
 
-osd_file::error emu_file::open(const char *name, UINT32 crc)
+osd_file::error emu_file::open(const std::string &name, UINT32 crc)
 {
 	// remember the filename and CRC info
 	m_filename = name;
@@ -289,25 +282,22 @@ osd_file::error emu_file::open(const char *name, UINT32 crc)
 	return open_next();
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2, UINT32 crc)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2, UINT32 crc)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2);
-	return open(name.c_str(), crc);
+	return open(name1 + name2, crc);
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2, const char *name3, UINT32 crc)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2, const std::string &name3, UINT32 crc)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2).append(name3);
-	return open(name.c_str(), crc);
+	return open(name1 + name2 + name3, crc);
 }
 
-osd_file::error emu_file::open(const char *name1, const char *name2, const char *name3, const char *name4, UINT32 crc)
+osd_file::error emu_file::open(const std::string &name1, const std::string &name2, const std::string &name3, const std::string &name4, UINT32 crc)
 {
 	// concatenate the strings and do a standard open
-	std::string name = std::string(name1).append(name2).append(name3).append(name4);
-	return open(name.c_str(), crc);
+	return open(name1 + name2 + name3 + name4, crc);
 }
 
 

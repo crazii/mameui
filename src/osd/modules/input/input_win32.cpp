@@ -86,7 +86,7 @@ public:
 			_snprintf(name, ARRAY_LENGTH(name), "Scan%03d", keynum);
 
 			// add the item to the device
-			devinfo->device()->add_item(name, itemid, generic_button_get_state, &devinfo->keyboard.state[keynum]);
+			devinfo->device()->add_item(name, itemid, generic_button_get_state<std::uint8_t>, &devinfo->keyboard.state[keynum]);
 		}
 	}
 
@@ -152,7 +152,7 @@ public:
 			mouse.lY = (cursor_info.ptScreenPos.y - win32_mouse.last_point.y) * INPUT_RELATIVE_PER_PIXEL;
 
 			RECT window_pos = {0};
-			GetWindowRect(win_window_list.front()->platform_window<HWND>(), &window_pos);
+			GetWindowRect(osd_common_t::s_window_list.front()->platform_window<HWND>(), &window_pos);
 
 			// We reset the cursor position to the middle of the window each frame
 			win32_mouse.last_point.x = window_pos.left + (window_pos.right - window_pos.left) / 2;
@@ -208,13 +208,21 @@ public:
 		// populate the axes
 		for (axisnum = 0; axisnum < 2; axisnum++)
 		{
-			devinfo->device()->add_item(default_axis_name[axisnum], (input_item_id)(ITEM_ID_XAXIS + axisnum), generic_axis_get_state, &devinfo->mouse.lX + axisnum);
+			devinfo->device()->add_item(
+				default_axis_name[axisnum],
+				static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum),
+				generic_axis_get_state<LONG>,
+				&devinfo->mouse.lX + axisnum);
 		}
 
 		// populate the buttons
 		for (butnum = 0; butnum < 2; butnum++)
 		{
-			devinfo->device()->add_item(default_button_name(butnum), (input_item_id)(ITEM_ID_BUTTON1 + butnum), generic_button_get_state, &devinfo->mouse.rgbButtons[butnum]);
+			devinfo->device()->add_item(
+				default_button_name(butnum),
+				static_cast<input_item_id>(ITEM_ID_BUTTON1 + butnum),
+				generic_button_get_state<BYTE>,
+				&devinfo->mouse.rgbButtons[butnum]);
 		}
 	}
 
@@ -269,13 +277,13 @@ public:
 
 		// get the cursor position and transform into final results
 		GetCursorPos(&mousepos);
-		if (!win_window_list.empty())
+		if (!osd_common_t::s_window_list.empty())
 		{
 			RECT client_rect;
 
 			// get the position relative to the window
-			GetClientRect(win_window_list.front()->platform_window<HWND>(), &client_rect);
-			ScreenToClient(win_window_list.front()->platform_window<HWND>(), &mousepos);
+			GetClientRect(osd_common_t::s_window_list.front()->platform_window<HWND>(), &client_rect);
+			ScreenToClient(osd_common_t::s_window_list.front()->platform_window<HWND>(), &mousepos);
 
 			// convert to absolute coordinates
 			xpos = normalize_absolute_axis(mousepos.x, client_rect.left, client_rect.right);
@@ -335,10 +343,10 @@ private:
 			POINT mousepos;
 
 			// get the position relative to the window
-			GetClientRect(win_window_list.front()->platform_window<HWND>(), &client_rect);
+			GetClientRect(osd_common_t::s_window_list.front()->platform_window<HWND>(), &client_rect);
 			mousepos.x = args.xpos;
 			mousepos.y = args.ypos;
-			ScreenToClient(win_window_list.front()->platform_window<HWND>(), &mousepos);
+			ScreenToClient(osd_common_t::s_window_list.front()->platform_window<HWND>(), &mousepos);
 
 			// convert to absolute coordinates
 			mouse.lX = normalize_absolute_axis(mousepos.x, client_rect.left, client_rect.right);
@@ -383,13 +391,21 @@ public:
 			// populate the axes
 			for (axisnum = 0; axisnum < 2; axisnum++)
 			{
-				devinfo->device()->add_item(default_axis_name[axisnum], (input_item_id)(ITEM_ID_XAXIS + axisnum), generic_axis_get_state, &devinfo->mouse.lX + axisnum);
+				devinfo->device()->add_item(
+					default_axis_name[axisnum],
+					static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum),
+					generic_axis_get_state<LONG>,
+					&devinfo->mouse.lX + axisnum);
 			}
 
 			// populate the buttons
 			for (butnum = 0; butnum < 2; butnum++)
 			{
-				devinfo->device()->add_item(default_button_name(butnum), (input_item_id)(ITEM_ID_BUTTON1 + butnum), generic_button_get_state, &devinfo->mouse.rgbButtons[butnum]);
+				devinfo->device()->add_item(
+					default_button_name(butnum),
+					static_cast<input_item_id>(ITEM_ID_BUTTON1 + butnum),
+					generic_button_get_state<BYTE>,
+					&devinfo->mouse.rgbButtons[butnum]);
 			}
 		}
 	}

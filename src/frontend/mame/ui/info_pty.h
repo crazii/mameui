@@ -16,12 +16,13 @@
 #include "ui/menu.h"
 
 namespace ui {
-
 class menu_pty_info : public menu
 {
 public:
-	menu_pty_info(mame_ui_manager &mui, render_container *container);
+	menu_pty_info(mame_ui_manager &mui, render_container &container);
 	virtual ~menu_pty_info() override;
+
+private:
 	virtual void populate() override;
 	virtual void handle() override;
 };

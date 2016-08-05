@@ -42,6 +42,8 @@ Compatibility list (as per 26-jun-2013)
 0C04660A: BRA     $0C04660A ;tight loops there, NOP-ing this opcode makes to go further, perhaps not supposed to go here in the first place?
 0C046608: NOP
 
+(24-jun-2016)
+- shangril: swapped mahjong inputs (M -> N, C -> B etc.)
 
 TODO (general):
     - all games that uses YUV just updates one frame then dies, why?
@@ -80,7 +82,6 @@ TODO (game-specific):
     - Ferrari 355 Challenge: dies at the network check;
     - Giant Gram 2: no VMU emulation;
     - Gun Survivor 2: crashes during game loading;
-    - Idol Janshi Suchie-Pai 3: returns "i/o board error" msg in game mode;
     - Lupin the Shooting: "com. error between Naomi BD and i/o BD" after some secs. of gameplay;
     - Monkey Ball: dies when attempts to load the gameplay;
     - Oinori-Daimyoujin Matsuri: reports "B. RAM error" in test mode, inputs doesn't seem to work after that point;
@@ -405,13 +406,13 @@ House of the Dead 2 (USA)                       834-13636-01 21585   20 (64Mb)  
 Idol Janshi Suchie-Pai 3                        841-0002C    21979   14 (64Mb)   ?           315-6213  317-5047-JPN   requires mahjong panel
 Jambo! Safari (Rev A)                           840-0013C    22826A   8 (64Mb)   ?           315-6213  317-0264-COM
 Mars TV                                         840-0025C    22993   15 (64Mb)   present     315-6213  317-0274-JPN
-Marvel Vs. Capcom 2 (USA, Rev A)                841-0007C-01 23062A  14 (64Mb)   ?           315-6213  ?
+Marvel Vs. Capcom 2 (USA) (Rev A)               841-0007C-01 23062A  14 (64Mb)   present     315-6213  317-5053-COM
 OutTrigger                                      840-0017C    22163   19 (64Mb)   ?           315-6213  317-0266-COM   requires regular 837-13551 and 837-13938 rotary JVS boards, and special panel
 Power Stone                                     841-0001C    21597    8 (64Mb)   present     315-6213  317-5046-COM   joystick + 3 buttons
 Power Stone 2                                   841-0008C    23127    9 (64Mb)   present     315-6213  317-5054-COM   joystick + 3 buttons
 Puyo Puyo Da!                                   841-0006C    22206   20 (64Mb)   ?           315-6213  317-5052-COM
 Ring Out 4x4                                    840-0004C    21779   10 (64Mb)   present     315-6213  317-0250-COM   requires 2 JVS boards
-Samba de Amigo (Rev B)                          840-0020C    22966B  16 (64Mb)   present     315-6213  317-0270-COM   will boot but requires special controller to play it
+Samba de Amigo (Rev B) (Rev A)                  840-0020C    22966B  16 (64Mb)   present     315-6213  317-0270-COM   will boot but requires special controller to play it
 Sega Marine Fishing                             840-0027C    22221   10 (64Mb)   ?           315-6213  not present    ROM 3&4 not present. Requires 837-13844 JVS IO with all DIPSW Off and fishing controller
 Sega Strike Fighter (Rev A, set 1)              840-0035C    23323A  20 (64Mb)   present     315-6213  317-0281-COM   have "Rev. A" label on case
 Sega Strike Fighter (Rev A, set 2)              840-0035C    23786A  20 (64Mb)   present     315-6213  317-0281-COM   have "Rev. A" label on PCB
@@ -531,7 +532,8 @@ Club Kart Prize (Rev A)                                      840-0129C    24082A
 Club Kart Prize Ver. B                                       840-0137C    24149   16 (64Mb)   present  317-0368-COM  requires 837-14438 "SH I/O BD" hopper controller (not dumped)
 Giant Gram 2000                                              840-0039C    23377   20 (64Mb)   present  317-0296-COM
 Kick '4' Cash                                                840-0140C    24212   16 (64Mb)   present  317-0397-COM  requires 837-14438 "SH I/O BD" hopper controller (not dumped)
-Marvel Vs. Capcom 2 New Age of Heroes (Export, Rev A)        841-0007C-02 23085A  14 (64Mb)*  present  317-5058-COM  *(+2x 32Mb)
+Marvel Vs. Capcom 2 New Age of Heroes (Export) (Rev A)       841-0007C-02 23085A  14 (64Mb)*  present  317-5058-COM  *(+2x 32Mb) have factory wire-mod connecting IC13S serial EEPROM CLK pin to IC11 ROM /OE pin
+Marvel Vs. Capcom 2 New Age of Heroes (Korea) (Rev A)        841-0007C-03 23085A  14 (64Mb)*  present  317-5058-COM  *(+2x 32Mb) have factory wire-mod connecting IC13S serial EEPROM CLK pin to IC11 ROM /OE pin
 MushiKing The King of Beetles 2K3 2ND                        840-0150C    24217    6 (64Mb)   present  317-0394-COM  requires 610-0669 barcode reader, 838-14245-92 "MAPLE/232C CONVERT BD" (MIE-based), 838-14243 "RFID CHIP R/W BD" and RFID chip
 Quiz Ah Megamisama                                           840-0030C    23227   16 (64Mb)   present  317-0280-JPN
 Shootout Pool                                                840-0098C    23844    4 (64Mb)   present  317-0336-COM  requires regular 837-13551 and 837-13938 rotary JVS boards
@@ -1817,7 +1819,7 @@ inline int naomi_state::decode_reg32_64(UINT32 offset, UINT64 mem_mask, UINT64 *
 	if ((mem_mask != U64(0xffffffff00000000)) && (mem_mask != U64(0x00000000ffffffff)))
 	{
 		osd_printf_verbose("%s:Wrong mask!\n", machine().describe_context());
-//      debugger_break(machine);
+		//machine().debug_break();
 	}
 
 	if (mem_mask == U64(0xffffffff00000000))
@@ -2990,7 +2992,21 @@ Probably at some stage of development NAOMI was planned as non-JVS system as wel
 	ROM_LOAD16_WORD_SWAP_BIOS( 1,  "epr-21801.ic27", 0x000000, 0x200000, CRC(a21bef24) SHA1(c6c6ed09772b63a9a84ef0678fc1b7527484038a) )
 
 
-/* only revisions E and higher support the GDROM, and there is an additional bios (and SH4!) on the DIMM board for the CD Controller */
+// only revisions E and higher supports DIMM board
+// DIMM firmwares:
+//  FPR-23489C - 1.02 not VxWorks based, no network, can not be software updated to 2.xx+
+// Net-DIMM firmwares:
+// all VxWorkx based, can be updated up to 4.0x, actually 1MB in size, must have CRC32 FFFFFFFF, 1st MB of flash ROM contain stock version, 2nd MB have some updated version
+//  ?          - 2.03 factory only, introduced ALL.net features, so far was seen only as stock firmware in 1st half of flash ROM, factory updated to some newer ver in 2nd ROM half
+//  FPR23718   - 2.06 factory only, most common version of NAOMI Net-DIMMs, have stock 2.03, IC label need verification
+//  ?            2.13 factory or update (NAOMI VF4)
+//  ?            2.17 factory or update (NAOMI VF4 Evolution)
+//  ?          - 3.01 added network boot support, supports Triforce and Chihiro
+//  FPR23905   - 3.03 factory or update (NAOMI WCCF)
+//  ?            3.12 factory only
+//  ?            3.17 latest known 3.xx version, factory or update (NAOMI VF4 Final Tuned or statndalone disks for Chihiro and Triforce)
+// update only - 4.01 supports Compact Flash GD-ROM-replacement
+//              "4.02" hack of 4.01 with CF card vendor check disabled
 #define NAOMIGD_BIOS \
 	ROM_REGION( 0x200000, "maincpu", 0) \
 	ROM_SYSTEM_BIOS( 0, "bios0", "epr-21576e (Japan)" ) \
@@ -3012,7 +3028,16 @@ Probably at some stage of development NAOMI was planned as non-JVS system as wel
 	ROM_SYSTEM_BIOS( 8, "bios8", "epr-21577e (USA)" ) \
 	ROM_LOAD16_WORD_SWAP_BIOS( 8, "epr-21577e.ic27",  0x000000, 0x200000, CRC(cf36e97b) SHA1(b085305982e7572e58b03a9d35f17ae319c3bbc6) ) \
 	ROM_REGION( 0x200000, "user2", 0) \
-	ROM_LOAD16_WORD_SWAP( "fpr-23489c.ic14", 0x000000, 0x200000, CRC(bc38bea1) SHA1(b36fcc6902f397d9749e9d02de1bbb7a5e29d468) )
+	ROM_LOAD("315-6301.ic11", 0x000000, 0x01ff01, NO_DUMP ) \
+	ROM_LOAD("315-6334.ic11", 0x000000, 0x01ff01, CRC(534c342d) SHA1(3e879f432c82305487922ab28c07107cf0f3c5cf) ) \
+	ROM_LOAD16_WORD_SWAP( "fpr-23489c.ic14", 0x000000, 0x200000, CRC(bc38bea1) SHA1(b36fcc6902f397d9749e9d02de1bbb7a5e29d468) ) \
+	ROM_LOAD16_WORD_SWAP( "203_203.bin",     0x000000, 0x200000, CRC(a738ea1c) SHA1(6f55f1ae0606816a4eca6645ed36eb7f9c7ad9cf) ) \
+	ROM_LOAD16_WORD_SWAP( "fpr23718.ic36",   0x000000, 0x200000, CRC(a738ea1c) SHA1(b7b5a55a6a4cf0aa2df1b3dff62ff67f864c55e8) ) \
+	ROM_LOAD16_WORD_SWAP( "213_203.bin",     0x000000, 0x200000, CRC(a738ea1c) SHA1(17131f318632610b87bc095156ffad4597fed4ca) ) \
+	ROM_LOAD16_WORD_SWAP( "217_203.bin",     0x000000, 0x200000, CRC(a738ea1c) SHA1(e5a229ae7ed48b2955cad63529fd938c6db555e5) ) \
+	ROM_LOAD16_WORD_SWAP( "fpr23905.ic36",   0x000000, 0x200000, CRC(ffffffff) SHA1(acade4362807c7571b1c2a48ed6067e4bddd404b) ) \
+	ROM_LOAD16_WORD_SWAP( "317_312.bin",     0x000000, 0x200000, CRC(a738ea1c) SHA1(31d698cd659446ee09a2eeedec6e4bc6a19d05e8) ) \
+	ROM_LOAD16_WORD_SWAP( "401_203.bin",     0x000000, 0x200000, CRC(a738ea1c) SHA1(edb52597108462bcea8eb2a47c19e51e5fb60638) )
 
 /* NAOMI2 BIOS:
 
@@ -4576,16 +4601,40 @@ ROM_START( shangril )
 	ROM_PARAMETER( ":rom_board:segam2crypt:key", "-1") // Unknown
 ROM_END
 
-/*
-SYSTEMID: NAOMI
-JAP: MARVEL VS. CAPCOM 2
-USA: MARVEL VS. CAPCOM 2
-EXP: MARVEL VS. CAPCOM 2
+// 841-0007C-01, uses 171-7919A type ROM board
+ROM_START( mvsc2u )
+	NAOMI_BIOS
+	NAOMI_DEFAULT_EEPROM
 
-Note: the following game is one of the few known regular Naomi game to have a rom test item in its specific test mode menu.
-So the Naomi regular board test item is unreliable in this circumstance.
+	ROM_REGION( 0x7800000, "rom_board", ROMREGION_ERASEFF)
+	ROM_LOAD("epr-23062a.ic22", 0x0000000, 0x0400000, CRC(96038276) SHA1(877ba02c92082567280afcb1ae40b3bbfc8a63e8) )
+	ROM_LOAD("mpr-23048.ic1",   0x0800000, 0x0800000, CRC(93d7a63a) SHA1(c50d10b4a3f9db51eae5749f5b665d7c8ab6c898) )
+	ROM_LOAD("mpr-23049.ic2",   0x1000000, 0x0800000, CRC(003dcce0) SHA1(fb71c8ca9271d2155878c72d8fe2df3031e6c014) )
+	ROM_LOAD("mpr-23050.ic3",   0x1800000, 0x0800000, CRC(1d6b88a7) SHA1(ba42e9d1d912d88a7ad839b878975ba590634320) )
+	ROM_LOAD("mpr-23051.ic4",   0x2000000, 0x0800000, CRC(01226aaa) SHA1(a4c6a0eda05e53d0e51b92a4317a86a708a7efdb) )
+	ROM_LOAD("mpr-23052.ic5",   0x2800000, 0x0800000, CRC(74bee120) SHA1(5a0fb48fa758a2be2e08e3b1298103c5aa748835) )
+	ROM_LOAD("mpr-23053.ic6",   0x3000000, 0x0800000, CRC(d92d4401) SHA1(a868780f8d2e176ff10781e1c08bf932f34ac504) )
+	ROM_LOAD("mpr-23054.ic7",   0x3800000, 0x0800000, CRC(78ba02e8) SHA1(0f696a33e1e6671001efc309ed62f084a246ad24) )
+	ROM_LOAD("mpr-23055.ic8",   0x4000000, 0x0800000, CRC(84319604) SHA1(c3dde162e043a54e1325202b46191b32e8784a1c) )
+	ROM_LOAD("mpr-23056.ic9",   0x4800000, 0x0800000, CRC(d7386034) SHA1(be1f3ca5f283e428dc59dc072de3e7d36e122d53) )
+	ROM_LOAD("mpr-23057.ic10",  0x5000000, 0x0800000, CRC(a3f087db) SHA1(b52d7c072cb5c2fdd10d0ac0b62cebe48b229ae3) )
+	ROM_LOAD("mpr-23058.ic11",  0x5800000, 0x0800000, CRC(61a6cc5d) SHA1(34e52cb076888313a80f2b87876b8d37b91d85a0) )
+	ROM_LOAD("mpr-23059.ic12s", 0x6000000, 0x0800000, CRC(64808024) SHA1(1a6c60c330642b273978d3dd02d95d17d36ee3f2) )
+	ROM_LOAD("mpr-23060.ic13s", 0x6800000, 0x0800000, CRC(67519942) SHA1(fc758d9075625f8140d5d828c8f6b7a91bcc9119) )
+	ROM_LOAD("mpr-23061.ic14s", 0x7000000, 0x0800000, CRC(fb1844c4) SHA1(1d1571516a6dbed0c4ded3b80efde9cc9281f66f) )
 
-*/
+	ROM_REGION(0x84, "some_eeprom", 0)
+	ROM_LOAD("sflash.ic37", 0x000000, 0x000084, CRC(37a66f3c) SHA1(df6cd2cdc2813caa5da4dc9f171998485bcbdc44))
+
+	// 841-0007-01 2000     317-5053-COM   Naomi
+	ROM_PARAMETER( ":rom_board:segam2crypt:key", "0002c840" )
+ROM_END
+
+// 841-0007C-02 / 841-0007C-03, uses 171-7978B type ROM board
+// reuses MPR 23048-23061 MaskROMs from 841-0007C-01 set, which contain regular non-interleaved data, not native/normal for such ROM board type
+// have added IC31-32 32Mbit MaskROMs with interleaved M1-encrypted data
+// mentioned above ROMs mapping is unsupported by NAOMI BIOS, so it's ROM BOARD TEST and shown sums is unreliable,
+// because of it this game version have it's own ROM BOARD TEST in GAME TEST MODE, which perform test and show sums correctly
 
 ROM_START( mvsc2 )
 	NAOMI_BIOS
@@ -4613,6 +4662,9 @@ ROM_START( mvsc2 )
 	ROM_LOAD32_WORD("mpr-23084.ic32s", 0x8000002, 0x0400000, CRC(4ebbbdd9) SHA1(9ad8c1a644850de6e35705318cd1991e1d6e60a8) )
 
 	ROM_COPY( "rom_board", 0x1200000, 0x400000, 0x400000 )
+
+	ROM_REGION(0x74, "some_eeprom", 0)
+	ROM_LOAD("sflash.ic13s", 0x000000, 0x000074, CRC(5fbc2d5e) SHA1(fd762b81d1bbb65d28ad223874db198918fb0853))
 
 	// 841-0007-02 2000     317-5058-COM   Naomi
 	ROM_PARAMETER( ":rom_board:key", "c18b6e7c" )
@@ -5295,7 +5347,7 @@ ROM_START( samba )
 	NAOMI_DEFAULT_EEPROM
 
 	ROM_REGION( 0x8800000, "rom_board", ROMREGION_ERASEFF)
-	ROM_LOAD("epr-22966b.ic22",0x0000000, 0x0400000, CRC(893116b8) SHA1(35cb4f40690ff21af5ab7cc5adbc53228d6fb0b3) )
+	ROM_LOAD("epr-22966b.ic22",0x0000000, 0x0400000, CRC(893116b8) SHA1(35cb4f40690ff21af5ab7cc5adbc53228d6fb0b3) ) // was also found in cartridge with Rev.A case label
 	ROM_LOAD("mpr-22950.ic1",  0x0800000, 0x0800000, CRC(16dee15c) SHA1(b46849e492756ff406bf8956303472255fcf55a5) )
 	ROM_LOAD("mpr-22951.ic2",  0x1000000, 0x0800000, CRC(f509496f) SHA1(41281576f7d58c8ede9c0a89bfd46a98d5b97033) )
 	ROM_LOAD("mpr-22952.ic3",  0x1800000, 0x0800000, CRC(fb9b3ef0) SHA1(e9d44b673c273e97445a12186496a0594e291542) )
@@ -8761,9 +8813,33 @@ ROM_END
 
 /**********************************************
 *
-* Naomi 2 network DVD-ROM defines
+* Naomi 2 network CD and DVD-ROM defines
 *
 *********************************************/
+
+ROM_START( wccf116 )
+	NAOMIGD_BIOS
+	NAOMI_DEFAULT_EEPROM
+
+	DISK_REGION( "gdrom" )
+	DISK_IMAGE_READONLY( "cdp-10001c", 0, SHA1(efa6ef20f278c99efbf7c3630b1c8e2cad0a05c0) ) // CD-R
+
+	ROM_REGION( 0x4000, "pic", ROMREGION_ERASEFF)
+	//PIC is missing
+	ROM_LOAD("wccf1.pic", 0x00, 0x4000, NO_DUMP )
+ROM_END
+
+ROM_START( wccf1dup )
+	NAOMIGD_BIOS
+	NAOMI_DEFAULT_EEPROM
+
+	DISK_REGION( "gdrom" )
+	DISK_IMAGE_READONLY( "cdp-10003", 0, SHA1(13064b6e03527f1222b6bd01c0ba9a063d7be949) )
+
+	ROM_REGION( 0x4000, "pic", ROMREGION_ERASEFF)
+	//PIC is missing, same as CDP-10001C
+	ROM_LOAD("wccf1.pic", 0x00, 0x4000, NO_DUMP )
+ROM_END
 
 ROM_START( wccf212e )
 	NAOMIGD_BIOS
@@ -8781,6 +8857,18 @@ ROM_START( wccf212e )
 	// SH4-based camera sensor board connected to MAPLE CN7
 	ROM_REGION( 0x200000, "camera", ROMREGION_ERASE)
 	ROM_LOAD("fpr23911.ic18", 0x000000, 0x200000, CRC(1a1da741) SHA1(532ea7fc4dab11e012a521abcf5fdadd9b40d631) )
+ROM_END
+
+// "Drive Checker", contain only optical media ejector win32 program
+ROM_START( wccf2chk )
+	NAOMIGD_BIOS
+	NAOMI_DEFAULT_EEPROM
+
+	DISK_REGION( "gdrom" )
+	DISK_IMAGE_READONLY( "cdv-10007", 0, SHA1(6c5994c9b5ba5719569c541fabdd71a7ff1275aa) )
+
+	ROM_REGION( 0x4000, "pic", ROMREGION_ERASEFF)
+	// not used
 ROM_END
 
 ROM_START( wccf234j )
@@ -9178,11 +9266,11 @@ ROM_START( maxspeed )
 
 	ROM_REGION( 0x9000000, "rom_board", ROMREGION_ERASE)
 	ROM_LOAD( "ax0501p01.ic18", 0x0000000, 0x0800000, CRC(e1651867) SHA1(49caf82f4b111da312b14bb0a9c31e3732b4b24e) )
-	ROM_LOAD( "ax0501m01.ic11", 0x0800000, 0x1000000, CRC(4a847a59) SHA1(7808bcd357b85861082b426dbe34a20ae7016f6a) )
-	ROM_LOAD( "ax0502m01.ic12", 0x1000000, 0x1000000, CRC(2580237f) SHA1(2e92c940f95edae33d6a7e8a071544a9083a0fd6) )
-	ROM_LOAD( "ax0503m01.ic13", 0x2000000, 0x1000000, CRC(e5a3766b) SHA1(1fe6e072adad27ac43c0bff04e3c448678aabc18) )
-	ROM_LOAD( "ax0504m01.ic14", 0x3000000, 0x1000000, CRC(7955b55a) SHA1(927f58d6961e702c2a8afce79bac5e5cff3dfed6) )
-	ROM_LOAD( "ax0505m01.ic15", 0x4000000, 0x1000000, CRC(e8ccc660) SHA1(a5f414f200a0d41e958430d0fc2d4e1fda1cc67c) )
+	ROM_LOAD( "ax0501m01.ic11", 0x1000000, 0x1000000, CRC(4a847a59) SHA1(7808bcd357b85861082b426dbe34a20ae7016f6a) )
+	ROM_LOAD( "ax0502m01.ic12", 0x2000000, 0x1000000, CRC(2580237f) SHA1(2e92c940f95edae33d6a7e8a071544a9083a0fd6) )
+	ROM_LOAD( "ax0503m01.ic13", 0x3000000, 0x1000000, CRC(e5a3766b) SHA1(1fe6e072adad27ac43c0bff04e3c448678aabc18) )
+	ROM_LOAD( "ax0504m01.ic14", 0x4000000, 0x1000000, CRC(7955b55a) SHA1(927f58d6961e702c2a8afce79bac5e5cff3dfed6) )
+	ROM_LOAD( "ax0505m01.ic15", 0x5000000, 0x1000000, CRC(e8ccc660) SHA1(a5f414f200a0d41e958430d0fc2d4e1fda1cc67c) )
 
 	ROM_REGION( 4, "rom_key", 0 )
 	ROM_LOAD( "ax0501f01.bin", 0, 4, CRC(c35d9a95) SHA1(bf260caf33821be51014b06480a11ec982fa4fcd) )
@@ -9578,14 +9666,14 @@ GAME( 2003, puyofevp, naomi, naomim1, naomi, naomi_state, naomi, ROT0, "Sega", "
 
 /* 841-xxxxx ("Licensed by Sega" Naomi cart games)*/
 /* 0001 */ GAME( 1999, pstone,   naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Capcom",          "Power Stone", GAME_FLAGS )
-/* 0002 */ GAME( 1999, suchie3,  naomi, naomim2, suchie3, naomi_state,naomi_mp,ROT0,  "Jaleco",          "Idol Janshi Suchie-Pai 3 (JPN)", GAME_FLAGS )
+/* 0002 */ GAME( 1999, suchie3,  naomi, naomim2, suchie3, naomi_state,naomi_mp,ROT0,  "Jaleco",          "Idol Janshi Suchie-Pai 3 (JPN)", MACHINE_IMPERFECT_GRAPHICS|MACHINE_IMPERFECT_SOUND )
 /* 0003 */ GAME( 1999, doa2,     naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Tecmo",           "Dead or Alive 2 (Rev A)", GAME_FLAGS )
 /* 0003 */ GAME( 2000, doa2m,    doa2,  naomim2, naomi,   naomi_state, naomi,  ROT0,  "Tecmo",           "Dead or Alive 2 Millennium", GAME_FLAGS )
-/* 0004 */ GAME( 1999, shangril, naomi, naomim2, naomi_mp,naomi_state,naomi_mp,ROT0,  "Marvelous Ent.",  "Dengen Tenshi Taisen Janshi Shangri-la", GAME_FLAGS )
+/* 0004 */ GAME( 1999, shangril, naomi, naomim2, naomi_mp,naomi_state,naomi_mp,ROT0,  "Marvelous Ent.",  "Dengen Tenshi Taisen Janshi Shangri-la (Build 0728)", GAME_FLAGS ) // version taken from service mode
 /* 0005 */ GAME( 1999, spawn,    naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Todd Mc Farlane / Capcom","Spawn In the Demon's Hand (Rev B)", GAME_FLAGS )
 /* 0006 */ GAME( 1999, puyoda,   naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Compile",         "Puyo Puyo Da!", GAME_FLAGS )
-// 0007-01    GAME(2000, mvsc2u, mvsc2, naomim2, naomi,   naomi_state, mvsc2,  ROT0,  "Capcom / Marvel", "Marvel Vs. Capcom 2 New Age of Heroes (USA, Rev A)", GAME_FLAGS)
-/* 0007-02 */ GAME(2000, mvsc2,  naomi, naomim1, naomi,   naomi_state, mvsc2,  ROT0,  "Capcom / Marvel", "Marvel Vs. Capcom 2 New Age of Heroes (Export, Rev A)", GAME_FLAGS)
+/* 0007-01 */     GAME(2000, mvsc2u, mvsc2, naomim2, naomi,   naomi_state, mvsc2,  ROT0,  "Capcom / Marvel", "Marvel Vs. Capcom 2 New Age of Heroes (USA) (Rev A)", GAME_FLAGS)
+/* 0007-02 -03 */ GAME(2000, mvsc2,  naomi, naomim1, naomi,   naomi_state, mvsc2,  ROT0,  "Capcom / Marvel", "Marvel Vs. Capcom 2 New Age of Heroes (Export, Korea) (Rev A)", GAME_FLAGS)
 /* 0008 */ GAME( 2000, pstone2,  naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Capcom",          "Power Stone 2", GAME_FLAGS )
 /* 0011 */ GAME( 2000, capsnk,   naomi, naomim2, naomi,   naomi_state, naomi,  ROT0,  "Capcom / SNK",    "Capcom Vs. SNK Millennium Fight 2000 (Rev C)", GAME_FLAGS )
 /* 0011 */ GAME( 2000, capsnka,  capsnk,naomim2, naomi,   naomi_state, naomi,  ROT0,  "Capcom / SNK",    "Capcom Vs. SNK Millennium Fight 2000 (Rev A)", GAME_FLAGS )
@@ -9656,11 +9744,11 @@ GAME( 2003, puyofevp, naomi, naomim1, naomi, naomi_state, naomi, ROT0, "Sega", "
 /* 0021A */ GAME( 2002, luptype,  naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Lupin The Third - The Typing (Rev A) (GDS-0021A)", GAME_FLAGS )
 /* 0022  */ GAME( 2002, mok,      naomigd, naomigd,  hotd2,   naomi_state, naomigd, ROT0, "Sega", "The Maze of the Kings (GDS-0022)", GAME_FLAGS )
 // 0023  Naomi DIMM Firmware Updater (GDS-0023)
-/* 0023A */ GAME( 2001, ngdup23a, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (Rev A) (GDS-0023A)", GAME_FLAGS )
+/* 0023A */ GAME( 2001, ngdup23a, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (2.13) (GDS-0023A)", GAME_FLAGS )
 // 0023B Naomi DIMM Firmware Updater (Rev B) (GDS-0023B)
-/* 0023C */ GAME( 2001, ngdup23c, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (Rev C) (GDS-0023C)", GAME_FLAGS )
+/* 0023C */ GAME( 2001, ngdup23c, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (2.17) (GDS-0023C)", GAME_FLAGS )
 // 0023D Naomi DIMM Firmware Updater (Rev D) (GDS-0023D)
-/* 0023E */ GAME( 2001, ngdup23e, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (Rev E) (GDS-0023E)", GAME_FLAGS )
+/* 0023E */ GAME( 2001, ngdup23e, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Updater (3.17) (GDS-0023E)", GAME_FLAGS )
 // 0024  Virtua Fighter 4 Evolution (GDS-0024)
 /* 0024A */ GAME( 2002, vf4evoa,  vf4evo,  naomi2gd, naomi,   naomi_state, naomi2,  ROT0, "Sega", "Virtua Fighter 4 Evolution (Rev A) (GDS-0024A)", GAME_FLAGS )
 /* 0024B */ GAME( 2002, vf4evo,   naomi2,  naomi2gd, naomi,   naomi_state, naomi2,  ROT0, "Sega", "Virtua Fighter 4 Evolution (Rev B) (GDS-0024B)", GAME_FLAGS )
@@ -9699,7 +9787,7 @@ GAME( 2003, puyofevp, naomi, naomim1, naomi, naomi_state, naomi, ROT0, "Sega", "
 // 0041  Dragon Treasure 3 (GDS-0041)
 /* 0041A */ GAME( 2005, dragntr3, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Dragon Treasure 3 (Rev A) (GDS-0041A)", GAME_FLAGS )
 // 0042  NAOMI DIMM Firm Update for CF-BOX (GDS-0042)
-/* 0042A */ GAME( 2001, ndcfboxa, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Update for CF-BOX (Rev A) (GDS-0042A)", GAME_FLAGS )
+/* 0042A */ GAME( 2001, ndcfboxa, naomigd, naomigd,  naomi,   naomi_state, naomigd, ROT0, "Sega", "Naomi DIMM Firmware Update for CF-BOX (4.01) (GDS-0042A)", GAME_FLAGS )
 // 00??  Dragon Treasure (GDS-00xx)
 // 00??  Get Bass 2 (GDS-00xx)
 // 00??  Pochinya (GDS-00xx)
@@ -9729,7 +9817,7 @@ GAME( 2003, puyofevp, naomi, naomim1, naomi, naomi_state, naomi, ROT0, "Sega", "
 /* 0019A */ GAME( 2003, ggxxrl,  naomigd, naomigd, naomi, naomi_state,  ggxxrl,   ROT0,"Arc System Works","Guilty Gear XX #Reload (Rev A) (GDL-0019A)", GAME_FLAGS )
 /* 0020  */ GAME( 2004, tetkiwam,naomigd, naomigd, naomi, naomi_state,  naomigd,  ROT0,   "Success",      "Tetris Kiwamemichi (GDL-0020)", GAME_FLAGS )
 /* 0021  */ GAME( 2003, shikgam2,naomigd, naomigd, naomi, naomi_state,  naomigd,  ROT270, "Alfa System",  "Shikigami No Shiro II / The Castle of Shikigami II (GDL-0021)", GAME_FLAGS )
-/* 0022  */ GAME( 2003, usagiym, naomigd, naomigd, naomi_mp,naomi_state,naomigd_mp,ROT0,"Warashi / Mahjong Kobo / Taito", "Usagi - Yamashiro Mahjong Hen (GDL-0022)", GAME_FLAGS )
+/* 0022  */ GAME( 2003, usagiym, naomigd, naomigd, naomi_mp,naomi_state,naomigd_mp,ROT0,"Warashi / Mahjong Kobo / Taito", "Usagi - Yamashiro Mahjong Hen (GDL-0022)", MACHINE_IMPERFECT_GRAPHICS|MACHINE_IMPERFECT_SOUND  )
 // 0023  Border Down (GDL-0023)
 /* 0023A */ GAME( 2003, bdrdown, naomigd, naomigd, naomi, naomi_state,  naomigd,  ROT0,   "G.Rev",        "Border Down (Rev A) (GDL-0023A)", GAME_FLAGS )
 /* 0024  */ GAME( 2003, psyvar2, naomigd, naomigd, naomi, naomi_state,  naomigd,  ROT270, "Success",      "Psyvariar 2 - The Will To Fabricate (GDL-0024)", GAME_FLAGS )
@@ -9763,9 +9851,10 @@ GAME( 2003, puyofevp, naomi, naomim1, naomi, naomi_state, naomi, ROT0, "Sega", "
 // 00??  ExZeus (GDL-00xx)
 
 /* CDP-xxxxx and CDV-xxxxx (CD-ROM and DVD-ROM for Naomi 2 Satellite Terminal) */
-// CDP-10001 - World Club Champion Football Serie A 2001-2002 Ver.2 (Hitmaker / Sega, 2003)
+/* CDP-10001C*/ GAME( 2003, wccf116,  naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Hitmaker / Sega", "World Club Champion Football Serie A 2001-2002 Ver. 2 (CDP-10001C)", GAME_FLAGS )
+/* CDP-10003 */ GAME( 2002, wccf1dup, naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Hitmaker / Sega", "World Club Champion Football Serie A 2001-2002 DIMM FIRM Ver.3.03 (CDP-10003)", GAME_FLAGS )
 /* CDV-10002 */ GAME( 2004, wccf212e, naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Hitmaker / Sega", "World Club Champion Football Serie A 2002-2003 Ver.2.12 (CDV-10002)", GAME_FLAGS )
-// CDV-10007 - World Club Champion Football Serie A 2002-2003 (Hitmaker / Sega, 2003)
+/* CDV-10007 */ GAME( 2004, wccf2chk, naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Hitmaker / Sega", "World Club Champion Football Serie A 2002-2003 Drive Checker (CDV-10007)", GAME_FLAGS )  // actually just disc ejector
 /* CDV-10008 */ GAME( 2004, wccf234j, naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Hitmaker / Sega", "World Club Champion Football Serie A 2002-2003 Ver.2.34 (CDV-10008)", GAME_FLAGS )
 /* CDV-10013 */ GAME( 2005, wccf310j, naomigd, naomigd, naomi, naomi_state, naomigd, ROT0, "Sega",            "World Club Champion Football European Clubs 2004-2005 (CDV-10013)", GAME_FLAGS )
 /* CDV-10015 */ GAME( 2005, wccf331e, wccf322e,naomigd, naomi, naomi_state, naomigd, ROT0, "Sega",            "World Club Champion Football European Clubs 2004-2005 Ver.1.1 (CDV-10015)", GAME_FLAGS )

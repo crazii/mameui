@@ -521,9 +521,10 @@ protected:
 	emu_timer *baudtimer;
 	UINT16 m_brg_counter;
 #else
-	UINT16 m_brg_rate;
+	unsigned int m_brg_rate;
 #endif
-	UINT16 m_brg_const;
+	unsigned int m_delayed_tx_brg_change;
+	unsigned int m_brg_const;
 
 	void update_serial();
 	void set_dtr(int state);
@@ -534,19 +535,20 @@ protected:
 	stop_bits_t get_stop_bits();
 	int get_rx_word_length();
 	int get_tx_word_length();
+	void safe_transmit_register_reset();
 
 	// receiver state
 	UINT8 m_rx_data_fifo[8];    // receive data FIFO
 	UINT8 m_rx_error_fifo[8];   // receive error FIFO
 	UINT8 m_rx_error;       // current receive error
 	//int m_rx_fifo         // receive FIFO pointer
-		int m_rx_fifo_rp;   // receive FIFO read pointer
-	int m_rx_fifo_wp;   // receive FIFO write pointer
-	int m_rx_fifo_sz;   // receive FIFO size
+	int m_rx_fifo_rp;       // receive FIFO read pointer
+	int m_rx_fifo_wp;       // receive FIFO write pointer
+	int m_rx_fifo_sz;       // receive FIFO size
 
-	int m_rx_clock;     // receive clock pulse count
-	int m_rx_first;     // first character received
-	int m_rx_break;     // receive break condition
+	int m_rx_clock;         // receive clock pulse count
+	int m_rx_first;         // first character received
+	int m_rx_break;         // receive break condition
 	UINT8 m_rx_rr0_latch;   // read register 0 latched
 
 	int m_rxd;
@@ -664,9 +666,11 @@ protected:
 	void reset_interrupts();
 	UINT8 modify_vector(UINT8 vect, int i, UINT8 src);
 	void trigger_interrupt(int index, int state);
+
+
 	int get_channel_index(z80scc_channel *ch) { return (ch == m_chanA) ? 0 : 1; }
 
-		// Variants in the SCC family
+	// Variants in the SCC family
 	enum
 	{
 		TYPE_Z80SCC   = 0x001,

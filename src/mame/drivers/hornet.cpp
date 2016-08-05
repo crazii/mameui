@@ -369,8 +369,8 @@ public:
 	required_device<cpu_device> m_audiocpu;
 	required_device<k056800_device> m_k056800;
 	optional_device<cpu_device> m_gn680;
-	required_device<cpu_device> m_dsp;
-	optional_device<cpu_device> m_dsp2;
+	required_device<adsp21062_device> m_dsp;
+	optional_device<adsp21062_device> m_dsp2;
 	optional_device<k037122_device> m_k037122_1;
 	optional_device<k037122_device> m_k037122_2;
 	required_device<adc12138_device> m_adc12138;
@@ -423,6 +423,9 @@ public:
 
 	DECLARE_DRIVER_INIT(hornet);
 	DECLARE_DRIVER_INIT(hornet_2board);
+	DECLARE_DRIVER_INIT(gradius4);
+	DECLARE_DRIVER_INIT(nbapbp);
+	DECLARE_DRIVER_INIT(terabrst);
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
 	DECLARE_MACHINE_RESET(hornet_2board);
@@ -1118,7 +1121,7 @@ static MACHINE_CONFIG_DERIVED( hornet_2board, hornet )
 	MCFG_KONPPC_CGBOARD_TYPE(CGBOARD_TYPE_HORNET)
 MACHINE_CONFIG_END
 
-static MACHINE_CONFIG_DERIVED( terabrst, hornet_2board )
+static MACHINE_CONFIG_DERIVED( terabrst, hornet )
 
 	MCFG_CPU_ADD("gn680", M68000, XTAL_32MHz/2)   /* 16MHz */
 	MCFG_CPU_PROGRAM_MAP(gn680_memmap)
@@ -1307,6 +1310,24 @@ DRIVER_INIT_MEMBER(hornet_state,hornet_2board)
 	m_maincpu->ppc4xx_spu_set_tx_handler(write8_delegate(FUNC(hornet_state::jamma_jvs_w), this));
 }
 
+DRIVER_INIT_MEMBER(hornet_state, gradius4)
+{
+	DRIVER_INIT_CALL(hornet);
+	m_dsp->enable_recompiler();
+}
+
+DRIVER_INIT_MEMBER(hornet_state, nbapbp)
+{
+	DRIVER_INIT_CALL(hornet);
+	m_dsp->enable_recompiler();
+}
+
+DRIVER_INIT_MEMBER(hornet_state, terabrst)
+{
+	DRIVER_INIT_CALL(hornet);
+	m_dsp->enable_recompiler();
+}
+
 /*****************************************************************************/
 
 ROM_START(sscope)
@@ -1426,7 +1447,7 @@ ROM_START(sscope2)
 	ROM_REGION(0x8, "lan_serial_id", 0)     /* LAN Board DS2401 */
 	ROM_LOAD( "ds2401.8b", 0x000000, 0x000008, BAD_DUMP CRC(bae36d0b) SHA1(4dd5915888d5718356b40bbe897f2470e410176a) ) // hand built
 
-	ROM_REGION(0x80, "lan_eeprom", 0)       /* LAN Board AT93C46 */
+	ROM_REGION16_BE(0x80, "lan_eeprom", 0)       /* LAN Board AT93C46 */
 	ROM_LOAD( "at93c46.16g", 0x000000, 0x000080, BAD_DUMP CRC(cc63c213) SHA1(fb20e56fb73a887dc7b6db49efd1f8a18b959152) ) // hand built
 ROM_END
 
@@ -1540,10 +1561,10 @@ ROM_END
 
 /*************************************************************************/
 
-GAME(  1998, gradius4,  0,        hornet,           hornet,  hornet_state, hornet,        ROT0, "Konami", "Gradius 4: Fukkatsu", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
-GAME(  1998, nbapbp,    0,        hornet,           hornet,  hornet_state, hornet,        ROT0, "Konami", "NBA Play By Play", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
-GAMEL( 1998, terabrst,  0,        terabrst,         hornet,  hornet_state, hornet_2board, ROT0, "Konami", "Teraburst (1998/07/17 ver UEL)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_dualhsxs )
-GAMEL( 1998, terabrsta, terabrst, terabrst,         hornet,  hornet_state, hornet_2board, ROT0, "Konami", "Teraburst (1998/02/25 ver AAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_dualhsxs )
+GAME(  1998, gradius4,  0,        hornet,           hornet,  hornet_state, gradius4,      ROT0, "Konami", "Gradius 4: Fukkatsu", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
+GAME(  1998, nbapbp,    0,        hornet,           hornet,  hornet_state, nbapbp,        ROT0, "Konami", "NBA Play By Play", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
+GAME(  1998, terabrst,  0,        terabrst,         hornet,  hornet_state, terabrst,      ROT0, "Konami", "Teraburst (1998/07/17 ver UEL)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
+GAME(  1998, terabrsta, terabrst, terabrst,         hornet,  hornet_state, terabrst,      ROT0, "Konami", "Teraburst (1998/02/25 ver AAA)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
 
 // The region comes from the Timekeeper NVRAM, without a valid default all sets except 'xxD, Ver 1.33' will init their NVRAM to UAx versions, the xxD set seems to incorrectly init it to JXD, which isn't a valid
 // version, and thus can't be booted.  If you copy the NVRAM from another already initialized set, it will boot as UAD.

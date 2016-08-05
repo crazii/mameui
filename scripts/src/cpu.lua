@@ -13,7 +13,7 @@
 -- Dynamic recompiler objects
 --------------------------------------------------
 
-if (CPUS["SH2"]~=null or CPUS["MIPS"]~=null or CPUS["POWERPC"]~=null or CPUS["RSP"]~=null or CPUS["ARM7"]~=null) then
+if (CPUS["SH2"]~=null or CPUS["MIPS"]~=null or CPUS["POWERPC"]~=null or CPUS["RSP"]~=null or CPUS["ARM7"]~=null or CPUS["ADSP21062"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/cpu/drcbec.cpp",
 		MAME_DIR .. "src/devices/cpu/drcbec.h",
@@ -1449,7 +1449,7 @@ end
 
 --------------------------------------------------
 -- PATINHO FEIO - Escola Politecnica - USP (Brazil)
---@src/devices/cpu/patinhofeio/patinho_feio.h,CPUS["PATINHOFEIO"] = true
+--@src/devices/cpu/patinhofeio/patinhofeio_cpu.h,CPUS["PATINHOFEIO"] = true
 --------------------------------------------------
 
 if (CPUS["PATINHOFEIO"]~=null) then
@@ -2370,3 +2370,21 @@ if (CPUS["ALTO2"]~=null or _OPTIONS["with-tools"]) then
 	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/alto2/alto2dsm.cpp")
 end
 
+------------------------------------------
+-- Sun SPARC, Fujitus MB86901 implementation
+--@src/devices/cpu/sparc/sparc.h,CPUS["MB86901"] = true
+--------------------------------------------------
+
+if (CPUS["MB86901"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/sparc/mb86901.cpp",
+		MAME_DIR .. "src/devices/cpu/sparc/sparcv8ops.ipp",
+		MAME_DIR .. "src/devices/cpu/sparc/sparcdasm.h",
+		MAME_DIR .. "src/devices/cpu/sparc/sparcdefs.h",
+		MAME_DIR .. "src/devices/cpu/sparc/sparc.h",
+	}
+end
+
+if (CPUS["MB86901"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/sparc/sparcdasm.cpp")
+end

@@ -261,9 +261,9 @@ void info_xml_creator::output_one()
 	{
 		int nplayers = 0;
 		bool new_kbd = false;
-		for (ioport_port &port : portlist)
-			if (&port.device() == &device)
-				for (ioport_field &field : port.fields())
+		for (auto &port : portlist)
+			if (&port.second->device() == &device)
+				for (ioport_field &field : port.second->fields())
 					if (field.type() >= IPT_START && field.type() < IPT_ANALOG_LAST)
 					{
 						if (field.type() == IPT_KEYBOARD)
@@ -366,8 +366,8 @@ void info_xml_creator::output_one_device(device_t &device, const char *devtag)
 	for (device_t &dev : device_iterator(device))
 		portlist.append(dev, errors);
 	// check if the device adds player inputs (other than dsw and configs) to the system
-	for (ioport_port &port : portlist)
-		for (ioport_field &field : port.fields())
+	for (auto &port : portlist)
+		for (ioport_field &field : port.second->fields())
 			if (field.type() >= IPT_START1 && field.type() < IPT_UI_FIRST)
 			{
 				has_input = TRUE;
@@ -438,11 +438,11 @@ void info_xml_creator::output_devices()
 		// then, run through slot devices
 		for (const device_slot_interface &slot : slot_interface_iterator(m_drivlist.config().root_device()))
 		{
-			for (const device_slot_option &option : slot.option_list())
+			for (auto &option : slot.option_list())
 			{
 				std::string temptag("_");
-				temptag.append(option.name());
-				device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), temptag.c_str(), option.devtype(), 0);
+				temptag.append(option.second->name());
+				device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), temptag.c_str(), option.second->devtype(), 0);
 
 				// notify this device and all its subdevices that they are now configured
 				for (device_t &device : device_iterator(*dev))
@@ -567,8 +567,8 @@ void info_xml_creator::output_rom(device_t &device)
 					continue;
 
 				// if we have a valid ROM and we are a clone, see if we can find the parent ROM
-				hash_collection hashes(ROM_GETHASHDATA(rom));
-				if (!hashes.flag(hash_collection::FLAG_NO_DUMP))
+				util::hash_collection hashes(ROM_GETHASHDATA(rom));
+				if (!hashes.flag(util::hash_collection::FLAG_NO_DUMP))
 					merge_name = get_merge_name(hashes);
 				if (&device != &m_drivlist.config().root_device())
 					merge_name = nullptr;
@@ -604,7 +604,7 @@ void info_xml_creator::output_rom(device_t &device)
 					util::stream_format(output, " size=\"%d\"", rom_file_size(rom));
 
 				// dump checksum information only if there is a known dump
-				if (!hashes.flag(hash_collection::FLAG_NO_DUMP))
+				if (!hashes.flag(util::hash_collection::FLAG_NO_DUMP))
 				{
 					// iterate over hash function types and print m_output their values
 					output << " " << hashes.attribute_string();
@@ -891,11 +891,11 @@ void info_xml_creator::output_input(const ioport_list &portlist)
 	bool tilt = false;
 
 	// iterate over the ports
-	for (ioport_port &port : portlist)
+	for (auto &port : portlist)
 	{
 		int ctrl_type = CTRL_DIGITAL_BUTTONS;
 		bool ctrl_analog = FALSE;
-		for (ioport_field &field : port.fields())
+		for (ioport_field &field : port.second->fields())
 		{
 			// track the highest player number
 			if (nplayer < field.player() + 1)
@@ -1317,13 +1317,13 @@ void info_xml_creator::output_input(const ioport_list &portlist)
 void info_xml_creator::output_switches(const ioport_list &portlist, const char *root_tag, int type, const char *outertag, const char *innertag)
 {
 	// iterate looking for DIP switches
-	for (ioport_port &port : portlist)
-		for (ioport_field &field : port.fields())
+	for (auto &port : portlist)
+		for (ioport_field &field : port.second->fields())
 			if (field.type() == type)
 			{
 				std::ostringstream output;
 
-				std::string newtag(port.tag()), oldtag(":");
+				std::string newtag(port.second->tag()), oldtag(":");
 				newtag = newtag.substr(newtag.find(oldtag.append(root_tag)) + oldtag.length());
 
 				// output the switch name information
@@ -1351,10 +1351,10 @@ void info_xml_creator::output_switches(const ioport_list &portlist, const char *
 void info_xml_creator::output_ports(const ioport_list &portlist)
 {
 	// cycle through ports
-	for (ioport_port &port : portlist)
+	for (auto &port : portlist)
 	{
-		fprintf(m_output,"\t\t<port tag=\"%s\">\n", xml_normalize_string(port.tag()));
-		for (ioport_field &field : port.fields())
+		fprintf(m_output,"\t\t<port tag=\"%s\">\n", xml_normalize_string(port.second->tag()));
+		for (ioport_field &field : port.second->fields())
 		{
 			if(field.is_analog())
 				fprintf(m_output,"\t\t\t<analog mask=\"%u\"/>\n", field.mask());
@@ -1373,8 +1373,8 @@ void info_xml_creator::output_ports(const ioport_list &portlist)
 void info_xml_creator::output_adjusters(const ioport_list &portlist)
 {
 	// iterate looking for Adjusters
-	for (ioport_port &port : portlist)
-		for (ioport_field &field : port.fields())
+	for (auto &port : portlist)
+		for (ioport_field &field : port.second->fields())
 			if (field.type() == IPT_ADJUSTER)
 				fprintf(m_output, "\t\t<adjuster name=\"%s\" default=\"%d\"/>\n", xml_normalize_string(field.name()), field.defvalue());
 }
@@ -1528,18 +1528,18 @@ void info_xml_creator::output_slots(device_t &device, const char *root_tag)
 			 fprintf(m_output, " interface=\"%s\"", xml_normalize_string(slot.slot_interface()));
 			 */
 
-			for (const device_slot_option &option : slot.option_list())
+			for (auto &option : slot.option_list())
 			{
-				if (option.selectable())
+				if (option.second->selectable())
 				{
-					device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), "dummy", option.devtype(), 0);
+					device_t *dev = const_cast<machine_config &>(m_drivlist.config()).device_add(&m_drivlist.config().root_device(), "dummy", option.second->devtype(), 0);
 					if (!dev->configured())
 						dev->config_complete();
 
 					fprintf(m_output, "\t\t\t<slotoption");
-					fprintf(m_output, " name=\"%s\"", xml_normalize_string(option.name()));
+					fprintf(m_output, " name=\"%s\"", xml_normalize_string(option.second->name()));
 					fprintf(m_output, " devname=\"%s\"", xml_normalize_string(dev->shortname()));
-					if (slot.default_option() != nullptr && strcmp(slot.default_option(),option.name())==0)
+					if (slot.default_option() != nullptr && strcmp(slot.default_option(), option.second->name())==0)
 						fprintf(m_output, " default=\"yes\"");
 					fprintf(m_output, "/>\n");
 					const_cast<machine_config &>(m_drivlist.config()).device_remove(&m_drivlist.config().root_device(), "dummy");
@@ -1603,7 +1603,7 @@ void info_xml_creator::output_ramoptions()
 //  parent set
 //-------------------------------------------------
 
-const char *info_xml_creator::get_merge_name(const hash_collection &romhashes)
+const char *info_xml_creator::get_merge_name(const util::hash_collection &romhashes)
 {
 	// walk the parent chain
 	const char *merge_name = nullptr;
@@ -1614,8 +1614,8 @@ const char *info_xml_creator::get_merge_name(const hash_collection &romhashes)
 		for (const rom_entry *pregion = rom_first_region(*device); pregion != nullptr; pregion = rom_next_region(pregion))
 			for (const rom_entry *prom = rom_first_file(pregion); prom != nullptr; prom = rom_next_file(prom))
 			{
-				hash_collection phashes(ROM_GETHASHDATA(prom));
-				if (!phashes.flag(hash_collection::FLAG_NO_DUMP) && romhashes == phashes)
+				util::hash_collection phashes(ROM_GETHASHDATA(prom));
+				if (!phashes.flag(util::hash_collection::FLAG_NO_DUMP) && romhashes == phashes)
 				{
 					// stop when we find a match
 					merge_name = ROM_GETNAME(prom);

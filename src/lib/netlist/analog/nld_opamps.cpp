@@ -38,8 +38,10 @@ NETLIST_START(opamp_lm3900)
 
 NETLIST_END()
 
-NETLIB_NAMESPACE_DEVICES_START()
-
+namespace netlist
+{
+	namespace devices
+	{
 /*
  * Type = 0: Impedance changer
  *        1; Idealized opamp
@@ -57,10 +59,10 @@ NETLIB_UPDATE(OPAMP)
 {
 	const double cVt = 0.0258 * 1.0; // * m_n;
 	const double cId = m_model.model_value("DAB"); // 3 mA
-	const double cVd = cVt * nl_math::log(cId / 1e-15 + 1.0);
-	m_VH.set_Q(INPANALOG(m_VCC) - m_model.model_value("VLH") - cVd);
-	m_VL.set_Q(INPANALOG(m_GND) + m_model.model_value("VLL") + cVd);
-	m_VREF.set_Q((INPANALOG(m_VCC) + INPANALOG(m_GND)) / 2.0);
+	const double cVd = cVt * std::log(cId / 1e-15 + 1.0);
+	m_VH.push(m_VCC() - m_model.model_value("VLH") - cVd);
+	m_VL.push(m_GND() + m_model.model_value("VLL") + cVd);
+	m_VREF.push((m_VCC() + m_GND()) / 2.0);
 }
 
 NETLIB_RESET(OPAMP)
@@ -113,4 +115,5 @@ NETLIB_DEVICE_WITH_PARAMS(OPAMPx,
 );
 */
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist

@@ -89,8 +89,8 @@ ROM board internal layouts:
  Type 1:
 
  00000000 - 00800000 IC18 flash ROM
- 00800000 - 01000000 mirror of above
- 01000000 - 02000000 IC10 \
+ 00800000 - 01000000 IC10 or mirror of above
+ 01000000 - 02000000 IC11 \
         .....               mask ROMs
  07000000 - 08000000 IC17 /
 
@@ -301,7 +301,7 @@ READ16_MEMBER(aw_rom_board::pio_r)
 	UINT32 roffset = epr_offset & 0x3ffffff;
 	if (roffset >= (mpr_offset / 2))
 		roffset += mpr_bank * 0x4000000;
-		UINT16 retval = (m_region->bytes() > (roffset * 2)) ? m_region->u16(roffset) : 0; // not endian-safe?
+	UINT16 retval = (m_region->bytes() > (roffset * 2)) ? m_region->u16(roffset) : 0; // not endian-safe?
 	return retval;
 }
 

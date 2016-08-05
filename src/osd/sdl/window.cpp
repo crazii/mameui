@@ -64,12 +64,6 @@
 #define WMSZ_RIGHT          (7)
 #endif
 
-//============================================================
-//  GLOBAL VARIABLES
-//============================================================
-
-std::list<std::shared_ptr<sdl_window_info>> sdl_window_list;
-
 class SDL_DM_Wrapper
 {
 public:
@@ -154,7 +148,7 @@ bool sdl_osd_interface::window_init()
 
 void sdl_osd_interface::update_slider_list()
 {
-	for (auto window : sdl_window_list)
+	for (auto window : osd_common_t::s_window_list)
 	{
 		// check if any window has dirty sliders
 		if (window->renderer().sliders_dirty())
@@ -169,7 +163,7 @@ void sdl_osd_interface::build_slider_list()
 {
 	m_sliders.clear();
 
-	for (auto window : sdl_window_list)
+	for (auto window : osd_common_t::s_window_list)
 	{
 		std::vector<ui::menu_item> window_sliders = window->renderer().get_slider_list();
 		m_sliders.insert(m_sliders.end(), window_sliders.begin(), window_sliders.end());
@@ -186,9 +180,9 @@ void sdl_osd_interface::window_exit()
 	osd_printf_verbose("Enter sdlwindow_exit\n");
 
 	// free all the windows
-	while (!sdl_window_list.empty())
+	while (!osd_common_t::s_window_list.empty())
 	{
-		auto window = sdl_window_list.front();
+		auto window = osd_common_t::s_window_list.front();
 
 		// Part of destroy removes the window from the list
 		window->destroy();
@@ -218,27 +212,40 @@ void sdl_osd_interface::window_exit()
 
 void sdl_window_info::capture_pointer()
 {
-	if (!SDL_GetWindowGrab(platform_window<SDL_Window*>()))
+	if (!m_mouse_captured)
+	{
 		SDL_SetWindowGrab(platform_window<SDL_Window*>(), SDL_TRUE);
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		m_mouse_captured = true;
+	}
 }
 
 void sdl_window_info::release_pointer()
 {
-	if (SDL_GetWindowGrab(platform_window<SDL_Window*>()))
+	if (m_mouse_captured)
+	{
 		SDL_SetWindowGrab(platform_window<SDL_Window*>(), SDL_FALSE);
-	SDL_SetRelativeMouseMode(SDL_FALSE);
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		m_mouse_captured = false;
+	}
 }
 
 void sdl_window_info::hide_pointer()
 {
-	SDL_ShowCursor(SDL_DISABLE);
+	if (!m_mouse_hidden)
+	{
+		SDL_ShowCursor(SDL_DISABLE);
+		m_mouse_hidden = true;
+	}
 }
 
 void sdl_window_info::show_pointer()
 {
-	SDL_ShowCursor(SDL_ENABLE);
-
+	if (m_mouse_hidden)
+	{
+		SDL_ShowCursor(SDL_ENABLE);
+		m_mouse_hidden = false;
+	}
 }
 
 
@@ -399,7 +406,7 @@ int sdl_window_info::window_init()
 	m_startmaximized = options.maximize();
 
 	// add us to the list
-	sdl_window_list.push_back(std::static_pointer_cast<sdl_window_info>(shared_from_this()));
+	osd_common_t::s_window_list.push_back(std::static_pointer_cast<sdl_window_info>(shared_from_this()));
 
 	set_renderer(osd_renderer::make_for_type(video_config.mode, static_cast<osd_window*>(this)->shared_from_this()));
 
@@ -435,12 +442,17 @@ error:
 
 void sdl_window_info::complete_destroy()
 {
+	// Release pointer grab and hide if needed
+	show_pointer();
+	release_pointer();
+
 	if (fullscreen() && video_config.switchres)
 	{
 		SDL_SetWindowFullscreen(platform_window<SDL_Window*>(), 0);    // Try to set mode
 		SDL_SetWindowDisplayMode(platform_window<SDL_Window*>(), &m_original_mode->mode);    // Try to set mode
 		SDL_SetWindowFullscreen(platform_window<SDL_Window*>(), SDL_WINDOW_FULLSCREEN);    // Try to set mode
 	}
+
 	SDL_DestroyWindow(platform_window<SDL_Window*>());
 	// release all keys ...
 	downcast<sdl_osd_interface &>(machine().osd()).release_keys();
@@ -451,7 +463,7 @@ void sdl_window_info::destroy()
 	//osd_event_wait(window->rendered_event, osd_ticks_per_second()*10);
 
 	// remove us from the list
-	sdl_window_list.remove(std::static_pointer_cast<sdl_window_info>(shared_from_this()));
+	osd_common_t::s_window_list.remove(std::static_pointer_cast<sdl_window_info>(shared_from_this()));
 
 	// free the textures etc
 	complete_destroy();
@@ -773,7 +785,7 @@ int sdl_window_info::complete_create()
 	// set main window
 	if (m_index > 0)
 	{
-		for (auto w : sdl_window_list)
+		for (auto w : osd_common_t::s_window_list)
 		{
 			if (w->m_index == 0)
 			{
@@ -878,7 +890,7 @@ osd_rect sdl_window_info::constrain_to_aspect_ratio(const osd_rect &rect, int ad
 	INT32 viswidth, visheight;
 	INT32 adjwidth, adjheight;
 	float pixel_aspect;
-	osd_monitor_info *monitor = m_monitor;
+	std::shared_ptr<osd_monitor_info> monitor = m_monitor;
 
 	// do not constrain aspect ratio for integer scaled views
 	if (m_target->scale_mode() != SCALE_FRACTIONAL)
@@ -1092,7 +1104,7 @@ osd_dim sdl_window_info::get_max_bounds(int constrain)
 //  construction and destruction
 //============================================================
 
-sdl_window_info::sdl_window_info(running_machine &a_machine, int index, osd_monitor_info *a_monitor,
+sdl_window_info::sdl_window_info(running_machine &a_machine, int index, std::shared_ptr<osd_monitor_info> a_monitor,
 		const osd_window_config *config)
 : osd_window(*config), m_next(nullptr), m_startmaximized(0),
 	// Following three are used by input code to defer resizes

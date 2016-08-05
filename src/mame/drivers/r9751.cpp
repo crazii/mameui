@@ -29,6 +29,21 @@
 * Memory map:
 * * 0x00000000 - 0x00ffffff : RAM 12MB to 16MB known, up to 128MB?
 * * 0x08000000 - 0x0800ffff : PROM Region
+* * 0x5ff00000 - 0x5fffffff : System boards
+* * 0xff010000 - 0xfff8ffff : CPU board registers
+*
+* Working:
+* * Floppy Disk IO (PDC device)
+* * SMIOC terminal (preliminary)
+*
+* TODO:
+* * Identify registers required for OS booting
+* * Hard disk support
+* * SMIOC ports (1-8)
+* * Identify various LED registers for system boards
+* * ROLMLink (RLI) board support
+* * Analog Telephone Interface (ATI) board support
+* * T1 (T1DN) board support
 *
 ******************************************************************************/
 
@@ -125,12 +140,12 @@ UINT32 r9751_state::debug_a6()
 
 UINT32 r9751_state::debug_a5()
 {
-		return m_maincpu->space(AS_PROGRAM).read_dword(ptr_m68000->dar[13]);
+	return m_maincpu->space(AS_PROGRAM).read_dword(ptr_m68000->dar[13]);
 }
 
 UINT32 r9751_state::debug_a5_20()
 {
-		return m_maincpu->space(AS_PROGRAM).read_dword(ptr_m68000->dar[13] + 0x20);
+	return m_maincpu->space(AS_PROGRAM).read_dword(ptr_m68000->dar[13] + 0x20);
 }
 
 READ8_MEMBER(r9751_state::pdc_dma_r)
@@ -161,6 +176,17 @@ DRIVER_INIT_MEMBER(r9751_state,r9751)
 	m_mem = &m_maincpu->space(AS_PROGRAM);
 
 	m_maincpu->interface<m68000_base_device>(ptr_m68000);
+
+	/* Save states */
+	save_item(NAME(reg_ff050004));
+	save_item(NAME(reg_fff80040));
+	save_item(NAME(fdd_dest_address));
+	save_item(NAME(fdd_cmd_complete));
+	save_item(NAME(smioc_out_addr));
+	save_item(NAME(smioc_dma_bank));
+	save_item(NAME(fdd_dma_bank));
+	save_item(NAME(timer_32khz_last));
+
 }
 
 void r9751_state::machine_reset()
@@ -498,7 +524,10 @@ MACHINE_CONFIG_END
 ROM_START(r9751)
 	ROM_REGION32_BE(0x00010000, "prom", 0)
 	ROM_SYSTEM_BIOS(0, "prom34",  "PROM Version 3.4")
-	ROMX_LOAD( "p-n_98d4643__abaco_v3.4__(49fe7a)__j221.27512.bin", 0x0000, 0x10000, CRC(9fb19a85) SHA1(c861e15a2fc9a4ef689c2034c53fbb36f17f7da6), ROM_GROUPWORD | ROM_BIOS(1) ) // Label: "P/N 98D4643 // ABACO V3.4 // (49FE7A) // J221" 27128 @Unknown
+	ROMX_LOAD( "p-n_98d4643__abaco_v3.4__(49fe7a)__j221.27512.bin", 0x0000, 0x10000, CRC(9fb19a85) SHA1(c861e15a2fc9a4ef689c2034c53fbb36f17f7da6), ROM_GROUPWORD | ROM_BIOS(1) ) // Label: "P/N 98D4643 // ABACO V3.4 // (49FE7A) // J221" 27512 @Unknown
+
+	ROM_SYSTEM_BIOS(1, "prom42", "PROM Version 4.2")
+	ROMX_LOAD( "98d5731__zebra_v4.2__4cd79d.u5", 0x0000, 0x10000, CRC(e640f8df) SHA1(a9e4fa271d7f2f3a134e2120932ec088d5b8b007), ROM_GROUPWORD | ROM_BIOS(2) ) // Label: 98D5731 // ZEBRA V4.2 // 4CD79D 27512 @Unknown
 ROM_END
 
 

@@ -8,7 +8,7 @@
 #include "cpu/m6809/m6809.h"
 #include "sound/ay8910.h"
 #include "sound/okim6376.h"
-#include "sound/2413intf.h"
+#include "sound/ym2413.h"
 #include "sound/upd7759.h"
 #include "machine/steppers.h"
 #include "machine/roc10937.h"
@@ -190,6 +190,8 @@ public:
 	DECLARE_DRIVER_INIT(m4default);
 	DECLARE_DRIVER_INIT(m4default_banks);
 	DECLARE_DRIVER_INIT(m4default_reels);
+	DECLARE_DRIVER_INIT(m4_small_extender);
+	DECLARE_DRIVER_INIT(m4_andycp10c);
 	DECLARE_DRIVER_INIT(m_blsbys);
 	DECLARE_DRIVER_INIT(m_oldtmr);
 	DECLARE_DRIVER_INIT(m4tst);

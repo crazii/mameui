@@ -11,8 +11,10 @@
 #define R_OFF   (1.0 / netlist().gmin())
 #define R_ON    0.01
 
-NETLIB_NAMESPACE_DEVICES_START()
-
+namespace netlist
+{
+	namespace devices
+	{
 // ----------------------------------------------------------------------------------------
 // SWITCH
 // ----------------------------------------------------------------------------------------
@@ -24,7 +26,7 @@ NETLIB_RESET(switch1)
 
 NETLIB_UPDATE(switch1)
 {
-	if (m_POS.Value() == 0)
+	if (!m_POS())
 	{
 		m_R.set_R(R_OFF);
 	}
@@ -54,7 +56,7 @@ NETLIB_RESET(switch2)
 
 NETLIB_UPDATE(switch2)
 {
-	if (m_POS.Value() == 0)
+	if (!m_POS())
 	{
 		m_R1.set_R(R_ON);
 		m_R2.set_R(R_OFF);
@@ -74,4 +76,5 @@ NETLIB_UPDATE_PARAM(switch2)
 	update();
 }
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist

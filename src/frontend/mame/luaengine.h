@@ -161,12 +161,20 @@ private:
 		int l_logerror(lua_State *L);
 	};
 	struct lua_addr_space {
+		lua_addr_space(address_space *space, device_memory_interface *dev) :
+			space(*space), dev(dev) {}
 		template<typename T> int l_mem_read(lua_State *L);
 		template<typename T> int l_mem_write(lua_State *L);
+		template<typename T> int l_log_mem_read(lua_State *L);
+		template<typename T> int l_log_mem_write(lua_State *L);
 		template<typename T> int l_direct_mem_read(lua_State *L);
 		template<typename T> int l_direct_mem_write(lua_State *L);
+		const char *name() const { return space.name(); }
+
+		address_space &space;
+		device_memory_interface *dev;
 	};
-	static luabridge::LuaRef l_addr_space_map(const address_space *as);
+	static luabridge::LuaRef l_addr_space_map(const lua_addr_space *sp);
 
 	static luabridge::LuaRef l_machine_get_screens(const running_machine *r);
 	struct lua_screen {
@@ -198,6 +206,11 @@ private:
 	};
 
 	static luabridge::LuaRef l_memory_get_banks(const memory_manager *m);
+	static luabridge::LuaRef l_memory_get_shares(const memory_manager *m);
+	struct lua_memory_share {
+		template<typename T> int l_share_read(lua_State *L);
+		template<typename T> int l_share_write(lua_State *L);
+	};
 	static luabridge::LuaRef l_memory_get_regions(const memory_manager *m);
 	struct lua_memory_region {
 		template<typename T> int l_region_read(lua_State *L);
@@ -208,13 +221,17 @@ private:
 		int l_ui_input_find_mouse(lua_State *L);
 	};
 
+	struct lua_render_target {
+		int l_render_view_bounds(lua_State *L);
+	};
+
 	struct lua_emu_file {
 		lua_emu_file(const char *searchpath, UINT32 openflags) :
 			path(searchpath),
 			file(path.c_str(), openflags) {}
 
 		int l_emu_file_read(lua_State *L);
-		osd_file::error open(const char *name) {return file.open(name);}
+		osd_file::error open(std::string name) {return file.open(name);}
 		osd_file::error open_next() {return file.open_next();}
 		int seek(INT64 offset, int whence) {return file.seek(offset, whence);}
 		UINT64 size() {return file.size();}

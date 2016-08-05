@@ -458,6 +458,8 @@ void render_texture::get_scaled(UINT32 dwidth, UINT32 dheight, render_texinfo &t
 	// are we scaler-free? if so, just return the source bitmap
 	if (m_scaler == nullptr || (m_bitmap != nullptr && swidth == dwidth && sheight == dheight))
 	{
+		if (m_bitmap == nullptr) return;
+
 		// add a reference and set up the source bitmap
 		primlist.add_reference(m_bitmap);
 		texinfo.base = m_bitmap->raw_pixptr(m_sbounds.min_y, m_sbounds.min_x);
@@ -771,6 +773,11 @@ void render_container::overlay_scale(bitmap_argb32 &dest, bitmap_argb32 &source,
 render_container::item &render_container::add_generic(UINT8 type, float x0, float y0, float x1, float y1, rgb_t argb)
 {
 	item *newitem = m_item_allocator.alloc();
+
+	assert(x0 == x0);
+	assert(x1 == x1);
+	assert(y0 == y0);
+	assert(y1 == y1);
 
 	// copy the data into the new item
 	newitem->m_type = type;

@@ -23,7 +23,7 @@ class nl_convert_base_t
 {
 public:
 
-	nl_convert_base_t() : out(m_buf) {};
+	nl_convert_base_t() : out(m_buf), m_numberchars("0123456789-+e.") {}
 	virtual ~nl_convert_base_t()
 	{
 		m_nets.clear();
@@ -126,16 +126,17 @@ private:
 
 private:
 
-	void add_device(std::shared_ptr<dev_t> dev);
+	void add_device(std::unique_ptr<dev_t> dev);
 
 	plib::postringstream m_buf;
 
-	plib::pvector_t<std::shared_ptr<dev_t>> m_devs;
-	plib::hashmap_t<pstring, std::shared_ptr<net_t> > m_nets;
-	plib::pvector_t<pstring> m_ext_alias;
-	plib::hashmap_t<pstring, std::shared_ptr<pin_alias_t>> m_pins;
+	std::vector<std::unique_ptr<dev_t>> m_devs;
+	std::unordered_map<pstring, std::unique_ptr<net_t> > m_nets;
+	std::vector<pstring> m_ext_alias;
+	std::unordered_map<pstring, std::unique_ptr<pin_alias_t>> m_pins;
 
 	static unit_t m_units[];
+	pstring m_numberchars;
 
 };
 
@@ -143,7 +144,7 @@ class nl_convert_spice_t : public nl_convert_base_t
 {
 public:
 
-	nl_convert_spice_t() : nl_convert_base_t() {};
+	nl_convert_spice_t() : nl_convert_base_t() {}
 	~nl_convert_spice_t()
 	{
 	}
@@ -162,7 +163,7 @@ class nl_convert_eagle_t : public nl_convert_base_t
 {
 public:
 
-	nl_convert_eagle_t() : nl_convert_base_t() {};
+	nl_convert_eagle_t() : nl_convert_base_t() {}
 	~nl_convert_eagle_t()
 	{
 	}

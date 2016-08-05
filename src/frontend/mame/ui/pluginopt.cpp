@@ -17,7 +17,6 @@
 
 
 namespace ui {
-
 void menu_plugin::handle()
 {
 	const event *menu_event = process(0);
@@ -25,11 +24,11 @@ void menu_plugin::handle()
 	if (menu_event != nullptr && menu_event->itemref != nullptr)
 	{
 		if (menu_event->iptkey == IPT_UI_SELECT)
-			menu::stack_push<menu_plugin_opt>(ui(), container, (char *)menu_event->itemref);
+			menu::stack_push<menu_plugin_opt>(ui(), container(), (char *)menu_event->itemref);
 	}
 }
 
-menu_plugin::menu_plugin(mame_ui_manager &mui, render_container *container) :
+menu_plugin::menu_plugin(mame_ui_manager &mui, render_container &container) :
 		menu(mui, container),
 		m_plugins(mame_machine_manager::instance()->lua()->get_menu())
 {
@@ -38,7 +37,7 @@ menu_plugin::menu_plugin(mame_ui_manager &mui, render_container *container) :
 void menu_plugin::populate()
 {
 	for (auto &curplugin : m_plugins)
-		item_append(curplugin.c_str(), nullptr, 0, (void *)curplugin.c_str());
+		item_append(curplugin, "", 0, (void *)curplugin.c_str());
 	item_append(menu_item_type::SEPARATOR);
 }
 
@@ -46,7 +45,7 @@ menu_plugin::~menu_plugin()
 {
 }
 
-menu_plugin_opt::menu_plugin_opt(mame_ui_manager &mui, render_container *container, char *menu) :
+menu_plugin_opt::menu_plugin_opt(mame_ui_manager &mui, render_container &container, char *menu) :
 		ui::menu(mui, container),
 		m_menu(menu)
 {
@@ -107,7 +106,13 @@ void menu_plugin_opt::populate()
 		else if(item.flags == "lr")
 			flags = FLAG_RIGHT_ARROW | FLAG_LEFT_ARROW;
 
-		item_append(item.text.c_str(), item.subtext.c_str(), flags, (void *)i++);
+		if(item.text == "---")
+		{
+			item_append(menu_item_type::SEPARATOR);
+			i++;
+		}
+		else
+			item_append(item.text, item.subtext, flags, (void *)i++);
 	}
 	item_append(menu_item_type::SEPARATOR);
 }

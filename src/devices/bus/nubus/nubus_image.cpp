@@ -44,9 +44,7 @@ public:
 	virtual bool is_creatable() const override { return 0; }
 	virtual bool must_be_loaded() const override { return 0; }
 	virtual bool is_reset_on_load() const override { return 0; }
-	virtual const char *image_interface() const override { return nullptr; }
 	virtual const char *file_extensions() const override { return "img"; }
-	virtual const option_guide *create_option_guide() const override { return nullptr; }
 
 	virtual bool call_load() override;
 	virtual void call_unload() override;
@@ -271,7 +269,7 @@ READ32_MEMBER( nubus_image_device::image_super_r )
 
 WRITE32_MEMBER( nubus_image_device::file_cmd_w )
 {
-	const osd_directory_entry *dp;
+	const osd::directory::entry *dp;
 	char fullpath[1024];
 	UINT64 filesize;
 
@@ -290,11 +288,10 @@ WRITE32_MEMBER( nubus_image_device::file_cmd_w )
 		}
 		break;
 	case kFileCmdGetFirstListing:
-		if(filectx.dirp) osd_closedir(filectx.dirp);
-		filectx.dirp = osd_opendir((const char *)filectx.curdir);
+		filectx.dirp = osd::directory::open((const char *)filectx.curdir);
 	case kFileCmdGetNextListing:
 		if (filectx.dirp) {
-			dp = osd_readdir(filectx.dirp);
+			dp = filectx.dirp->read();
 			if(dp) {
 				strncpy((char*)filectx.filename, dp->name, sizeof(filectx.filename));
 			} else {

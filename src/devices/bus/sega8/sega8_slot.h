@@ -110,7 +110,7 @@ public:
 	// image-level overrides
 	virtual bool call_load() override;
 	virtual void call_unload() override;
-	virtual bool call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry) override;
+	virtual const software_list_loader &get_software_list_loader() const override { return rom_software_list_loader::instance(); }
 
 	int get_type() { return m_type; }
 	int get_cart_type(UINT8 *ROM, UINT32 len);
@@ -132,7 +132,6 @@ public:
 	virtual bool is_creatable() const override { return 0; }
 	virtual bool must_be_loaded() const override { return m_must_be_loaded; }
 	virtual bool is_reset_on_load() const override { return 1; }
-	virtual const option_guide *create_option_guide() const override { return nullptr; }
 	virtual const char *image_interface() const override { return m_interface; }
 	virtual const char *file_extensions() const override { return m_extensions; }
 
@@ -199,7 +198,7 @@ public:
 	MCFG_DEVICE_ADD(_tag, SEGA8_CART_SLOT, 0) \
 	MCFG_DEVICE_SLOT_INTERFACE(_slot_intf, _def_slot, false) \
 	static_cast<sega8_cart_slot_device *>(device)->set_mandatory(FALSE); \
-	static_cast<sega8_cart_slot_device *>(device)->set_intf("sms_cart"); \
+	static_cast<sega8_cart_slot_device *>(device)->set_intf("sms_cart,sg1000_cart"); \
 	static_cast<sega8_cart_slot_device *>(device)->set_ext("bin,sms,sg");
 
 #define MCFG_SMS_CARTRIDGE_ADD(_tag,_slot_intf,_def_slot) \

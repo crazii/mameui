@@ -147,7 +147,7 @@ const options_entry osd_options::s_option_entries[] =
 	{ OSDOPTION_BGFX_DEBUG,                   "0",               OPTION_BOOLEAN, "enable BGFX debugging statistics" },
 	{ OSDOPTION_BGFX_SCREEN_CHAINS,           "default",         OPTION_STRING, "comma-delimited list of screen chain JSON names, colon-delimited per-window" },
 	{ OSDOPTION_BGFX_SHADOW_MASK,             "slot-mask.png",   OPTION_STRING, "shadow mask texture name" },
-	{ OSDOPTION_BGFX_AVI_NAME,                "bgfx.avi",        OPTION_STRING, "filename for BGFX output logging" },
+	{ OSDOPTION_BGFX_AVI_NAME,                OSDOPTVAL_AUTO,    OPTION_STRING, "filename for BGFX output logging" },
 
 		// End of list
 	{ nullptr }
@@ -159,6 +159,8 @@ osd_options::osd_options()
 	add_entries(osd_options::s_option_entries);
 }
 
+// Window list
+std::list<std::shared_ptr<osd_window>> osd_common_t::s_window_list;
 
 //-------------------------------------------------
 //  osd_interface - constructor
@@ -255,6 +257,7 @@ void osd_common_t::register_options()
 	REGISTER_MODULE(m_mod_man, OUTPUT_NONE);
 	REGISTER_MODULE(m_mod_man, OUTPUT_CONSOLE);
 	REGISTER_MODULE(m_mod_man, OUTPUT_NETWORK);
+	REGISTER_MODULE(m_mod_man, OUTPUT_WIN32);
 
 
 	// after initialization we know which modules are supported
@@ -321,9 +324,6 @@ void osd_common_t::register_options()
 
 	// Register video options and update options
 	video_options_add("none", nullptr);
-#if USE_OPENGL
-	video_options_add("opengl", nullptr);
-#endif
 	video_register();
 	update_option(OSDOPTION_VIDEO, m_video_names);
 }
@@ -643,6 +643,7 @@ void osd_common_t::init_subsystems()
 	m_midi = select_module_options<midi_module *>(options(), OSD_MIDI_PROVIDER);
 
 	m_output = select_module_options<output_module *>(options(), OSD_OUTPUT_PROVIDER);
+	m_output->set_machine(&machine());
 	machine().output().set_notifier(nullptr, output_notifier_callback, this);
 
 	m_mod_man.init(options());
@@ -700,7 +701,6 @@ void osd_common_t::input_resume()
 void osd_common_t::exit_subsystems()
 {
 	video_exit();
-	input_exit();
 }
 
 void osd_common_t::video_exit()
@@ -709,18 +709,6 @@ void osd_common_t::video_exit()
 
 void osd_common_t::window_exit()
 {
-}
-
-void osd_common_t::input_exit()
-{
-	if (m_keyboard_input)
-		m_keyboard_input->exit();
-	if (m_mouse_input)
-		m_mouse_input->exit();
-	if (m_lightgun_input)
-		m_lightgun_input->exit();
-	if (m_joystick_input)
-		m_joystick_input->exit();
 }
 
 void osd_common_t::osd_exit()

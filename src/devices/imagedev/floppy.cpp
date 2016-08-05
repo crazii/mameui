@@ -242,7 +242,7 @@ void floppy_image_device::set_formats(const floppy_format_type *formats)
 		else
 			fif_list->append(fif);
 
-		m_formatlist.append(*global_alloc(image_device_format(fif->name(), fif->description(), fif->extensions(), "")));
+		m_formatlist.push_back(std::make_unique<image_device_format>(fif->name(), fif->description(), fif->extensions(), ""));
 
 		image_specify_extension( extension_list, 256, fif->extensions() );
 	}
@@ -363,7 +363,7 @@ floppy_image_format_t *floppy_image_device::identify(std::string filename)
 	util::core_file::ptr fd;
 	std::string revised_path;
 
-	osd_file::error err = util::zippath_fopen(filename.c_str(), OPEN_FLAG_READ, fd, revised_path);
+	osd_file::error err = util::zippath_fopen(filename, OPEN_FLAG_READ, fd, revised_path);
 	if(err != osd_file::error::NONE) {
 		seterror(IMAGE_ERROR_INVALIDIMAGE, "Unable to open the image file");
 		return nullptr;
@@ -438,10 +438,10 @@ bool floppy_image_device::call_load()
 	if (!cur_load_cb.isnull())
 		return cur_load_cb(this);
 
-		if (motor_always_on) {
-				// When disk is inserted, start motor
-				mon_w(0);
-		} else if(!mon)
+	if (motor_always_on) {
+		// When disk is inserted, start motor
+		mon_w(0);
+	} else if(!mon)
 		ready_counter = 2;
 
 	return IMAGE_INIT_PASS;
@@ -469,17 +469,17 @@ void floppy_image_device::call_unload()
 	if (!cur_unload_cb.isnull())
 		cur_unload_cb(this);
 
-		if (motor_always_on) {
-				// When disk is removed, stop motor
-				mon_w(1);
-		} else if(!ready) {
+	if (motor_always_on) {
+		// When disk is removed, stop motor
+		mon_w(1);
+	} else if(!ready) {
 		ready = true;
 		if(!cur_ready_cb.isnull())
 			cur_ready_cb(this, ready);
 	}
 }
 
-bool floppy_image_device::call_create(int format_type, option_resolution *format_options)
+bool floppy_image_device::call_create(int format_type, util::option_resolution *format_options)
 {
 	image = global_alloc(floppy_image(tracks, sides, form_factor));
 	output_format = nullptr;

@@ -2493,7 +2493,7 @@ static MACHINE_CONFIG_DERIVED( hunchbkg, galaxold_base )
 
 	MCFG_DEVICE_MODIFY("7474_9m_1")
 	/* the nmi line seems to be inverted on the cpu plugin board */
-	MCFG_7474_COMP_OUTPUT_CB(DEVWRITELINE("maincpu", s2650_device, write_sense))
+	MCFG_7474_COMP_OUTPUT_CB(INPUTLINE("maincpu", S2650_SENSE_LINE))
 
 	MCFG_MACHINE_RESET_OVERRIDE(galaxold_state,hunchbkg)
 
@@ -3485,7 +3485,7 @@ ROM_END
 DRIVER_INIT_MEMBER(galaxold_state,guttangt)
 {
 	address_space &space = m_maincpu->space(AS_PROGRAM);
-	space.install_read_bank( 0x2000, 0x27ff, 0, 0, "cpubank" );
+	space.install_read_bank( 0x2000, 0x27ff, "cpubank" );
 	UINT8 *rom = memregion("maincpu")->base();
 	membank("cpubank")->set_base(rom + 0x2000);
 }

@@ -206,7 +206,7 @@ bool debugview_info::source_is_visible_cpu() const
 	if (m_view != nullptr)
 	{
 		const debug_view_source *const source = m_view->source();
-		return (source != nullptr) && (debug_cpu_get_visible_cpu(machine()) == source->device());
+		return (source != nullptr) && (machine().debugger().cpu().get_visible_cpu() == source->device());
 	}
 	return false;
 }
@@ -244,7 +244,7 @@ bool debugview_info::set_source_for_device(device_t &device)
 
 bool debugview_info::set_source_for_visible_cpu()
 {
-	device_t *const curcpu = debug_cpu_get_visible_cpu(machine());
+	device_t *const curcpu = machine().debugger().cpu().get_visible_cpu();
 	if (curcpu != nullptr)
 		return set_source_for_device(*curcpu);
 	else
@@ -268,9 +268,8 @@ HWND debugview_info::create_source_combobox(HWND parent, LONG_PTR userdata)
 		int const length = strlen(source->name());
 		if (length > maxlength)
 			maxlength = length;
-		TCHAR *t_name = tstring_from_utf8(source->name());
-		SendMessage(result, CB_ADDSTRING, 0, (LPARAM)t_name);
-		osd_free(t_name);
+		auto t_name = tstring_from_utf8(source->name());
+		SendMessage(result, CB_ADDSTRING, 0, (LPARAM)t_name.c_str());
 	}
 	if (cursource != nullptr)
 	{

@@ -394,6 +394,7 @@ void tms3203x_device::device_start()
 	save_item(NAME(m_delayed));
 	save_item(NAME(m_irq_pending));
 	save_item(NAME(m_is_idling));
+	save_item(NAME(m_mcbl_mode));
 
 	// register our state for the debugger
 	state_add(TMS3203X_PC,      "PC",        m_pc);
@@ -814,7 +815,7 @@ void tms3203x_device::execute_run()
 		{
 			// watch for out-of-range stack pointers
 			if (IREG(TMR_SP) & 0xff000000)
-				debugger_break(machine());
+				machine().debug_break();
 			if ((IREG(TMR_ST) & RMFLAG) && m_pc == IREG(TMR_RE) + 1)
 			{
 				if ((INT32)--IREG(TMR_RC) >= 0)

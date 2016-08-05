@@ -48,6 +48,7 @@ t11_device::t11_device(const machine_config &mconfig, device_type type, const ch
 	: cpu_device(mconfig, type, name, tag, owner, clock, shortname, source)
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 16, 0)
 	, c_initial_mode(0)
+	, m_out_reset_func(*this)
 {
 	m_program_config.m_is_octal = true;
 	memset(m_reg, 0x00, sizeof(m_reg));
@@ -58,6 +59,7 @@ t11_device::t11_device(const machine_config &mconfig, const char *tag, device_t 
 	: cpu_device(mconfig, T11, "T11", tag, owner, clock, "t11", __FILE__)
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 16, 0)
 	, c_initial_mode(0)
+	, m_out_reset_func(*this)
 {
 	m_program_config.m_is_octal = true;
 	memset(m_reg, 0x00, sizeof(m_reg));
@@ -191,38 +193,41 @@ static const struct irq_table_entry irq_table[] =
 	{ 7<<5, 0x60 }
 };
 
-void t11_device::t11_check_irqs()
+void t11_device::t11_check_irqs(int prio)
 {
-	const struct irq_table_entry *irq = &irq_table[m_irq_state & 15];
-	int priority = PSW & 0xe0;
+	int i, priority = PSW & 0xe0;
 
-	/* compare the priority of the interrupt to the PSW */
-	if (irq->priority > priority)
+	for(i = prio; i < 16; i++)
 	{
-		int vector = irq->vector;
-		int new_pc, new_psw;
-
-		/* call the callback; if we don't get -1 back, use the return value as our vector */
-		int new_vector = standard_irq_callback(m_irq_state & 15);
-		if (new_vector != -1)
-			vector = new_vector;
-
-		/* fetch the new PC and PSW from that vector */
-		assert((vector & 3) == 0);
-		new_pc = RWORD(vector);
-		new_psw = RWORD(vector + 2);
-
-		/* push the old state, set the new one */
-		PUSH(PSW);
-		PUSH(PC);
-		PCD = new_pc;
-		PSW = new_psw;
-		t11_check_irqs();
-
-		/* count cycles and clear the WAIT flag */
-		m_icount -= 114;
-		m_wait_state = 0;
+		if(((m_irq_state >> i) & 1) && (irq_table[i].priority > priority))
+			break;
 	}
+	if(i >= 16)
+		return;
+
+	int vector = irq_table[i].vector;
+	int new_pc, new_psw;
+
+	/* call the callback; if we don't get -1 back, use the return value as our vector */
+	int new_vector = standard_irq_callback(i);
+	if (new_vector != -1)
+		vector = new_vector;
+
+	/* fetch the new PC and PSW from that vector */
+	assert((vector & 3) == 0);
+	new_pc = RWORD(vector);
+	new_psw = RWORD(vector + 2);
+
+	/* push the old state, set the new one */
+	PUSH(PSW);
+	PUSH(PC);
+	PCD = new_pc;
+	PSW = new_psw;
+	t11_check_irqs(i + 1);
+
+	/* count cycles and clear the WAIT flag */
+	m_icount -= 114;
+	m_wait_state = 0;
 }
 
 
@@ -258,6 +263,7 @@ void t11_device::device_start()
 	m_initial_pc = initial_pc[c_initial_mode >> 13];
 	m_program = &space(AS_PROGRAM);
 	m_direct = &m_program->direct();
+	m_out_reset_func.resolve_safe();
 
 	save_item(NAME(m_ppc.w.l));
 	save_item(NAME(m_reg[0].w.l));
@@ -285,7 +291,7 @@ void t11_device::device_start()
 	state_add( T11_R5,  "R5",  m_reg[5].w.l).formatstr("%04X");
 
 	state_add(STATE_GENPC, "curpc", m_reg[7].w.l).noshow();
-	state_add(STATE_GENFLAGS, "GENFLAGS", m_psw.b.l).noshow();
+	state_add(STATE_GENFLAGS, "GENFLAGS", m_psw.b.l).formatstr("%8s").noshow();
 	state_add(STATE_GENPCBASE, "GENPCBASE", m_ppc.w.l).noshow();
 
 	m_icountptr = &m_icount;

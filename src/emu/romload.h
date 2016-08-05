@@ -236,6 +236,7 @@ struct rom_entry
 #define ROM_CONTINUE(offset,length)                 { nullptr, nullptr, offset, length, ROMENTRYTYPE_CONTINUE | ROM_INHERITFLAGS },
 #define ROM_IGNORE(length)                          { nullptr, nullptr, 0,      length, ROMENTRYTYPE_IGNORE | ROM_INHERITFLAGS },
 #define ROM_FILL(offset,length,value)               { nullptr, (const char *)value, offset, length, ROMENTRYTYPE_FILL },
+#define ROMX_FILL(offset,length,value,flags)        { nullptr, (const char *)value, offset, length, ROMENTRYTYPE_FILL | flags },
 #define ROM_COPY(srctag,srcoffs,offset,length)      { srctag, (const char *)srcoffs, offset, length, ROMENTRYTYPE_COPY },
 
 
@@ -309,8 +310,8 @@ private:
 	void count_roms();
 	void fill_random(UINT8 *base, UINT32 length);
 	void handle_missing_file(const rom_entry *romp, std::string tried_file_names, chd_error chderr);
-	void dump_wrong_and_correct_checksums(const hash_collection &hashes, const hash_collection &acthashes);
-	void verify_length_and_hash(const char *name, UINT32 explength, const hash_collection &hashes);
+	void dump_wrong_and_correct_checksums(const util::hash_collection &hashes, const util::hash_collection &acthashes);
+	void verify_length_and_hash(const char *name, UINT32 explength, const util::hash_collection &hashes);
 	void display_loading_rom_message(const char *name, bool from_list);
 	void display_rom_load_results(bool from_list);
 	void region_post_process(const char *rgntag, bool invert);

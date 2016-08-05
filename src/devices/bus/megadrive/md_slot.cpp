@@ -270,6 +270,7 @@ static const md_slot slot_list[] =
 	{ LIONK3, "rom_lion3" },
 	{ MC_PIRATE, "rom_mcpir" },
 	{ MJLOVER, "rom_mjlov" },
+	{ CJMJCLUB, "rom_cjmjclub" },
 	{ POKEMONA, "rom_pokea" },
 	{ REALTEC, "rom_realtec" },
 	{ REDCL_EN, "rom_redcl" },
@@ -681,16 +682,6 @@ void base_md_cart_slot_device::setup_nvram()
 }
 
 
-
-/*-------------------------------------------------
- call softlist load
- -------------------------------------------------*/
-
-bool base_md_cart_slot_device::call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry)
-{
-	machine().rom_load().load_software_part_region(*this, swlist, swname, start_entry);
-	return TRUE;
-}
 
 int base_md_cart_slot_device::get_cart_type(UINT8 *ROM, UINT32 len)
 {

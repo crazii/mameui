@@ -18,7 +18,6 @@
 extern const char UI_VERSION_TAG[];
 
 namespace ui {
-
 //-------------------------------------------------
 //  sort
 //-------------------------------------------------
@@ -27,8 +26,8 @@ inline int cs_stricmp(const char *s1, const char *s2)
 {
 	for (;;)
 	{
-		int c1 = tolower((UINT8)*s1++);
-		int c2 = tolower((UINT8)*s2++);
+		int c1 = tolower(*s1++);
+		int c2 = tolower(*s2++);
 		if (c1 == 0 || c1 != c2)
 			return c1 - c2;
 	}
@@ -36,8 +35,8 @@ inline int cs_stricmp(const char *s1, const char *s2)
 
 bool sorted_game_list(const game_driver *x, const game_driver *y)
 {
-	bool clonex = strcmp(x->parent, "0");
-	bool cloney = strcmp(y->parent, "0");
+	bool clonex = (x->parent[0] != '0');
+	bool cloney = (y->parent[0] != '0');
 
 	if (!clonex && !cloney)
 		return (cs_stricmp(x->description, y->description) < 0);
@@ -86,7 +85,7 @@ bool sorted_game_list(const game_driver *x, const game_driver *y)
 //  ctor / dtor
 //-------------------------------------------------
 
-menu_audit::menu_audit(mame_ui_manager &mui, render_container *container, vptr_game &availablesorted, vptr_game &unavailablesorted,  int _audit_mode)
+menu_audit::menu_audit(mame_ui_manager &mui, render_container &container, vptr_game &availablesorted, vptr_game &unavailablesorted,  int _audit_mode)
 	: menu(mui, container)
 	, m_availablesorted(availablesorted)
 	, m_unavailablesorted(unavailablesorted)
@@ -114,7 +113,7 @@ void menu_audit::handle()
 
 	if (m_first)
 	{
-		ui().draw_text_box(container, _("Audit in progress..."), JUSTIFY_CENTER, 0.5f, 0.5f, UI_GREEN_COLOR);
+		ui().draw_text_box(container(), _("Audit in progress..."), ui::text_layout::CENTER, 0.5f, 0.5f, UI_GREEN_COLOR);
 		m_first = false;
 		return;
 	}
@@ -160,7 +159,7 @@ void menu_audit::handle()
 	std::stable_sort(m_unavailablesorted.begin(), m_unavailablesorted.end(), sorted_game_list);
 	save_available_machines();
 	reset_parent(reset_options::SELECT_FIRST);
-	menu::stack_pop(machine());
+	stack_pop();
 }
 
 //-------------------------------------------------
@@ -169,7 +168,7 @@ void menu_audit::handle()
 
 void menu_audit::populate()
 {
-	item_append("Dummy", nullptr, 0, (void *)(FPTR)1);
+	item_append("Dummy", "", 0, (void *)(FPTR)1);
 }
 
 //-------------------------------------------------

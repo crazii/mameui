@@ -2072,7 +2072,7 @@ static void FontDecodeString(const char* str, LOGFONT *f)
 	ptr = strrchr(str, ',');
 	if (ptr)
 	{
-		t_ptr = tstring_from_utf8(ptr + 1);
+		t_ptr = ui_wstring_from_utf8(ptr + 1);
 		if( !t_ptr )
 			return;
 		_tcscpy(f->lfFaceName, t_ptr);
@@ -2083,7 +2083,7 @@ static void FontDecodeString(const char* str, LOGFONT *f)
 /* Encode the given LOGFONT structure into a comma-delimited string */
 static void FontEncodeString(const LOGFONT *f, char *str)
 {
-	char* utf8_FaceName = utf8_from_tstring(f->lfFaceName);
+	char* utf8_FaceName = ui_utf8_from_wstring(f->lfFaceName);
 	if( !utf8_FaceName )
 		return;
 

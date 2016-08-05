@@ -5,7 +5,9 @@
     Bally Astrocade-based hardware
 
 ***************************************************************************/
+
 #include "machine/bankdev.h"
+#include "machine/gen_latch.h"
 #include "sound/astrocde.h"
 #include "sound/samples.h"
 #include "sound/votrax.h"
@@ -39,6 +41,7 @@ public:
 		m_videoram(*this, "videoram"),
 		m_protected_ram(*this, "protected_ram"),
 		m_screen(*this, "screen"),
+		m_soundlatch(*this, "soundlatch"),
 		m_bank4000(*this, "bank4000"),
 		m_bank8000(*this, "bank8000"),
 		m_p1handle(*this, "P1HANDLE"),
@@ -54,7 +57,8 @@ public:
 		m_p3_knob(*this, "P3_KNOB"),
 		m_p4_knob(*this, "P4_KNOB"),
 		m_trackball(*this, trackball_inputs),
-		m_joystick(*this, joystick_inputs)
+		m_joystick(*this, joystick_inputs),
+		m_interrupt_scanline(0xff)
 	{ }
 
 	required_device<cpu_device> m_maincpu;
@@ -65,6 +69,7 @@ public:
 	optional_shared_ptr<UINT8> m_videoram;
 	optional_shared_ptr<UINT8> m_protected_ram;
 	required_device<screen_device> m_screen;
+	optional_device<generic_latch_8_device> m_soundlatch;
 	optional_device<address_map_bank_device> m_bank4000;
 	optional_memory_bank m_bank8000;
 	optional_ioport m_p1handle;

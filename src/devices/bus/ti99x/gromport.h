@@ -108,7 +108,7 @@ protected:
 	// Image handling: implementation of methods which are abstract in the parent
 	bool call_load() override;
 	void call_unload() override;
-	bool call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry) override;
+	virtual const software_list_loader &get_software_list_loader() const override { return rom_software_list_loader::instance(); }
 
 	void prepare_cartridge();
 
@@ -121,16 +121,14 @@ protected:
 	bool is_reset_on_load() const override       { return false; }
 	const char *image_interface() const override { return "ti99_cart"; }
 	const char *file_extensions() const override { return "rpk"; }
-	const option_guide *create_option_guide() const override { return nullptr; }
 
 private:
 	bool    m_readrom;
-	bool    m_softlist;
 	int     m_pcbtype;
 	int     m_slot;
 	int     get_index_from_tagname();
 
-	ti99_cartridge_pcb*                 m_pcb;          // inbound
+	std::unique_ptr<ti99_cartridge_pcb> m_pcb;          // inbound
 	ti99_cartridge_connector_device*    m_connector;    // outbound
 
 	// RPK which is associated to this cartridge
@@ -475,12 +473,12 @@ class rpk;
 
 class rpk_socket
 {
-	friend class simple_list<rpk_socket>;
 	friend class rpk;
 
 public:
 	rpk_socket(const char *id, int length, UINT8 *contents);
 	rpk_socket(const char *id, int length, UINT8 *contents, const char *pathname);
+	~rpk_socket() {}
 
 	const char*     id() { return m_id; }
 	int             get_content_length() { return m_length; }
@@ -492,7 +490,6 @@ public:
 private:
 	const char*     m_id;
 	UINT32          m_length;
-	rpk_socket*     m_next;
 	UINT8*          m_contents;
 	const char*     m_pathname;
 };
@@ -507,8 +504,8 @@ public:
 
 private:
 	int             find_file(util::archive_file &zip, const char *filename, UINT32 crc);
-	rpk_socket*     load_rom_resource(util::archive_file &zip, xml_data_node* rom_resource_node, const char* socketname);
-	rpk_socket*     load_ram_resource(emu_options &options, xml_data_node* ram_resource_node, const char* socketname, const char* system_name);
+	std::unique_ptr<rpk_socket> load_rom_resource(util::archive_file &zip, xml_data_node* rom_resource_node, const char* socketname);
+	std::unique_ptr<rpk_socket> load_ram_resource(emu_options &options, xml_data_node* ram_resource_node, const char* socketname, const char* system_name);
 	const pcb_type* m_types;
 };
 
@@ -528,9 +525,9 @@ private:
 	emu_options&            m_options;      // need this to find the path to the nvram files
 	int                     m_type;
 	//const char*             m_system_name;  // need this to find the path to the nvram files
-	tagged_list<rpk_socket> m_sockets;
+	std::unordered_map<std::string,std::unique_ptr<rpk_socket>> m_sockets;
 
-	void add_socket(const char* id, rpk_socket *newsock);
+	void add_socket(const char* id, std::unique_ptr<rpk_socket> newsock);
 };
 
 enum rpk_open_error

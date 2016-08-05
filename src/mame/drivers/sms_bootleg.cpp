@@ -124,7 +124,7 @@ A Korean version has been seen too (unless this can be switched?)
 #include "emu.h"
 #include "cpu/z80/z80.h"
 #include "sound/sn76496.h"
-#include "sound/2413intf.h"
+#include "sound/ym2413.h"
 #include "video/315_5124.h"
 #include "includes/sms_bootleg.h"
 
@@ -192,7 +192,7 @@ static MACHINE_CONFIG_START( sms_supergame, smsbootleg_state )
 	MCFG_DEVICE_ADD("sms_vdp", SEGA315_5246, 0)
 	MCFG_SEGA315_5246_SET_SCREEN("screen")
 	MCFG_SEGA315_5246_IS_PAL(false)
-	MCFG_SEGA315_5246_INT_CB(WRITELINE(sms_state, sms_int_callback))
+	MCFG_SEGA315_5246_INT_CB(INPUTLINE("maincpu", 0))
 	MCFG_SEGA315_5246_PAUSE_CB(WRITELINE(sms_state, sms_pause_callback))
 
 MACHINE_CONFIG_END

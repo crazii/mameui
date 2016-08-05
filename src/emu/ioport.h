@@ -1277,14 +1277,13 @@ struct ioport_field_live
 // ======================> ioport_list
 
 // class that holds a list of I/O ports
-class ioport_list : public tagged_list<ioport_port>
+class ioport_list : public std::map<std::string, std::unique_ptr<ioport_port>>
 {
 	DISABLE_COPYING(ioport_list);
 
 public:
 	ioport_list() { }
 
-	using tagged_list<ioport_port>::append;
 	void append(device_t &device, std::string &errorbuf);
 #ifdef USE_CUSTOM_BUTTON
 	void append_custom(device_t &device, std::string &errorbuf);
@@ -1530,7 +1529,7 @@ private:
 	void frame_update_callback();
 	void frame_update();
 
-	ioport_port *port(const char *tag) const { return m_portlist.find(tag); }
+	ioport_port *port(const char *tag) const { if (tag) { auto search = m_portlist.find(tag); if (search != m_portlist.end()) return search->second.get(); else return nullptr; } else return nullptr; }
 	void exit();
 	input_seq_type token_to_seq_type(const char *string);
 

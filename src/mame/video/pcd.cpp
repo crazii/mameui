@@ -150,6 +150,9 @@ static MACHINE_CONFIG_FRAGMENT( pcx_video )
 	MCFG_CPU_PROGRAM_MAP(pcx_vid_map)
 	MCFG_CPU_IO_MAP(pcx_vid_io)
 
+	MCFG_MCS51_SERIAL_TX_CB(WRITE8(pcx_video_device, tx_callback))
+	MCFG_MCS51_SERIAL_RX_CB(READ8(pcx_video_device, rx_callback))
+
 	// video hardware
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_SIZE(640, 350)
@@ -405,8 +408,8 @@ WRITE8_MEMBER(pcx_video_device::p1_w)
 
 void pcd_video_device::device_start()
 {
-	m_maincpu->space(AS_IO).install_readwrite_handler(0xfb00, 0xfb01, 0, 0, read8_delegate(FUNC(pcdx_video_device::detect_r), this), write8_delegate(FUNC(pcdx_video_device::detect_w), this), 0xff00);
-	m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0xf0000, 0xf7fff, 0, 0, read8_delegate(FUNC(pcd_video_device::vram_r), this), write8_delegate(FUNC(pcd_video_device::vram_w), this), 0xffff);
+	m_maincpu->space(AS_IO).install_readwrite_handler(0xfb00, 0xfb01, read8_delegate(FUNC(pcdx_video_device::detect_r), this), write8_delegate(FUNC(pcdx_video_device::detect_w), this), 0xff00);
+	m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0xf0000, 0xf7fff, read8_delegate(FUNC(pcd_video_device::vram_r), this), write8_delegate(FUNC(pcd_video_device::vram_w), this), 0xffff);
 	set_gfx(0, std::make_unique<gfx_element>(palette(), pcd_charlayout, &m_charram[0], 0, 1, 0));
 }
 
@@ -430,13 +433,9 @@ ADDRESS_MAP_END
 
 void pcx_video_device::device_start()
 {
-	mcs51_cpu_device *mcu = downcast<mcs51_cpu_device *>(m_mcu.target());
-	m_maincpu->space(AS_IO).install_readwrite_handler(0xfb00, 0xfb01, 0, 0, read8_delegate(FUNC(pcdx_video_device::detect_r), this), write8_delegate(FUNC(pcdx_video_device::detect_w), this), 0x00ff);
+	m_maincpu->space(AS_IO).install_readwrite_handler(0xfb00, 0xfb01, read8_delegate(FUNC(pcdx_video_device::detect_r), this), write8_delegate(FUNC(pcdx_video_device::detect_w), this), 0x00ff);
 	m_txd_handler.resolve_safe();
 
-	// set serial callbacks
-	mcu->i8051_set_serial_tx_callback(WRITE8_DELEGATE(pcx_video_device, tx_callback));
-	mcu->i8051_set_serial_rx_callback(READ8_DELEGATE(pcx_video_device, rx_callback));
 	set_data_frame(1, 8, PARITY_NONE, STOP_BITS_1);
 	set_rate(600*2);  // FIXME: fix the keyboard when the mc2661 baud rate calc is fixed
 

@@ -11,6 +11,7 @@
 #include "debugviewinfo.h"
 #include "uimetrics.h"
 
+#include "debugger.h"
 #include "debug/debugcon.h"
 #include "debug/debugcpu.h"
 #include "imagedev/cassette.h"
@@ -42,12 +43,8 @@ consolewin_info::consolewin_info(debugger_windows_interface &debugger) :
 			m_devices_menu = CreatePopupMenu();
 			for (device_image_interface &img : iter)
 			{
-				TCHAR *tc_buf = tstring_from_utf8(string_format("%s : %s", img.device().name(), img.exists() ? img.filename() : "[no image]").c_str());
-				if (tc_buf != nullptr)
-				{
-					AppendMenu(m_devices_menu, MF_ENABLED, 0, tc_buf);
-					osd_free(tc_buf);
-				}
+				auto tc_buf = tstring_from_utf8(string_format("%s : %s", img.device().name(), img.exists() ? img.filename() : "[no image]").c_str());
+				AppendMenu(m_devices_menu, MF_ENABLED, 0, tc_buf.c_str());
 			}
 			AppendMenu(GetMenu(window()), MF_ENABLED | MF_POPUP, (UINT_PTR)m_devices_menu, TEXT("Images"));
 		}
@@ -77,7 +74,7 @@ consolewin_info::consolewin_info(debugger_windows_interface &debugger) :
 	}
 
 	// recompute the children
-	set_cpu(*debug_cpu_get_visible_cpu(machine()));
+	set_cpu(*machine().debugger().cpu().get_visible_cpu());
 
 	// mark the edit box as the default focus and set it
 	editwin_info::set_default_focus();
@@ -179,8 +176,8 @@ void consolewin_info::update_menu()
 
 			AppendMenu(devicesubmenu, MF_STRING, new_item + DEVOPTION_OPEN, TEXT("Mount..."));
 
-			//if (img.is_creatable())
-				//AppendMenu(devicesubmenu, MF_STRING, new_item + DEVOPTION_CREATE, TEXT("Create..."));
+			if (img.is_creatable())
+				AppendMenu(devicesubmenu, MF_STRING, new_item + DEVOPTION_CREATE, TEXT("Create..."));
 			AppendMenu(devicesubmenu, flags_for_exists, new_item + DEVOPTION_CLOSE, TEXT("Unmount"));
 
 			if (img.device().type() == CASSETTE)
@@ -194,12 +191,8 @@ void consolewin_info::update_menu()
 				AppendMenu(devicesubmenu, flags_for_exists, new_item + DEVOPTION_CASSETTE_FASTFORWARD, TEXT("Fast Forward"));
 			}
 
-			TCHAR *tc_buf = tstring_from_utf8(string_format("%s :%s", img.device().name(), img.exists() ? img.filename() : "[empty slot]").c_str());
-			if (tc_buf != nullptr)
-			{
-				ModifyMenu(m_devices_menu, cnt, MF_BYPOSITION | MF_POPUP, (UINT_PTR)devicesubmenu, tc_buf);
-				osd_free(tc_buf);
-			}
+			auto tc_buf = tstring_from_utf8(string_format("%s :%s", img.device().name(), img.exists() ? img.filename() : "[empty slot]").c_str());
+			ModifyMenu(m_devices_menu, cnt, MF_BYPOSITION | MF_POPUP, (UINT_PTR)devicesubmenu, tc_buf.c_str());
 
 			cnt++;
 		}
@@ -222,9 +215,9 @@ bool consolewin_info::handle_command(WPARAM wparam, LPARAM lparam)
 				{
 					std::string filter;
 					build_generic_filter(img, false, filter);
-					LPTSTR t_filter = tstring_from_utf8(filter.c_str());
-					if (t_filter)
 					{
+						auto t_filter = tstring_from_utf8(filter.c_str());
+
 						// convert a pipe-char delimited string into a NUL delimited string
 						for (int i = 0; t_filter[i] != '\0'; i++)
 						{
@@ -241,7 +234,7 @@ bool consolewin_info::handle_command(WPARAM wparam, LPARAM lparam)
 						ofn.lpstrFile = selectedFilename;
 						ofn.lpstrFile[0] = '\0';
 						ofn.nMaxFile = MAX_PATH;
-						ofn.lpstrFilter = t_filter;
+						ofn.lpstrFilter = t_filter.c_str();
 						ofn.nFilterIndex = 1;
 						ofn.lpstrFileTitle = nullptr;
 						ofn.nMaxFileTitle = 0;
@@ -250,19 +243,49 @@ bool consolewin_info::handle_command(WPARAM wparam, LPARAM lparam)
 
 						if (GetOpenFileName(&ofn))
 						{
-							char *utf8_buf = utf8_from_tstring(selectedFilename);
-							if (utf8_buf != nullptr)
-							{
-								img->load(utf8_buf);
-								osd_free(utf8_buf);
-							}
+							auto utf8_buf = utf8_from_tstring(selectedFilename);
+							img->load(utf8_buf.c_str());
 						}
-						osd_free(t_filter);
 					}
 				}
 				return true;
-			//case DEVOPTION_CREATE:
-				//return true;
+			case DEVOPTION_CREATE:
+				{
+					std::string filter;
+					build_generic_filter(img, true, filter);
+					{
+						auto t_filter = tstring_from_utf8(filter.c_str());
+						// convert a pipe-char delimited string into a NUL delimited string
+						for (int i = 0; t_filter[i] != '\0'; i++)
+						{
+							if (t_filter[i] == '|')
+								t_filter[i] = '\0';
+						}
+
+						TCHAR selectedFilename[MAX_PATH];
+						selectedFilename[0] = '\0';
+						OPENFILENAME ofn;
+						memset(&ofn, 0, sizeof(ofn));
+						ofn.lStructSize = sizeof(ofn);
+						ofn.hwndOwner = nullptr;
+						ofn.lpstrFile = selectedFilename;
+						ofn.lpstrFile[0] = '\0';
+						ofn.nMaxFile = MAX_PATH;
+						ofn.lpstrFilter = t_filter.c_str();
+						ofn.nFilterIndex = 1;
+						ofn.lpstrFileTitle = nullptr;
+						ofn.nMaxFileTitle = 0;
+						ofn.lpstrInitialDir = nullptr;
+						ofn.Flags = OFN_PATHMUSTEXIST;
+
+						if (GetSaveFileName(&ofn))
+						{
+							auto utf8_buf = utf8_from_tstring(selectedFilename);
+							img->create(utf8_buf.c_str(), img->device_get_indexed_creatable_format(0), nullptr);
+						}
+					}
+				}
+				return true;
 			case DEVOPTION_CLOSE:
 				img->unload();
 				return 1;
@@ -298,9 +321,9 @@ bool consolewin_info::handle_command(WPARAM wparam, LPARAM lparam)
 void consolewin_info::process_string(char const *string)
 {
 	if (string[0] == 0) // an empty string is a single step
-		debug_cpu_get_visible_cpu(machine())->debug()->single_step();
+		machine().debugger().cpu().get_visible_cpu()->debug()->single_step();
 	else                // otherwise, just process the command
-		debug_console_execute_command(machine(), string, 1);
+		machine().debugger().console().execute_command(string, true);
 
 	// clear the edit text box
 	set_editwnd_text("");
@@ -309,15 +332,17 @@ void consolewin_info::process_string(char const *string)
 
 void consolewin_info::build_generic_filter(device_image_interface *img, bool is_save, std::string &filter)
 {
-	// common image types
-	add_filter_entry(filter, "Common image types", img->file_extensions());
+	std::string file_extension = img->file_extensions();
 
-	// compressed
 	if (!is_save)
-		filter.append("Compressed Images (*.zip)|*.zip|");
+		file_extension.append(",zip,7z");
 
-	// all files
+	add_filter_entry(filter, "Common image types", file_extension.c_str());
+
 	filter.append("All files (*.*)|*.*|");
+
+	if (!is_save)
+		filter.append("Compressed Images (*.zip;*.7z)|*.zip;*.7z|");
 }
 
 

@@ -9,8 +9,10 @@
 #include "analog/nld_bjt.h"
 #include "nl_setup.h"
 
-NETLIB_NAMESPACE_DEVICES_START()
-
+namespace netlist
+{
+	namespace devices
+	{
 class diode
 {
 public:
@@ -27,9 +29,9 @@ public:
 		m_VT = 0.0258 * n;
 		m_VT_inv = 1.0 / m_VT;
 	}
-	nl_double I(const nl_double V) const { return m_Is * nl_math::exp(V * m_VT_inv) - m_Is; }
-	nl_double g(const nl_double V) const { return m_Is * m_VT_inv * nl_math::exp(V * m_VT_inv); }
-	nl_double V(const nl_double I) const { return nl_math::e_log1p(I / m_Is) * m_VT; } // log1p(x)=log(1.0 + x)
+	nl_double I(const nl_double V) const { return m_Is * std::exp(V * m_VT_inv) - m_Is; }
+	nl_double g(const nl_double V) const { return m_Is * m_VT_inv * std::exp(V * m_VT_inv); }
+	nl_double V(const nl_double I) const { return std::log1p(I / m_Is) * m_VT; } // log1p(x)=log(1.0 + x)
 	nl_double gI(const nl_double I) const { return m_VT_inv * (I + m_Is); }
 
 private:
@@ -111,7 +113,7 @@ NETLIB_UPDATE_TERMINALS(QBJT_switch)
 {
 	const nl_double m = (is_qtype( BJT_NPN) ? 1 : -1);
 
-	const int new_state = (m_RB.deltaV() * m > m_V ) ? 1 : 0;
+	const unsigned new_state = (m_RB.deltaV() * m > m_V ) ? 1 : 0;
 	if (m_state_on ^ new_state)
 	{
 		const nl_double gb = new_state ? m_gB : netlist().gmin();
@@ -187,4 +189,5 @@ NETLIB_UPDATE_PARAM(QBJT_EB)
 	m_gD_BC.set_param(IS / m_alpha_r, NR, netlist().gmin());
 }
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist

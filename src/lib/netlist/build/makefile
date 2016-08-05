@@ -16,14 +16,15 @@ SRC = ..
 
 # LTO = -flto=4  -fuse-linker-plugin -flto-partition=balanced -Wodr
 
-CDEFS = -DPSTANDALONE=1 -DPTR64=1
 #-Werror
 #CFLAGS =  $(LTO) -g -O3 -std=c++98 -Doverride="" -march=native -msse4.2 -Wall -Wpedantic -Wsign-compare -Wextra -Wno-long-long -Wno-unused-parameter -Wno-unused-result -Wno-variadic-macros -I..
-#LDFLAGS = $(LTO) -g -O3 -std=c++98 
-CFLAGS =  $(LTO) -g -O3 -std=c++11 -march=native -I.. -Wall -Wpedantic -Wsign-compare -Wextra -Wno-unused-parameter 
-LDFLAGS = $(LTO) -g -O3 -std=c++11 -lpthread -ldl
+#LDFLAGS = $(LTO) -g -O3 -std=c++98
 
-CC = @g++-5
+CFLAGS =  $(CEXTRAFLAGS) $(LTO) -g -O3 -std=c++11 -march=native -I.. -Wall -Wpedantic -Wsign-compare -Wextra -Wno-unused-parameter
+LDFLAGS = $(LTO) -g -O3 -std=c++11 
+LIBS = -lpthread -ldl
+
+CC = g++-5
 LD = @g++-5
 MD = @mkdir
 RM = @rm
@@ -34,26 +35,29 @@ NLOBJ = $(OBJ)
 POBJ = $(OBJ)/plib
 
 OBJDIRS = $(OBJ) \
-		  $(OBJ)/analog \
-		  $(OBJ)/solver \
-		  $(OBJ)/devices \
-		  $(OBJ)/plib \
-		  $(OBJ)/devices \
-		  $(OBJ)/macro \
-		  $(OBJ)/tools \
-		  $(OBJ)/prg \
-		  
+			$(OBJ)/analog \
+			$(OBJ)/solver \
+			$(OBJ)/devices \
+			$(OBJ)/plib \
+			$(OBJ)/devices \
+			$(OBJ)/macro \
+			$(OBJ)/tools \
+			$(OBJ)/prg \
+
 
 OBJS = $(POBJS) $(NLOBJS)
 
 POBJS := \
 	$(POBJ)/pstring.o \
 	$(POBJ)/palloc.o \
+	$(POBJ)/pchrono.o \
+	$(POBJ)/pdynlib.o \
+	$(POBJ)/pfmtlog.o \
+	$(POBJ)/poptions.o \
 	$(POBJ)/pparser.o \
 	$(POBJ)/pstate.o \
 	$(POBJ)/pstream.o \
-	$(POBJ)/pfmtlog.o \
-	$(POBJ)/pdynlib.o \
+	$(POBJ)/putil.o \
 
 NLOBJS := \
 	$(NLOBJ)/nl_base.o \
@@ -100,14 +104,21 @@ NLOBJS := \
 	$(NLOBJ)/solver/nld_solver.o \
 	$(NLOBJ)/tools/nl_convert.o \
 
-all:	maketree $(TARGETS)
+ALL_OBJS = $(OBJS) $(NLOBJ)/prg/nltool.o $(NLOBJ)/prg/nlwav.o
+SOURCES = $(patsubst $(OBJ)%, $(SRC)%, $(ALL_OBJS:.o=.cpp))
+
+#-------------------------------------------------
+# all
+#-------------------------------------------------
+
+all:    maketree $(TARGETS)
 
 #-------------------------------------------------
 # clean
 #-------------------------------------------------
 
 clean:
-	$(RM) -rf $(OBJS) $(TARGETS)
+	$(RM) -rf $(OBJS) $(TARGETS) .depend
 
 #-------------------------------------------------
 # nltool
@@ -115,11 +126,11 @@ clean:
 
 nltool: $(OBJ)/prg/nltool.o $(OBJS)
 	@echo Linking $@...
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
+	@$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 nlwav: $(OBJ)/prg/nlwav.o $(OBJS)
 	@echo Linking $@...
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
+	@$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 #-------------------------------------------------
 # directories
@@ -130,6 +141,32 @@ $(sort $(OBJDIRS)):
 
 maketree: $(sort $(OBJDIRS))
 
+#-------------------------------------------------
+# depends
+#-------------------------------------------------
+
+depend: .depend
+
+.depend: $(SOURCES)
+	@echo creating .depend
+	@rm -f ./.depend
+	@for i in $(SOURCES); do \
+		$(CC) $(CFLAGS) -MM $$i -MT `echo $$i | sed -e 's/$(SRC)/$(OBJ)/' -e 's/.cpp/.o/' ` >>./.depend; \
+	done
+
+-include .depend
+
+#-------------------------------------------------
+# Special targets
+#-------------------------------------------------
+
+.PHONY: clang
+clang: 
+	$(MAKE) CC=clang++ LD=clang++ CEXTRAFLAGS="-Weverything -Werror -Wno-padded -Wno-weak-vtables -Wno-missing-variable-declarations -Wconversion -Wno-c++98-compat -Wno-float-equal -Wno-cast-align -Wno-global-constructors -Wno-c++98-compat-pedantic -Wno-exit-time-destructors -Wno-format-nonliteral -Wno-weak-template-vtables"
+
+# 
+# FIX:  -Wno-weak-vtables -Wno-missing-variable-declarations -Wno-conversion -Wno-exit-time-destructors 
+# 
 
 #-------------------------------------------------
 # generic rules
@@ -137,15 +174,15 @@ maketree: $(sort $(OBJDIRS))
 
 $(OBJ)/%.o: $(SRC)/%.cpp
 	@echo Compiling $<...
-	$(CC) $(CDEFS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CDEFS) $(CFLAGS) -c $< -o $@
 
-$(OBJ)/%.pp: $(SRC)/%.cpp | $(OSPREBUILD)
+$(OBJ)/%.pp: $(SRC)/%.cpp 
 	@echo Compiling $<...
-	$(CC) $(CDEFS) $(CFLAGS) -E $< -o $@
+	@$(CC) $(CDEFS) $(CFLAGS) -E $< -o $@
 
-$(OBJ)/%.s: $(SRC)/%.cpp | $(OSPREBUILD)
+$(OBJ)/%.s: $(SRC)/%.cpp
 	@echo Compiling $<...
-	$(CC) $(CDEFS) $(CFLAGS) -S $< -o $@
+	@$(CC) $(CDEFS) $(CFLAGS) -S $< -o $@
 
 $(OBJ)/%.a:
 	@echo Archiving $@...

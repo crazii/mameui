@@ -13,12 +13,18 @@ enum
 {
 	GBA_STD = 0,
 	GBA_SRAM,
+	GBA_DRILLDOZ,
+	GBA_WARIOTWS,
 	GBA_EEPROM,
 	GBA_EEPROM4,
+	GBA_YOSHIUG,
 	GBA_EEPROM64,
+	GBA_BOKTAI,
 	GBA_FLASH,
+	GBA_FLASH_RTC,
 	GBA_FLASH512,
 	GBA_FLASH1M,
+	GBA_FLASH1M_RTC,
 	GBA_3DMATRIX
 };
 
@@ -35,7 +41,11 @@ public:
 	// reading and writing
 	virtual DECLARE_READ32_MEMBER(read_rom) { return 0xffffffff; }
 	virtual DECLARE_READ32_MEMBER(read_ram) { return 0xffffffff; }
+	virtual DECLARE_READ32_MEMBER(read_gpio) { return 0; }
+	virtual DECLARE_READ32_MEMBER(read_tilt) { return 0xffffffff; }
 	virtual DECLARE_WRITE32_MEMBER(write_ram) {};
+	virtual DECLARE_WRITE32_MEMBER(write_gpio) {};
+	virtual DECLARE_WRITE32_MEMBER(write_tilt) {};
 	virtual DECLARE_WRITE32_MEMBER(write_mapper) {};
 
 	void rom_alloc(UINT32 size, const char *tag);
@@ -77,7 +87,7 @@ public:
 	// image-level overrides
 	virtual bool call_load() override;
 	virtual void call_unload() override;
-	virtual bool call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry) override;
+	virtual const software_list_loader &get_software_list_loader() const override { return rom_software_list_loader::instance(); }
 
 	int get_type() { return m_type; }
 	int get_cart_type(UINT8 *ROM, UINT32 len);
@@ -93,7 +103,6 @@ public:
 	virtual bool is_creatable() const override { return 0; }
 	virtual bool must_be_loaded() const override { return 0; }
 	virtual bool is_reset_on_load() const override { return 1; }
-	virtual const option_guide *create_option_guide() const override { return nullptr; }
 	virtual const char *image_interface() const override { return "gba_cart"; }
 	virtual const char *file_extensions() const override { return "gba,bin"; }
 
@@ -103,8 +112,12 @@ public:
 	// reading and writing
 	virtual DECLARE_READ32_MEMBER(read_rom);
 	virtual DECLARE_READ32_MEMBER(read_ram);
+	virtual DECLARE_READ32_MEMBER(read_gpio);
+	virtual DECLARE_READ32_MEMBER(read_tilt) { if (m_cart) return m_cart->read_tilt(space, offset, mem_mask); else return 0xffffffff; }
 	virtual DECLARE_WRITE32_MEMBER(write_ram);
-	virtual DECLARE_WRITE32_MEMBER(write_mapper) { if (m_cart) return m_cart->write_mapper(space, offset, data, mem_mask); };
+	virtual DECLARE_WRITE32_MEMBER(write_gpio);
+	virtual DECLARE_WRITE32_MEMBER(write_tilt) { if (m_cart) m_cart->write_tilt(space, offset, data, mem_mask); }
+	virtual DECLARE_WRITE32_MEMBER(write_mapper) { if (m_cart) m_cart->write_mapper(space, offset, data, mem_mask); }
 
 
 protected:
@@ -193,12 +206,12 @@ static const gba_chip_fix_conflict_item gba_chip_fix_conflict_list[] =
 	{ "BYUJ", GBA_CHIP_EEPROM_64K }, // 2322 - Yggdra Union (JPN)
 };
 
-struct gba_chip_fix_eeprom_item
+struct gba_chip_fix_item
 {
 	char game_code[5];
 };
 
-static const gba_chip_fix_eeprom_item gba_chip_fix_eeprom_list[] =
+static const gba_chip_fix_item gba_chip_fix_eeprom_list[] =
 {
 	// gba scan no. 7
 	{ "AKTJ" }, // 0145 - Hello Kitty Collection - Miracle Fashion Maker (JPN)
@@ -587,5 +600,14 @@ static const gba_chip_fix_eeprom_item gba_chip_fix_eeprom_list[] =
 	{ "A9BP" }, // 0925 - Medabots - Rokusho Version (EUR)
 	{ "A3IJ" }, // bokura no taiyou - taiyou action rpg - kabunushi go-yuutai ban (japan) (demo)
 };
+
+static const gba_chip_fix_item gba_chip_fix_rumble_list[] =
+{
+	{ "KYGP" }, // Yoshi's Universal Gravitation (EUR)
+	{ "KYGE" }, // Yoshi - Topsy-Turvy (USA)
+	{ "KYGJ" }, // Yoshi no Banyuuinryoku (JPN)
+	{ "KHPJ" }  // Koro Koro Puzzle - Happy Panechu! (JPN)
+};
+
 
 #endif

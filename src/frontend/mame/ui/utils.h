@@ -17,7 +17,7 @@
 #define MAX_CUST_FILTER          8
 
 // GLOBAL ENUMERATORS
-enum
+enum : UINT16
 {
 	FILTER_FIRST = 0,
 	FILTER_ALL = FILTER_FIRST,
@@ -96,7 +96,7 @@ enum
 	UI_LAST_LOAD = UI_STORY_LOAD
 };
 
-enum
+enum : UINT16
 {
 	UI_SW_FIRST = 0,
 	UI_SW_ALL = UI_SW_FIRST,
@@ -185,6 +185,7 @@ struct c_mnfct
 	static void set(const char *str);
 	static std::string getname(const char *str);
 	static std::vector<std::string> ui;
+	static std::unordered_map<std::string, int> uimap;
 	static UINT16 actual;
 };
 
@@ -242,15 +243,10 @@ struct sw_custfltr
 };
 
 // GLOBAL FUNCTIONS
-
-// advanced search function
 int fuzzy_substring(std::string needle, std::string haystack);
-
-// trim carriage return
 char* chartrimcarriage(char str[]);
-
 const char* strensure(const char* s);
-
 int getprecisionchr(const char* s);
+std::vector<std::string> tokenize(const std::string &text, char sep);
 
 #endif /* __UI_UTILS_H__ */

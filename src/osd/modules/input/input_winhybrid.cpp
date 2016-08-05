@@ -144,7 +144,10 @@ public:
 		// Create and initialize our helpers
 		status = init_helpers();
 		if (status != 0)
+		{
+			osd_printf_error("Hybrid joystick module helpers failed to initialize. Error 0x%X\n", static_cast<unsigned int>(status));
 			return status;
+		}
 
 		return 0;
 	}
@@ -164,7 +167,7 @@ public:
 			goto exit;
 		}
 
-		if (!win_window_list.empty() && win_window_list.front()->win_has_menu())
+		if (!osd_common_t::s_window_list.empty() && osd_common_t::s_window_list.front()->win_has_menu())
 			cooperative_level = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 
 		// allocate and link in a new device
@@ -215,7 +218,7 @@ protected:
 			{
 				XINPUT_STATE state = { 0 };
 
-				if (m_xinput_helper->XInputGetState(i, &state) == ERROR_SUCCESS)
+				if (m_xinput_helper->xinput_get_state(i, &state) == ERROR_SUCCESS)
 				{
 					// allocate and link in a new device
 					devinfo = m_xinput_helper->create_xinput_device(machine, i, *this);
@@ -240,7 +243,7 @@ private:
 			status = m_xinput_helper->initialize();
 			if (status != 0)
 			{
-				osd_printf_error("xinput_api_helper failed to initialize! Error: %u\n", static_cast<unsigned int>(status));
+				osd_printf_verbose("xinput_api_helper failed to initialize! Error: %u\n", static_cast<unsigned int>(status));
 				return -1;
 			}
 		}
@@ -251,7 +254,7 @@ private:
 			status = m_dinput_helper->initialize();
 			if (status != DI_OK)
 			{
-				osd_printf_error("dinput_api_helper failed to initialize! Error: %u\n", static_cast<unsigned int>(status));
+				osd_printf_verbose("dinput_api_helper failed to initialize! Error: %u\n", static_cast<unsigned int>(status));
 				return -1;
 			}
 		}

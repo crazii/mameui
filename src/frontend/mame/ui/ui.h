@@ -8,12 +8,10 @@
 
 ***************************************************************************/
 
+#ifndef MAME_FRONTEND_UI_UI_H
+#define MAME_FRONTEND_UI_UI_H
+
 #pragma once
-
-#ifndef __USRINTRF_H__
-#define __USRINTRF_H__
-
-#include <vector>
 
 #include "render.h"
 #include "moptions.h"
@@ -21,9 +19,12 @@
 #include "ui/uimain.h"
 #include "ui/menuitem.h"
 #include "ui/slider.h"
+#include "ui/text.h"
+
+#include <functional>
+#include <vector>
 
 namespace ui {
-
 class menu_item;
 
 } // namespace ui
@@ -69,81 +70,57 @@ class menu_item;
 /* cancel return value for a UI handler */
 #define UI_HANDLER_CANCEL       ((UINT32)~0)
 
-/* justification options for ui_draw_text_full */
-enum
-{
-	JUSTIFY_LEFT = 0,
-	JUSTIFY_CENTER,
-	JUSTIFY_RIGHT
-};
-
-/* word wrapping options for ui_draw_text_full */
-enum
-{
-	WRAP_NEVER,
-	WRAP_TRUNCATE,
-	WRAP_WORD
-};
-
-/* drawing options for ui_draw_text_full */
-enum
-{
-	DRAW_NONE,
-	DRAW_NORMAL,
-	DRAW_OPAQUE
-};
-
-#define SLIDER_DEVICE_SPACING	0x0ff
-#define SLIDER_SCREEN_SPACING	0x0f
-#define SLIDER_INPUT_SPACING	0x0f
+#define SLIDER_DEVICE_SPACING   0x0ff
+#define SLIDER_SCREEN_SPACING   0x0f
+#define SLIDER_INPUT_SPACING    0x0f
 
 enum
 {
-	SLIDER_ID_VOLUME				= 0,
+	SLIDER_ID_VOLUME                = 0,
 	SLIDER_ID_MIXERVOL,
-	SLIDER_ID_MIXERVOL_LAST			= SLIDER_ID_MIXERVOL + SLIDER_DEVICE_SPACING,
+	SLIDER_ID_MIXERVOL_LAST         = SLIDER_ID_MIXERVOL + SLIDER_DEVICE_SPACING,
 	SLIDER_ID_ADJUSTER,
-	SLIDER_ID_ADJUSTER_LAST			= SLIDER_ID_ADJUSTER + SLIDER_DEVICE_SPACING,
+	SLIDER_ID_ADJUSTER_LAST         = SLIDER_ID_ADJUSTER + SLIDER_DEVICE_SPACING,
 	SLIDER_ID_OVERCLOCK,
-	SLIDER_ID_OVERCLOCK_LAST		= SLIDER_ID_OVERCLOCK + SLIDER_DEVICE_SPACING,
+	SLIDER_ID_OVERCLOCK_LAST        = SLIDER_ID_OVERCLOCK + SLIDER_DEVICE_SPACING,
 	SLIDER_ID_REFRESH,
-	SLIDER_ID_REFRESH_LAST			= SLIDER_ID_REFRESH + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_REFRESH_LAST          = SLIDER_ID_REFRESH + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_BRIGHTNESS,
-	SLIDER_ID_BRIGHTNESS_LAST		= SLIDER_ID_BRIGHTNESS + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_BRIGHTNESS_LAST       = SLIDER_ID_BRIGHTNESS + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_CONTRAST,
-	SLIDER_ID_CONTRAST_LAST			= SLIDER_ID_CONTRAST + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_CONTRAST_LAST         = SLIDER_ID_CONTRAST + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_GAMMA,
-	SLIDER_ID_GAMMA_LAST			= SLIDER_ID_GAMMA + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_GAMMA_LAST            = SLIDER_ID_GAMMA + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_XSCALE,
-	SLIDER_ID_XSCALE_LAST			= SLIDER_ID_XSCALE + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_XSCALE_LAST           = SLIDER_ID_XSCALE + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_YSCALE,
-	SLIDER_ID_YSCALE_LAST			= SLIDER_ID_YSCALE + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_YSCALE_LAST           = SLIDER_ID_YSCALE + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_XOFFSET,
-	SLIDER_ID_XOFFSET_LAST			= SLIDER_ID_XOFFSET + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_XOFFSET_LAST          = SLIDER_ID_XOFFSET + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_YOFFSET,
-	SLIDER_ID_YOFFSET_LAST			= SLIDER_ID_YOFFSET + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_YOFFSET_LAST          = SLIDER_ID_YOFFSET + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_OVERLAY_XSCALE,
-	SLIDER_ID_OVERLAY_XSCALE_LAST	= SLIDER_ID_OVERLAY_XSCALE + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_OVERLAY_XSCALE_LAST   = SLIDER_ID_OVERLAY_XSCALE + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_OVERLAY_YSCALE,
-	SLIDER_ID_OVERLAY_YSCALE_LAST	= SLIDER_ID_OVERLAY_YSCALE + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_OVERLAY_YSCALE_LAST   = SLIDER_ID_OVERLAY_YSCALE + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_OVERLAY_XOFFSET,
-	SLIDER_ID_OVERLAY_XOFFSET_LAST	= SLIDER_ID_OVERLAY_XOFFSET + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_OVERLAY_XOFFSET_LAST  = SLIDER_ID_OVERLAY_XOFFSET + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_OVERLAY_YOFFSET,
-	SLIDER_ID_OVERLAY_YOFFSET_LAST	= SLIDER_ID_OVERLAY_YOFFSET + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_OVERLAY_YOFFSET_LAST  = SLIDER_ID_OVERLAY_YOFFSET + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_FLICKER,
-	SLIDER_ID_FLICKER_LAST			= SLIDER_ID_FLICKER + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_FLICKER_LAST          = SLIDER_ID_FLICKER + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_BEAM_WIDTH_MIN,
-	SLIDER_ID_BEAM_WIDTH_MIN_LAST	= SLIDER_ID_BEAM_WIDTH_MIN + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_BEAM_WIDTH_MIN_LAST   = SLIDER_ID_BEAM_WIDTH_MIN + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_BEAM_WIDTH_MAX,
-	SLIDER_ID_BEAM_WIDTH_MAX_LAST	= SLIDER_ID_BEAM_WIDTH_MAX + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_BEAM_WIDTH_MAX_LAST   = SLIDER_ID_BEAM_WIDTH_MAX + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_BEAM_INTENSITY,
-	SLIDER_ID_BEAM_INTENSITY_LAST	= SLIDER_ID_BEAM_INTENSITY + SLIDER_SCREEN_SPACING,
+	SLIDER_ID_BEAM_INTENSITY_LAST   = SLIDER_ID_BEAM_INTENSITY + SLIDER_SCREEN_SPACING,
 	SLIDER_ID_CROSSHAIR_SCALE,
-	SLIDER_ID_CROSSHAIR_SCALE_LAST	= SLIDER_ID_CROSSHAIR_SCALE + SLIDER_INPUT_SPACING,
+	SLIDER_ID_CROSSHAIR_SCALE_LAST  = SLIDER_ID_CROSSHAIR_SCALE + SLIDER_INPUT_SPACING,
 	SLIDER_ID_CROSSHAIR_OFFSET,
-	SLIDER_ID_CROSSHAIR_OFFSET_LAST	= SLIDER_ID_CROSSHAIR_OFFSET + SLIDER_INPUT_SPACING,
+	SLIDER_ID_CROSSHAIR_OFFSET_LAST = SLIDER_ID_CROSSHAIR_OFFSET + SLIDER_INPUT_SPACING,
 
-	SLIDER_ID_CORE_LAST			= SLIDER_ID_CROSSHAIR_OFFSET,
+	SLIDER_ID_CORE_LAST         = SLIDER_ID_CROSSHAIR_OFFSET,
 	SLIDER_ID_CORE_COUNT
 };
 
@@ -152,13 +129,27 @@ enum
 ***************************************************************************/
 
 class mame_ui_manager;
-typedef UINT32 (*ui_callback)(mame_ui_manager &, render_container *, UINT32);
+typedef UINT32 (*ui_callback)(mame_ui_manager &, render_container &, UINT32);
+
+enum class ui_callback_type
+{
+	GENERAL,
+	MODAL,
+	MENU
+};
 
 // ======================> mame_ui_manager
 
 class mame_ui_manager : public ui_manager, public slider_changed_notifier
 {
 public:
+	enum draw_mode
+	{
+		NONE,
+		NORMAL,
+		OPAQUE_
+	};
+
 	// construction/destruction
 	mame_ui_manager(running_machine &machine);
 
@@ -175,20 +166,23 @@ public:
 	// methods
 	void initialize(running_machine &machine);
 	std::vector<ui::menu_item> slider_init(running_machine &machine);
-	UINT32 set_handler(ui_callback callback, UINT32 param);
+
+	void set_handler(ui_callback_type callback_type, const std::function<UINT32 (render_container &)> &&callback);
+
 	void display_startup_screens(bool first_time);
 	virtual void set_startup_text(const char *text, bool force) override;
-	void update_and_render(render_container *container);
+	void update_and_render(render_container &container);
 	render_font *get_font();
 	float get_line_height();
 	float get_char_width(unicode_char ch);
 	float get_string_width(const char *s, float text_size = 1.0f);
-	void draw_outlined_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t backcolor);
-	void draw_outlined_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t fgcolor, rgb_t bgcolor);
-	void draw_text(render_container *container, const char *buf, float x, float y);
-	void draw_text_full(render_container *container, const char *origs, float x, float y, float origwrapwidth, int justify, int wrap, int draw, rgb_t fgcolor, rgb_t bgcolor, float *totalwidth = nullptr, float *totalheight = nullptr, float text_size = 1.0f);
-	void draw_text_box(render_container *container, const char *text, int justify, float xpos, float ypos, rgb_t backcolor);
-	void draw_message_window(render_container *container, const char *text);
+	void draw_outlined_box(render_container &container, float x0, float y0, float x1, float y1, rgb_t backcolor);
+	void draw_outlined_box(render_container &container, float x0, float y0, float x1, float y1, rgb_t fgcolor, rgb_t bgcolor);
+	void draw_text(render_container &container, const char *buf, float x, float y);
+	void draw_text_full(render_container &container, const char *origs, float x, float y, float origwrapwidth, ui::text_layout::text_justify justify, ui::text_layout::word_wrapping wrap, draw_mode draw, rgb_t fgcolor, rgb_t bgcolor, float *totalwidth = nullptr, float *totalheight = nullptr, float text_size = 1.0f);
+	void draw_text_box(render_container &container, const char *text, ui::text_layout::text_justify justify, float xpos, float ypos, rgb_t backcolor);
+	void draw_text_box(render_container &container, ui::text_layout &layout, float xpos, float ypos, rgb_t backcolor);
+	void draw_message_window(render_container &container, const char *text);
 
 	// load/save options to file
 	void load_ui_options();
@@ -212,6 +206,12 @@ public:
 	void increase_frameskip();
 	void decrease_frameskip();
 	void request_quit();
+	void draw_fps_counter(render_container &container);
+	void draw_timecode_counter(render_container &container);
+	void draw_timecode_total(render_container &container);
+	void draw_profiler(render_container &container);
+	void start_save_state();
+	void start_load_state();
 
 	// print the game info string into a buffer
 	std::string &game_info_astring(std::string &str);
@@ -221,22 +221,22 @@ public:
 
 	// other
 	void process_natural_keyboard();
+	ui::text_layout create_layout(render_container &container, float width = 1.0, ui::text_layout::text_justify justify = ui::text_layout::LEFT, ui::text_layout::word_wrapping wrap = ui::text_layout::WORD);
 
 	// word wrap
-	int wrap_text(render_container *container, const char *origs, float x, float y, float origwrapwidth, std::vector<int> &xstart, std::vector<int> &xend, float text_size = 1.0f);
+	int wrap_text(render_container &container, const char *origs, float x, float y, float origwrapwidth, std::vector<int> &xstart, std::vector<int> &xend, float text_size = 1.0f);
 
 	// draw an outlined box with given line color and filled with a texture
-	void draw_textured_box(render_container *container, float x0, float y0, float x1, float y1, rgb_t backcolor, rgb_t linecolor, render_texture *texture = nullptr, UINT32 flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
+	void draw_textured_box(render_container &container, float x0, float y0, float x1, float y1, rgb_t backcolor, rgb_t linecolor, render_texture *texture = nullptr, UINT32 flags = PRIMFLAG_BLENDMODE(BLENDMODE_ALPHA));
 	virtual void popup_time_string(int seconds, std::string message) override;
-
-	virtual void image_display(const device_type &type, device_image_interface *image) override;
 
 	virtual void menu_reset() override;
 
 private:
 	// instance variables
 	render_font *           m_font;
-	ui_callback             m_handler_callback;
+	std::function<UINT32 (render_container &)> m_handler_callback;
+	ui_callback_type        m_handler_callback_type;
 	UINT32                  m_handler_param;
 	bool                    m_single_step;
 	bool                    m_showfps;
@@ -261,11 +261,11 @@ private:
 	std::string &warnings_string(std::string &buffer);
 
 	// UI handlers
-	static UINT32 handler_messagebox(mame_ui_manager &mui, render_container *container, UINT32 state);
-	static UINT32 handler_messagebox_anykey(mame_ui_manager &mui, render_container *container, UINT32 state);
-	static UINT32 handler_ingame(mame_ui_manager &mui, render_container *container, UINT32 state);
-	static UINT32 handler_load_save(mame_ui_manager &mui, render_container *container, UINT32 state);
-	static UINT32 handler_confirm_quit(mame_ui_manager &mui, render_container *container, UINT32 state);
+	UINT32 handler_messagebox(render_container &container);
+	UINT32 handler_messagebox_anykey(render_container &container);
+	UINT32 handler_ingame(render_container &container);
+	UINT32 handler_load_save(render_container &container, UINT32 state);
+	UINT32 handler_confirm_quit(render_container &container);
 
 	// private methods
 	void exit();
@@ -315,4 +315,4 @@ inline void mame_ui_manager::popup_time(int seconds, Format &&fmt, Params &&... 
 	popup_time_string(seconds, string_format(std::forward<Format>(fmt), std::forward<Params>(args)...));
 }
 
-#endif  /* __USRINTRF_H__ */
+#endif  /* MAME_FRONTEND_UI_UI_H */

@@ -56,10 +56,10 @@ public:
 
 	// image-level overrides
 	virtual bool call_load() override;
-	virtual bool call_create(int format_type, option_resolution *format_options) override;
+	virtual bool call_create(int format_type, util::option_resolution *format_options) override;
 	virtual void call_unload() override;
-	virtual void call_display() override;
-	virtual bool call_softlist_load(software_list_device &swlist, const char *swname, const rom_entry *start_entry) override { return load_software(swlist, swname, start_entry); }
+	virtual std::string call_display() override;
+	virtual const software_list_loader &get_software_list_loader() const override { return image_software_list_loader::instance(); }
 
 	virtual iodevice_t image_type() const override { return IO_CASSETTE; }
 
@@ -70,7 +70,6 @@ public:
 	virtual bool is_reset_on_load() const override { return 0; }
 	virtual const char *image_interface() const override { return m_interface; }
 	virtual const char *file_extensions() const override { return m_extension_list; }
-	virtual const option_guide *create_option_guide() const override { return nullptr; }
 
 	// specific implementation
 	cassette_state get_state() { return m_state; }

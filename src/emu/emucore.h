@@ -28,6 +28,7 @@
 
 // standard C++ includes
 #include <exception>
+#include <type_traits>
 #include <typeinfo>
 
 // core system includes
@@ -35,8 +36,6 @@
 #include "emualloc.h"
 #include "corestr.h"
 #include "bitmap.h"
-#include "tagmap.h"
-
 
 
 //**************************************************************************
@@ -191,17 +190,16 @@ const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
 //**************************************************************************
 
 // macro for defining a copy constructor and assignment operator to prevent copying
-#define DISABLE_COPYING(_Type) \
-private: \
-	_Type(const _Type &) = delete; \
-	_Type &operator=(const _Type &) = delete
+#define DISABLE_COPYING(TYPE) \
+	TYPE(const TYPE &) = delete; \
+	TYPE &operator=(const TYPE &) = delete
 
 // macro for declaring enumerator operators that increment/decrement like plain old C
-#define DECLARE_ENUM_OPERATORS(_Type) \
-inline void operator++(_Type &value) { value = (_Type)((int)value + 1); } \
-inline void operator++(_Type &value, int) { value = (_Type)((int)value + 1); } \
-inline void operator--(_Type &value) { value = (_Type)((int)value - 1); } \
-inline void operator--(_Type &value, int) { value = (_Type)((int)value - 1); }
+#define DECLARE_ENUM_OPERATORS(TYPE) \
+inline TYPE &operator++(TYPE &value) { return value = TYPE(std::underlying_type_t<TYPE>(value) + 1); } \
+inline TYPE operator++(TYPE &value, int) { TYPE const old(value); ++value; return old; } \
+inline TYPE &operator--(TYPE &value) { return value = TYPE(std::underlying_type_t<TYPE>(value) - 1); } \
+inline TYPE operator--(TYPE &value, int) { TYPE const old(value); --value; return old; }
 
 
 // this macro passes an item followed by a string version of itself as two consecutive parameters
@@ -209,7 +207,6 @@ inline void operator--(_Type &value, int) { value = (_Type)((int)value - 1); }
 
 // this macro wraps a function 'x' and can be used to pass a function followed by its name
 #define FUNC(x) &x, #x
-#define FUNC_NULL nullptr, "(null)"
 
 
 // standard assertion macros
@@ -301,7 +298,14 @@ private:
 	int code;
 };
 
-
+class tag_add_exception
+{
+public:
+	tag_add_exception(const char *tag) : m_tag(tag) { }
+	const char *tag() const { return m_tag.c_str(); }
+private:
+	std::string m_tag;
+};
 
 //**************************************************************************
 //  CASTING TEMPLATES
@@ -312,48 +316,41 @@ class device_t;
 void report_bad_cast(const std::type_info &src_type, const std::type_info &dst_type);
 void report_bad_device_cast(const device_t *dev, const std::type_info &src_type, const std::type_info &dst_type);
 
-// template function for casting from a base class to a derived class that is checked
-// in debug builds and fast in release builds
-template<class _Dest, class _Source>
-inline _Dest downcast(_Source *src)
+template <typename Dest, typename Source>
+inline std::enable_if_t<std::is_base_of<device_t, Source>::value> report_bad_cast(Source *const src)
 {
-#if defined(MAME_DEBUG) && !defined(MAME_DEBUG_FAST)
-	try {
-		if (dynamic_cast<_Dest>(src) != src)
-		{
-			if (dynamic_cast<const device_t *>(src) != nullptr)
-				report_bad_device_cast(dynamic_cast<const device_t *>(src), typeid(src), typeid(_Dest));
-			else
-				report_bad_cast(typeid(src), typeid(_Dest));
-		}
-	}
-	catch (std::bad_cast &)
-	{
-		report_bad_cast(typeid(src), typeid(_Dest));
-	}
-#endif
-	return static_cast<_Dest>(src);
+	if (src) report_bad_device_cast(src, typeid(Source), typeid(Dest));
+	else report_bad_cast(typeid(Source), typeid(Dest));
 }
 
-template<class _Dest, class _Source>
-inline _Dest downcast(_Source &src)
+template <typename Dest, typename Source>
+inline std::enable_if_t<!std::is_base_of<device_t, Source>::value> report_bad_cast(Source *const src)
+{
+	device_t const *dev(dynamic_cast<device_t const *>(src));
+	if (dev) report_bad_device_cast(dev, typeid(Source), typeid(Dest));
+	else report_bad_cast(typeid(Source), typeid(Dest));
+}
+
+// template function for casting from a base class to a derived class that is checked
+// in debug builds and fast in release builds
+template <typename Dest, typename Source>
+inline Dest downcast(Source *src)
 {
 #if defined(MAME_DEBUG) && !defined(MAME_DEBUG_FAST)
-	try {
-		if (&dynamic_cast<_Dest>(src) != &src)
-		{
-			if (dynamic_cast<const device_t *>(&src) != nullptr)
-				report_bad_device_cast(dynamic_cast<const device_t *>(&src), typeid(src), typeid(_Dest));
-			else
-				report_bad_cast(typeid(src), typeid(_Dest));
-		}
-	}
-	catch (std::bad_cast &)
-	{
-		report_bad_cast(typeid(src), typeid(_Dest));
-	}
+	Dest const chk(dynamic_cast<Dest>(src));
+	if (chk != src) report_bad_cast<std::remove_pointer_t<Dest>, Source>(src);
 #endif
-	return static_cast<_Dest>(src);
+	return static_cast<Dest>(src);
+}
+
+template<class Dest, class Source>
+inline Dest downcast(Source &src)
+{
+#if defined(MAME_DEBUG) && !defined(MAME_DEBUG_FAST)
+	std::remove_reference_t<Dest> *const chk(dynamic_cast<std::remove_reference_t<Dest> *>(&src));
+	if (chk != &src) report_bad_cast<std::remove_reference_t<Dest>, Source>(&src);
+#endif
+	return static_cast<Dest>(src);
 }
 
 

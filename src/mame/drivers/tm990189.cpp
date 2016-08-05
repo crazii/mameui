@@ -176,17 +176,17 @@ MACHINE_RESET_MEMBER(tm990189_state,tm990_189)
 
 MACHINE_START_MEMBER(tm990189_state,tm990_189)
 {
-	m_displayena_timer = machine().scheduler().timer_alloc(FUNC_NULL);
+	m_displayena_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
 }
 
 MACHINE_START_MEMBER(tm990189_state,tm990_189_v)
 {
-	m_displayena_timer = machine().scheduler().timer_alloc(FUNC_NULL);
+	m_displayena_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
 
-	m_joy1x_timer = machine().scheduler().timer_alloc(FUNC_NULL);
-	m_joy1y_timer = machine().scheduler().timer_alloc(FUNC_NULL);
-	m_joy2x_timer = machine().scheduler().timer_alloc(FUNC_NULL);
-	m_joy2y_timer = machine().scheduler().timer_alloc(FUNC_NULL);
+	m_joy1x_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
+	m_joy1y_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
+	m_joy2x_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
+	m_joy2y_timer = machine().scheduler().timer_alloc(timer_expired_delegate());
 }
 
 MACHINE_RESET_MEMBER(tm990189_state,tm990_189_v)
@@ -439,9 +439,7 @@ public:
 	virtual bool is_creatable() const override { return 1; }
 	virtual bool must_be_loaded() const override { return 0; }
 	virtual bool is_reset_on_load() const override { return 0; }
-	virtual const char *image_interface() const override { return nullptr; }
 	virtual const char *file_extensions() const override { return ""; }
-	virtual const option_guide *create_option_guide() const override { return nullptr; }
 
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
 

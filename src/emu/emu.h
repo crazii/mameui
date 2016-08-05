@@ -21,6 +21,7 @@
 #include <list>
 #include <vector>
 #include <memory>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -29,9 +30,11 @@
 #include "eminline.h"
 #include "profiler.h"
 
-// commonly-referenecd utilities imported from lib/util
+// commonly-referenced utilities imported from lib/util
 #include "palette.h"
 #include "unicode.h"
+#include "strformat.h"
+#include "vecstream.h"
 
 // emulator-specific utilities
 #include "attotime.h"

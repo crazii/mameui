@@ -15,7 +15,7 @@ Notes:
 
 TODO:
 - 02851: tetriskr: Corrupt game graphics after some time of gameplay, caused by a wrong
-  reading of the i/o $3c8 bit 1.
+  reading of the i/o $3c8 bit 1. (seems fixed?)
 - Add a proper FDC device.
 - Filetto: Add UM5100 sound chip, might be connected to the prototyping card;
 - buzzer sound has issues in both games
@@ -161,7 +161,7 @@ void isa8_cga_tetriskr_device::device_start()
 {
 	m_bg_bank = 0;
 	isa8_cga_superimpose_device::device_start();
-	m_isa->install_device(0x3c0, 0x3c0, 0, 0,  read8_delegate( FUNC(isa8_cga_tetriskr_device::bg_bank_r), this ), write8_delegate( FUNC(isa8_cga_tetriskr_device::bg_bank_w), this ) );
+	m_isa->install_device(0x3c0, 0x3c0, read8_delegate( FUNC(isa8_cga_tetriskr_device::bg_bank_r), this ), write8_delegate( FUNC(isa8_cga_tetriskr_device::bg_bank_w), this ) );
 }
 
 WRITE8_MEMBER(isa8_cga_tetriskr_device::bg_bank_w)
@@ -540,4 +540,4 @@ ROM_START( tetriskr )
 ROM_END
 
 GAME( 1990, filetto,  0, filetto,  filetto, driver_device,  0,  ROT0,  "Novarmatic", "Filetto (v1.05 901009)",MACHINE_IMPERFECT_SOUND )
-GAME( 1988?,tetriskr, 0, tetriskr, tetriskr, driver_device,  0, ROT0,  "bootleg",    "Tetris (bootleg of Mirrorsoft PC-XT Tetris version)", MACHINE_IMPERFECT_SOUND | MACHINE_NOT_WORKING )
+GAME( 1988?,tetriskr, 0, tetriskr, tetriskr, driver_device,  0, ROT0,  "bootleg",    "Tetris (Korean bootleg of Mirrorsoft PC-XT Tetris)", MACHINE_IMPERFECT_SOUND )

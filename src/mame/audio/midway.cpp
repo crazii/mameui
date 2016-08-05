@@ -131,7 +131,7 @@ WRITE8_MEMBER(midway_ssio_device::ioport_write)
 {
 	int which = offset >> 2;
 	if (!m_custom_output[which].isnull())
-		m_custom_output[which](space, offset, data & m_custom_output_mask[which], 0xff);
+		m_custom_output[which](space, offset & 4, data & m_custom_output_mask[which], 0xff);
 }
 
 
@@ -1126,7 +1126,7 @@ WRITE8_MEMBER(midway_squawk_n_talk_device::portb2_w)
 WRITE_LINE_MEMBER(midway_squawk_n_talk_device::irq_w)
 {
 	int combined_state = m_pia0->irq_a_state() | m_pia0->irq_b_state() | m_pia1->irq_a_state() | m_pia1->irq_b_state();
-	m_cpu->set_input_line(M6800_IRQ_LINE, combined_state ? ASSERT_LINE : CLEAR_LINE);
+	m_cpu->set_input_line(M6802_IRQ_LINE, combined_state ? ASSERT_LINE : CLEAR_LINE);
 }
 
 

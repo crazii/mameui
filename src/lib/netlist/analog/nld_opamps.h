@@ -19,11 +19,11 @@
 // Macros
 // ----------------------------------------------------------------------------------------
 
-#define OPAMP(name, model)                                                   \
-		NET_REGISTER_DEV(OPAMP, name)                                         \
+#define OPAMP(name, model)                                                     \
+		NET_REGISTER_DEV(OPAMP, name)                                          \
 		NETDEV_PARAMI(name, MODEL, model)
 
-#define LM3900(name)                                                          \
+#define LM3900(name)                                                           \
 	SUBMODEL(opamp_lm3900, name)
 
 // ----------------------------------------------------------------------------------------
@@ -32,24 +32,23 @@
 
 NETLIST_EXTERNAL(opamp_lm3900)
 
-NETLIB_NAMESPACE_DEVICES_START()
-
+namespace netlist
+{
+	namespace devices
+	{
 NETLIB_OBJECT(OPAMP)
 {
 	NETLIB_CONSTRUCTOR(OPAMP)
 	, m_RP(*this, "RP1")
 	, m_G1(*this, "G1")
-	, m_model(*this, "MODEL", "")
+	, m_VCC(*this, "VCC")
+	, m_GND(*this, "GND")
+	, m_model(*this, "MODEL", "LM324")
+	, m_VH(*this, "VH")
+	, m_VL(*this, "VL")
+	, m_VREF(*this, "VREF")
 	{
-
-		m_type = m_model.model_value("TYPE");
-
-		enregister("VCC", m_VCC);
-		enregister("GND", m_GND);
-
-		enregister("VL", m_VL);
-		enregister("VH", m_VH);
-		enregister("VREF", m_VREF);
+		m_type = static_cast<int>(m_model.model_value("TYPE"));
 
 		if (m_type == 1)
 		{
@@ -118,9 +117,10 @@ private:
 	analog_output_t m_VREF;
 
 	/* state */
-	unsigned m_type;
+	int m_type;
 };
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_OPAMPS_H_ */

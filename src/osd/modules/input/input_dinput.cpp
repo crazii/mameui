@@ -136,8 +136,7 @@ void dinput_keyboard_device::reset()
 
 dinput_api_helper::dinput_api_helper(int version)
 	: m_dinput(nullptr),
-		m_dinput_version(version),
-		m_pfn_DirectInputCreate("DirectInputCreateW", L"dinput.dll")
+		m_dinput_version(version)
 {
 }
 
@@ -163,18 +162,23 @@ int dinput_api_helper::initialize()
 	else
 #endif
 	{
-		result = m_pfn_DirectInputCreate.initialize();
-		if (result != DI_OK)
-			return result;
+		m_dinput_dll = osd::dynamic_module::open({ "dinput.dll" });
+
+		m_dinput_create_prt = m_dinput_dll->bind<dinput_create_fn>("DirectInputCreateW");
+		if (m_dinput_create_prt == nullptr)
+		{
+			osd_printf_verbose("Legacy DirectInput library dinput.dll is not available\n");
+			return ERROR_DLL_NOT_FOUND;
+		}
 
 		// first attempt to initialize DirectInput at v7
 		m_dinput_version = 0x0700;
-		result = m_pfn_DirectInputCreate(GetModuleHandleUni(), m_dinput_version, m_dinput.GetAddressOf(), nullptr);
+		result = (*m_dinput_create_prt)(GetModuleHandleUni(), m_dinput_version, m_dinput.GetAddressOf(), nullptr);
 		if (result != DI_OK)
 		{
 			// if that fails, try version 5
 			m_dinput_version = 0x0500;
-			result = m_pfn_DirectInputCreate(GetModuleHandleUni(), m_dinput_version, m_dinput.GetAddressOf(), nullptr);
+			result = (*m_dinput_create_prt)(GetModuleHandleUni(), m_dinput_version, m_dinput.GetAddressOf(), nullptr);
 			if (result != DI_OK)
 			{
 				m_dinput_version = 0;
@@ -256,29 +260,18 @@ public:
 			return std::string(defstring);
 		}
 
-		auto osd_free_deleter = [](char *p) { osd_free(p); };
-
 		// convert the name to utf8
-		auto namestring = std::unique_ptr<char, decltype(osd_free_deleter)>(utf8_from_tstring(instance.tszName), osd_free_deleter);
+		std::string namestring = utf8_from_tstring(instance.tszName);
 
 		// if no suffix, return as-is
 		if (suffix == nullptr)
-		{
-			return std::string(namestring.get());
-		}
-
-		// otherwise, allocate space to add the suffix
-		auto combined = std::make_unique<char[]>(strlen(namestring.get()) + 1 + _tcslen(suffix) + 1);
+			return namestring;
 
 		// convert the suffix to utf8
-		auto suffix_utf8 = std::unique_ptr<char, decltype(osd_free_deleter)>(utf8_from_tstring(suffix), osd_free_deleter);
+		std::string suffix_utf8 = utf8_from_tstring(suffix);
 
 		// Concat the name and suffix
-		strcpy(combined.get(), namestring.get());
-		strcat(combined.get(), " ");
-		strcat(combined.get(), suffix_utf8.get());
-
-		return std::string(combined.get());
+		return namestring + " " + suffix_utf8;
 	}
 
 protected:
@@ -325,7 +318,7 @@ public:
 			name = device_item_name(devinfo, keynum, defname, nullptr);
 
 			// add the item to the device
-			devinfo->device()->add_item(name.c_str(), itemid, generic_button_get_state, &devinfo->keyboard.state[keynum]);
+			devinfo->device()->add_item(name.c_str(), itemid, generic_button_get_state<std::uint8_t>, &devinfo->keyboard.state[keynum]);
 		}
 
 	exit:
@@ -402,7 +395,11 @@ public:
 		{
 			// add to the mouse device and optionally to the gun device as well
 			std::string name = device_item_name(devinfo, offsetof(DIMOUSESTATE, lX) + axisnum * sizeof(LONG), default_axis_name[axisnum], nullptr);
-			devinfo->device()->add_item(name.c_str(), static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum), generic_axis_get_state, &devinfo->mouse.lX + axisnum);
+			devinfo->device()->add_item(
+				name.c_str(),
+				static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum),
+				generic_axis_get_state<LONG>,
+				&devinfo->mouse.lX + axisnum);
 		}
 
 		// populate the buttons
@@ -412,7 +409,11 @@ public:
 
 			// add to the mouse device
 			std::string name = device_item_name(devinfo, offset, default_button_name(butnum), nullptr);
-			devinfo->device()->add_item(name.c_str(), static_cast<input_item_id>(ITEM_ID_BUTTON1 + butnum), generic_button_get_state, &devinfo->mouse.rgbButtons[butnum]);
+			devinfo->device()->add_item(
+				name.c_str(),
+				static_cast<input_item_id>(ITEM_ID_BUTTON1 + butnum),
+				generic_button_get_state<BYTE>,
+				&devinfo->mouse.rgbButtons[butnum]);
 		}
 
 	exit:
@@ -502,7 +503,11 @@ int dinput_joystick_device::configure()
 
 		// populate the item description as well
 		name = dinput_module::device_item_name(this, offsetof(DIJOYSTATE2, lX) + axisnum * sizeof(LONG), default_axis_name[axisnum], nullptr);
-		device()->add_item(name.c_str(), static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum), generic_axis_get_state, &joystick.state.lX + axisnum);
+		device()->add_item(
+			name.c_str(),
+			static_cast<input_item_id>(ITEM_ID_XAXIS + axisnum),
+			generic_axis_get_state<LONG>,
+			&joystick.state.lX + axisnum);
 
 		axiscount++;
 	}
@@ -544,7 +549,7 @@ int dinput_joystick_device::configure()
 		else
 			itemid = ITEM_ID_OTHER_SWITCH;
 
-		device()->add_item(name.c_str(), itemid, generic_button_get_state, &joystick.state.rgbButtons[butnum]);
+		device()->add_item(name.c_str(), itemid, generic_button_get_state<BYTE>, &joystick.state.rgbButtons[butnum]);
 	}
 
 	return 0;
@@ -574,7 +579,7 @@ public:
 		dinput_joystick_device *devinfo;
 		int result = 0;
 
-		if (!win_window_list.empty() && win_window_list.front()->win_has_menu())
+		if (!osd_common_t::s_window_list.empty() && osd_common_t::s_window_list.front()->win_has_menu())
 			cooperative_level = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 
 		// allocate and link in a new device

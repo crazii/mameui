@@ -35,6 +35,14 @@ function addoptionsfromstring(str)
 	end
 end
 
+function pkgconfigcmd()
+	local pkgconfig = os.getenv("PKG_CONFIG")
+	if pkgconfig == nil then 
+		return "pkg-config" 
+	end
+	return pkgconfig
+end
+
 function osdmodulesbuild()
 
 	removeflags {
@@ -96,6 +104,8 @@ function osdmodulesbuild()
 		MAME_DIR .. "src/osd/modules/output/none.cpp",
 		MAME_DIR .. "src/osd/modules/output/console.cpp",
 		MAME_DIR .. "src/osd/modules/output/network.cpp",
+		MAME_DIR .. "src/osd/modules/output/win32_output.cpp",
+		MAME_DIR .. "src/osd/modules/output/win32_output.h",
 		MAME_DIR .. "src/osd/modules/ipc/tcp_connection.cpp",
 		MAME_DIR .. "src/osd/modules/ipc/tcp_connection.h",
 		MAME_DIR .. "src/osd/modules/ipc/tcp_server.cpp",
@@ -119,11 +129,9 @@ function osdmodulesbuild()
 			MAME_DIR .. "3rdparty/compat/mingw",
 		}
 
-		if _OPTIONS["MODERN_WIN_API"]~="1" then
-			includedirs {
-				MAME_DIR .. "3rdparty/compat/winsdk-override",
-			}
-		end
+		includedirs {
+			MAME_DIR .. "3rdparty/compat/winsdk-override",
+		}
 	end
 
 	if _OPTIONS["NO_OPENGL"]=="1" then
@@ -242,12 +250,13 @@ function qtdebuggerbuild()
 	}
 	local version = str_to_version(_OPTIONS["gcc_version"])
 	if _OPTIONS["gcc"]~=nil and (string.find(_OPTIONS["gcc"], "clang") or string.find(_OPTIONS["gcc"], "asmjs")) then
-		configuration { "gmake" }
-		if (version >= 30600) then
-			buildoptions {
-				"-Wno-inconsistent-missing-override",
-			}
-		end
+		configuration { "gmake or ninja" }
+			if (version >= 30600) then
+				buildoptions {
+					"-Wno-inconsistent-missing-override",
+				}
+			end
+		configuration { }
 	end
 
 	files {
@@ -343,7 +352,7 @@ function qtdebuggerbuild()
 				}
 			else
 				buildoptions {
-					backtick("pkg-config --cflags Qt5Widgets"),
+					backtick(pkgconfigcmd() .. " --cflags Qt5Widgets"),
 				}
 			end
 		end
@@ -378,7 +387,7 @@ function osdmodulestargetconf()
 
 	if _OPTIONS["NO_USE_MIDI"]~="1" then
 		if _OPTIONS["targetos"]=="linux" then
-			local str = backtick("pkg-config --libs alsa")
+			local str = backtick(pkgconfigcmd() .. " --libs alsa")
 			addlibfromstring(str)
 			addoptionsfromstring(str)
 		elseif _OPTIONS["targetos"]=="macosx" then
@@ -419,7 +428,7 @@ function osdmodulestargetconf()
 					"Qt5Widgets",
 				}
 			else
-				local str = backtick("pkg-config --libs Qt5Widgets")
+				local str = backtick(pkgconfigcmd() .. " --libs Qt5Widgets")
 				addlibfromstring(str)
 				addoptionsfromstring(str)
 			end

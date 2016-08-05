@@ -111,24 +111,25 @@ struct SHARC_DMA_OP
 #define MODE2_CAFRZ         0x80000     /* Cache freeze */
 
 
-#define SIGN_EXTEND6(x)				(((x) & 0x20) ? (0xffffffc0 | (x)) : (x))
-#define SIGN_EXTEND24(x)			(((x) & 0x800000) ? (0xff000000 | (x)) : (x))
+#define SIGN_EXTEND6(x)             (((x) & 0x20) ? (0xffffffc0 | (x)) : (x))
+#define SIGN_EXTEND24(x)            (((x) & 0x800000) ? (0xff000000 | (x)) : (x))
 #define MAKE_EXTRACT_MASK(start_bit, length)    ((0xffffffff << start_bit) & (((UINT32)0xffffffff) >> (32 - (start_bit + length))))
 
-#define OP_USERFLAG_COUNTER_LOOP			0x00000001
-#define OP_USERFLAG_COND_LOOP				0x00000002
-#define OP_USERFLAG_COND_FIELD				0x0000003c
-#define OP_USERFLAG_COND_FIELD_SHIFT		2
-#define OP_USERFLAG_ASTAT_DELAY_COPY_AZ		0x00001000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_AN		0x00002000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_AC		0x00004000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_AV		0x00008000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_MV		0x00010000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_MN		0x00020000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_SV		0x00040000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_SZ		0x00080000
-#define OP_USERFLAG_ASTAT_DELAY_COPY_BTF	0x00100000
-#define OP_USERFLAG_ASTAT_DELAY_COPY		0x001ff000
+#define OP_USERFLAG_COUNTER_LOOP            0x00000001
+#define OP_USERFLAG_COND_LOOP               0x00000002
+#define OP_USERFLAG_COND_FIELD              0x000003fc
+#define OP_USERFLAG_COND_FIELD_SHIFT        2
+#define OP_USERFLAG_ASTAT_DELAY_COPY_AZ     0x00001000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_AN     0x00002000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_AC     0x00004000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_AV     0x00008000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_MV     0x00010000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_MN     0x00020000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_SV     0x00040000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_SZ     0x00080000
+#define OP_USERFLAG_ASTAT_DELAY_COPY_BTF    0x00100000
+#define OP_USERFLAG_ASTAT_DELAY_COPY        0x001ff000
+#define OP_USERFLAG_CALL                    0x10000000
 
 
 #define MCFG_SHARC_BOOT_MODE(boot_mode) \
@@ -167,6 +168,8 @@ public:
 	void sharc_cfunc_unimplemented_compute();
 	void sharc_cfunc_unimplemented_shiftimm();
 	void sharc_cfunc_write_snoop();
+
+	void enable_recompiler();
 
 	enum ASTAT_FLAGS
 	{
@@ -401,12 +404,15 @@ private:
 		ASTAT_DRC astat_drc_copy;
 		ASTAT_DRC astat_delay_copy;
 		UINT32 dreg_temp;
+		UINT32 dreg_temp2;
 		UINT32 jmpdest;
+		UINT32 temp_return;
 
 		float fp0;
 		float fp1;
 
 		UINT32 force_recompile;
+		UINT32 cache_dirty;
 	};
 
 	sharc_internal_state* m_core;
@@ -434,15 +440,13 @@ private:
 	uml::code_handle *m_pop_loop;
 	uml::code_handle *m_push_status;
 	uml::code_handle *m_pop_status;
-	uml::code_handle *m_exception[EXCEPTION_COUNT];		// exception handlers
+	uml::code_handle *m_exception[EXCEPTION_COUNT];     // exception handlers
 	uml::code_handle *m_swap_dag1_0_3;
 	uml::code_handle *m_swap_dag1_4_7;
 	uml::code_handle *m_swap_dag2_0_3;
 	uml::code_handle *m_swap_dag2_4_7;
 	uml::code_handle *m_swap_r0_7;
 	uml::code_handle *m_swap_r8_15;
-
-	bool m_cache_dirty;
 
 	UINT16 *m_internal_ram_block0, *m_internal_ram_block1;
 
@@ -451,6 +455,8 @@ private:
 	opcode_func m_sharc_op[512];
 
 	UINT16 m_internal_ram[2 * 0x10000]; // 2x 128KB
+
+	bool m_enable_drc;
 
 	inline void CHANGE_PC(UINT32 newpc);
 	inline void CHANGE_PC_DELAYED(UINT32 newpc);
@@ -589,7 +595,7 @@ private:
 	{
 		UINT32 cycles;                             /* accumulated cycles */
 		UINT8  checkints;                          /* need to check interrupts before next instruction */
-		uml::code_label  labelnum;				   /* index for local labels */
+		uml::code_label  labelnum;                 /* index for local labels */
 		struct
 		{
 			int counter;
@@ -616,7 +622,7 @@ private:
 	void static_generate_mode1_ops();
 	void load_fast_iregs(drcuml_block *block);
 	void save_fast_iregs(drcuml_block *block);
-	void generate_sequence_instruction(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc);
+	void generate_sequence_instruction(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, bool last_delayslot);
 	void generate_update_cycles(drcuml_block *block, compiler_state *compiler, uml::parameter param, int allow_exception);
 	int generate_opcode(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc);
 	void generate_unimplemented_compute(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc);
@@ -626,6 +632,7 @@ private:
 	void generate_shift_imm(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, int data, int shiftop, int rn, int rx);
 	void generate_call(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, bool delayslot);
 	void generate_jump(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, bool delayslot, bool loopabort, bool clearint);
+	void generate_loop_jump(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc);
 	void generate_write_mode1_imm(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, UINT32 data);
 	void generate_set_mode1_imm(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, UINT32 data);
 	void generate_clear_mode1_imm(drcuml_block *block, compiler_state *compiler, const opcode_desc *desc, UINT32 data);

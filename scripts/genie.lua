@@ -75,10 +75,17 @@ end
 
 function addprojectflags()
 	local version = str_to_version(_OPTIONS["gcc_version"])
-	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "gcc") and (version >= 50100) then
-		buildoptions_cpp {
-			"-Wsuggest-override",
-		}
+	if _OPTIONS["gcc"]~=nil and string.find(_OPTIONS["gcc"], "gcc") then
+		if version >= 50100 then
+			buildoptions_cpp {
+				"-Wsuggest-override",
+			}
+		end
+		if version >= 60000 then
+			buildoptions_cpp {
+				"-flifetime-dse=1",
+			}
+		end
 	end
 end
 
@@ -359,15 +366,6 @@ newoption {
 }
 
 newoption {
-	trigger = "IGNORE_GIT",
-	description = "Ignore usage of git command in build process",
-	allowed = {
-		{ "0",  "Do not ignore"   },
-		{ "1",  "Ingore"  },
-	},
-}
-
-newoption {
 	trigger = "SOURCES",
 	description = "List of sources to compile.",
 }
@@ -530,7 +528,7 @@ if (_OPTIONS["SOURCES"] == nil) then
 	dofile (path.join("target", _OPTIONS["target"],_OPTIONS["subtarget"] .. ".lua"))
 end
 
-configuration { "gmake" }
+configuration { "gmake or ninja" }
 	flags {
 		"SingleOutputDir",
 	}
@@ -700,7 +698,7 @@ end
 		"LUA_COMPAT_5_2",
 	}
 
-	if _ACTION == "gmake" then
+	if _ACTION == "gmake" or _ACTION == "ninja" then
 
 	--we compile C-only to C99 standard with GNU extensions
 
@@ -733,7 +731,7 @@ end
 -- this speeds it up a bit by piping between the preprocessor/compiler/assembler
 	if not ("pnacl" == _OPTIONS["gcc"]) then
 		buildoptions {
-			"--pipe",
+			"-pipe",
 		}
 	end
 -- add -g if we need symbols, and ensure we have frame pointers
@@ -1010,6 +1008,12 @@ end
 		end
 	end
 
+if (_OPTIONS["PLATFORM"]=="alpha") then
+	defines {
+		"PTR64=1",
+	}
+end
+
 if (_OPTIONS["PLATFORM"]=="arm") then
 	buildoptions {
 		"-Wno-cast-align",
@@ -1020,6 +1024,12 @@ if (_OPTIONS["PLATFORM"]=="arm64") then
 	buildoptions {
 		"-Wno-cast-align",
 	}
+	defines {
+		"PTR64=1",
+	}
+end
+
+if (_OPTIONS["PLATFORM"]=="mips64") then
 	defines {
 		"PTR64=1",
 	}
@@ -1138,6 +1148,7 @@ configuration { "mingw*" }
 			"-static-libgcc",
 			"-static-libstdc++",
 			"-static",
+			"-Wl,--start-group",
 		}
 		links {
 			"user32",
@@ -1285,7 +1296,7 @@ end
 		includedirs {
 			MAME_DIR .. "3rdparty/dxsdk/Include"
 		}
-configuration { "vs2015" }
+configuration { "vs2015*" }
 		buildoptions {
 			"/wd4334", -- warning C4334: '<<': result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
 			"/wd4456", -- warning C4456: declaration of 'xxx' hides previous local declaration

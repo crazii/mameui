@@ -27,8 +27,10 @@
 // Devices ...
 // ----------------------------------------------------------------------------------------
 
-NETLIB_NAMESPACE_DEVICES_START()
-
+namespace netlist
+{
+	namespace devices
+	{
 NETLIB_OBJECT(switch1)
 {
 	NETLIB_CONSTRUCTOR(switch1)
@@ -44,7 +46,7 @@ NETLIB_OBJECT(switch1)
 	NETLIB_UPDATE_PARAMI();
 
 	NETLIB_SUB(R_base) m_R;
-	param_int_t m_POS;
+	param_logic_t m_POS;
 };
 
 NETLIB_OBJECT(switch2)
@@ -68,9 +70,10 @@ NETLIB_OBJECT(switch2)
 
 	NETLIB_SUB(R_base) m_R1;
 	NETLIB_SUB(R_base) m_R2;
-	param_int_t m_POS;
+	param_logic_t m_POS;
 };
 
-NETLIB_NAMESPACE_DEVICES_END()
+	} //namespace devices
+} // namespace netlist
 
 #endif /* NLD_SWITCHES_H_ */

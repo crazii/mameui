@@ -332,6 +332,7 @@ VIDEOS["V9938"] = true
 --VIDEOS["VIC4567"] = true
 VIDEOS["VOODOO"] = true
 VIDEOS["VOODOO_PCI"] = true
+VIDEOS["ZEUS2"] = true
 
 --------------------------------------------------
 -- specify available machine cores
@@ -429,6 +430,7 @@ MACHINES["LC89510"] = true
 MACHINES["LDPR8210"] = true
 MACHINES["LDSTUB"] = true
 MACHINES["LDV1000"] = true
+MACHINES["LDP1000"] = true
 MACHINES["LDVP931"] = true
 --MACHINES["LH5810"] = true
 MACHINES["LINFLASH"] = true
@@ -570,6 +572,7 @@ MACHINES["PCI9050"] = true
 MACHINES["GENPC"] = true
 MACHINES["GEN_LATCH"] = true
 MACHINES["WATCHDOG"] = true
+MACHINES["INPUT_MERGER"] = true
 
 --------------------------------------------------
 -- specify available bus cores
@@ -640,10 +643,12 @@ BUSES["SAT_CTRL"] = true
 BUSES["SCSI"] = true
 --BUSES["SCV"] = true
 BUSES["SEGA8"] = true
+BUSES["SG1000_EXP"] = true
 BUSES["SMS_CTRL"] = true
 BUSES["SMS_EXP"] = true
 --BUSES["SNES"] = true
 --BUSES["SPC1000"] = true
+BUSES["SUNKBD"] = true
 --BUSES["TI99PEB"] = true
 --BUSES["TVC"] = true
 --BUSES["VBOY"] = true
@@ -1168,6 +1173,8 @@ files {
 	MAME_DIR .. "src/mame/machine/mathbox.cpp",
 	MAME_DIR .. "src/mame/machine/mathbox.h",
 	MAME_DIR .. "src/mame/machine/slapstic.cpp",
+	MAME_DIR .. "src/mame/machine/atarixga.cpp",
+	MAME_DIR .. "src/mame/machine/atarixga.h",
 	MAME_DIR .. "src/mame/audio/atarijsa.cpp",
 	MAME_DIR .. "src/mame/audio/atarijsa.h",
 	MAME_DIR .. "src/mame/audio/cage.cpp",
@@ -1349,7 +1356,6 @@ files {
 
 createMAMEProjects(_target, _subtarget, "cinemat")
 files {
-	MAME_DIR .. "src/mame/drivers/ataxx.cpp",
 	MAME_DIR .. "src/mame/drivers/cinemat.cpp",
 	MAME_DIR .. "src/mame/includes/cinemat.h",
 	MAME_DIR .. "src/mame/audio/cinemat.cpp",
@@ -2115,6 +2121,9 @@ files {
 	MAME_DIR .. "src/mame/drivers/ddribble.cpp",
 	MAME_DIR .. "src/mame/includes/ddribble.h",
 	MAME_DIR .. "src/mame/video/ddribble.cpp",
+    MAME_DIR .. "src/mame/drivers/divebomb.cpp",
+    MAME_DIR .. "src/mame/includes/divebomb.h",
+    MAME_DIR .. "src/mame/video/divebomb.cpp",
 	MAME_DIR .. "src/mame/drivers/djmain.cpp",
 	MAME_DIR .. "src/mame/includes/djmain.h",
 	MAME_DIR .. "src/mame/video/djmain.cpp",
@@ -3044,6 +3053,8 @@ files {
 	MAME_DIR .. "src/mame/machine/s32comm.h",
 	MAME_DIR .. "src/mame/machine/m1comm.cpp",
 	MAME_DIR .. "src/mame/machine/m1comm.h",
+	MAME_DIR .. "src/mame/machine/m2comm.cpp",
+	MAME_DIR .. "src/mame/machine/m2comm.h",
 	MAME_DIR .. "src/mame/audio/dsbz80.cpp",
 	MAME_DIR .. "src/mame/audio/dsbz80.h",
 	MAME_DIR .. "src/mame/drivers/model2.cpp",
@@ -3218,6 +3229,7 @@ files {
 	MAME_DIR .. "src/mame/machine/gdrom.cpp",
 	MAME_DIR .. "src/mame/machine/gdrom.h",
 	MAME_DIR .. "src/mame/machine/xbox.cpp",
+	MAME_DIR .. "src/mame/machine/xbox_usb.cpp",
 }
 
 createMAMEProjects(_target, _subtarget, "seibu")
@@ -3249,6 +3261,7 @@ files {
 	MAME_DIR .. "src/mame/drivers/legionna.cpp",
 	MAME_DIR .. "src/mame/includes/legionna.h",
 	MAME_DIR .. "src/mame/video/legionna.cpp",
+	MAME_DIR .. "src/mame/drivers/seicupbl.cpp",
 	MAME_DIR .. "src/mame/drivers/metlfrzr.cpp",
 	MAME_DIR .. "src/mame/drivers/mustache.cpp",
 	MAME_DIR .. "src/mame/includes/mustache.h",
@@ -3261,13 +3274,13 @@ files {
 	MAME_DIR .. "src/mame/includes/raiden2.h",
 	MAME_DIR .. "src/mame/machine/r2crypt.cpp",
 	MAME_DIR .. "src/mame/machine/r2crypt.h",
-	MAME_DIR .. "src/mame/machine/raiden2cop.cpp",
-	MAME_DIR .. "src/mame/machine/raiden2cop.h",
+	MAME_DIR .. "src/mame/machine/seibucop/seibucop.cpp",
+	MAME_DIR .. "src/mame/machine/seibucop/seibucop_dma.hxx",
+	MAME_DIR .. "src/mame/machine/seibucop/seibucop_cmd.hxx",
+	MAME_DIR .. "src/mame/machine/seibucop/seibucop.h",
 	MAME_DIR .. "src/mame/drivers/r2dx_v33.cpp",
 	MAME_DIR .. "src/mame/drivers/seibuspi.cpp",
 	MAME_DIR .. "src/mame/includes/seibuspi.h",
-	MAME_DIR .. "src/mame/machine/seibuspi.cpp",
-	MAME_DIR .. "src/mame/machine/seibuspi.h",
 	MAME_DIR .. "src/mame/video/seibuspi.cpp",
 	MAME_DIR .. "src/mame/drivers/sengokmj.cpp",
 	MAME_DIR .. "src/mame/drivers/stfight.cpp",
@@ -3282,8 +3295,8 @@ files {
 	MAME_DIR .. "src/mame/video/wiz.cpp",
 	MAME_DIR .. "src/mame/machine/seicop.cpp",
 	MAME_DIR .. "src/mame/machine/seicop.h",
-	MAME_DIR .. "src/mame/machine/spisprit.cpp",
-	MAME_DIR .. "src/mame/machine/spisprit.h",
+	MAME_DIR .. "src/mame/machine/seibuspi.cpp",
+	MAME_DIR .. "src/mame/machine/seibuspi.h",
 	MAME_DIR .. "src/mame/audio/seibu.cpp",
 	MAME_DIR .. "src/mame/audio/seibu.h",
 	MAME_DIR .. "src/mame/video/seibu_crtc.cpp",
@@ -4221,6 +4234,11 @@ files {
 --------------------------------------------------
 
 createMAMEProjects(_target, _subtarget, "misc")
+
+includedirs {
+	ext_includedir("jpeg"),
+}
+
 files {
 	MAME_DIR .. "src/mame/drivers/1945kiii.cpp",
 	MAME_DIR .. "src/mame/drivers/39in1.cpp",

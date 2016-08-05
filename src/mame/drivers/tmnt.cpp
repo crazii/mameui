@@ -58,10 +58,11 @@ Updates:
 #include "machine/eepromser.h"
 #include "cpu/m68000/m68000.h"
 #include "cpu/z80/z80.h"
-#include "sound/2151intf.h"
+#include "sound/ym2151.h"
 #include "sound/okim6295.h"
 #include "sound/samples.h"
 #include "sound/k054539.h"
+#include "machine/gen_latch.h"
 #include "machine/nvram.h"
 #include "machine/watchdog.h"
 #include "includes/tmnt.h"
@@ -494,7 +495,7 @@ static ADDRESS_MAP_START( mia_main_map, AS_PROGRAM, 16, tmnt_state )
 	AM_RANGE(0x0a0000, 0x0a0001) AM_READ_PORT("COINS") AM_WRITE(tmnt_0a0000_w)
 	AM_RANGE(0x0a0002, 0x0a0003) AM_READ_PORT("P1")
 	AM_RANGE(0x0a0004, 0x0a0005) AM_READ_PORT("P2")
-	AM_RANGE(0x0a0008, 0x0a0009) AM_WRITE8(soundlatch_byte_w, 0x00ff)
+	AM_RANGE(0x0a0008, 0x0a0009) AM_DEVWRITE8("soundlatch", generic_latch_8_device, write, 0x00ff)
 	AM_RANGE(0x0a0010, 0x0a0011) AM_READ_PORT("DSW1") AM_DEVWRITE("watchdog", watchdog_timer_device, reset16_w)
 	AM_RANGE(0x0a0012, 0x0a0013) AM_READ_PORT("DSW2")
 	AM_RANGE(0x0a0018, 0x0a0019) AM_READ_PORT("DSW3")
@@ -516,7 +517,7 @@ static ADDRESS_MAP_START( tmnt_main_map, AS_PROGRAM, 16, tmnt_state )
 	AM_RANGE(0x0a0002, 0x0a0003) AM_READ_PORT("P1")
 	AM_RANGE(0x0a0004, 0x0a0005) AM_READ_PORT("P2")
 	AM_RANGE(0x0a0006, 0x0a0007) AM_READ_PORT("P3")
-	AM_RANGE(0x0a0008, 0x0a0009) AM_WRITE8(soundlatch_byte_w, 0x00ff)
+	AM_RANGE(0x0a0008, 0x0a0009) AM_DEVWRITE8("soundlatch", generic_latch_8_device, write, 0x00ff)
 	AM_RANGE(0x0a0010, 0x0a0011) AM_READ_PORT("DSW1") AM_DEVWRITE("watchdog", watchdog_timer_device, reset16_w)
 	AM_RANGE(0x0a0012, 0x0a0013) AM_READ_PORT("DSW2")
 	AM_RANGE(0x0a0014, 0x0a0015) AM_READ_PORT("P4")
@@ -653,9 +654,9 @@ static ADDRESS_MAP_START( prmrsocr_main_map, AS_PROGRAM, 16, tmnt_state )
 	AM_RANGE(0x11c000, 0x11c01f) AM_WRITE(k053251_glfgreat_w)
 	AM_RANGE(0x120000, 0x120001) AM_READ_PORT("P1/COINS")
 	AM_RANGE(0x120002, 0x120003) AM_READ_PORT("P2/EEPROM")
-	AM_RANGE(0x12100c, 0x12100d) AM_WRITE8(soundlatch_byte_w, 0x00ff)
-	AM_RANGE(0x12100e, 0x12100f) AM_WRITE8(soundlatch2_byte_w, 0x00ff)
-	AM_RANGE(0x121014, 0x121015) AM_READ8(soundlatch3_byte_r, 0x00ff)
+	AM_RANGE(0x12100c, 0x12100d) AM_DEVWRITE8("soundlatch", generic_latch_8_device, write, 0x00ff)
+	AM_RANGE(0x12100e, 0x12100f) AM_DEVWRITE8("soundlatch2", generic_latch_8_device, write, 0x00ff)
+	AM_RANGE(0x121014, 0x121015) AM_DEVREAD8("soundlatch3", generic_latch_8_device, read, 0x00ff)
 	AM_RANGE(0x122000, 0x122001) AM_WRITE(prmrsocr_eeprom_w)    /* EEPROM + video control */
 	AM_RANGE(0x123000, 0x123001) AM_WRITE(prmrsocr_sound_irq_w)
 	AM_RANGE(0x200000, 0x207fff) AM_READWRITE(k052109_word_noA12_r, k052109_word_noA12_w)
@@ -997,7 +998,7 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( mia_audio_map, AS_PROGRAM, 8, tmnt_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0x87ff) AM_RAM
-	AM_RANGE(0xa000, 0xa000) AM_READ(soundlatch_byte_r)
+	AM_RANGE(0xa000, 0xa000) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
 	AM_RANGE(0xb000, 0xb00d) AM_DEVREADWRITE("k007232", k007232_device, read, write)
 	AM_RANGE(0xc000, 0xc001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
 ADDRESS_MAP_END
@@ -1007,7 +1008,7 @@ static ADDRESS_MAP_START( tmnt_audio_map, AS_PROGRAM, 8, tmnt_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0x87ff) AM_RAM
 	AM_RANGE(0x9000, 0x9000) AM_READWRITE(tmnt_sres_r, tmnt_sres_w) /* title music & UPD7759C reset */
-	AM_RANGE(0xa000, 0xa000) AM_READ(soundlatch_byte_r)
+	AM_RANGE(0xa000, 0xa000) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
 	AM_RANGE(0xb000, 0xb00d) AM_DEVREADWRITE("k007232", k007232_device, read, write)
 	AM_RANGE(0xc000, 0xc001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
 	AM_RANGE(0xd000, 0xd000) AM_DEVWRITE("upd", upd7759_device, port_w)
@@ -1075,9 +1076,9 @@ static ADDRESS_MAP_START( prmrsocr_audio_map, AS_PROGRAM, 8, tmnt_state )
 	AM_RANGE(0xc000, 0xdfff) AM_RAM
 	AM_RANGE(0xe000, 0xe0ff) AM_DEVREADWRITE("k054539", k054539_device, read, write)
 	AM_RANGE(0xe100, 0xe12f) AM_READWRITE(k054539_ctrl_r, k054539_ctrl_w)
-	AM_RANGE(0xf000, 0xf000) AM_WRITE(soundlatch3_byte_w)
-	AM_RANGE(0xf002, 0xf002) AM_READ(soundlatch_byte_r)
-	AM_RANGE(0xf003, 0xf003) AM_READ(soundlatch2_byte_r)
+	AM_RANGE(0xf000, 0xf000) AM_DEVWRITE("soundlatch3", generic_latch_8_device, write)
+	AM_RANGE(0xf002, 0xf002) AM_DEVREAD("soundlatch", generic_latch_8_device, read)
+	AM_RANGE(0xf003, 0xf003) AM_DEVREAD("soundlatch2", generic_latch_8_device, read)
 	AM_RANGE(0xf800, 0xf800) AM_WRITE(prmrsocr_audio_bankswitch_w)
 ADDRESS_MAP_END
 
@@ -2054,6 +2055,8 @@ static MACHINE_CONFIG_START( mia, tmnt_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
+
 	MCFG_YM2151_ADD("ymsnd", XTAL_3_579545MHz)
 	MCFG_SOUND_ROUTE(0, "mono", 1.0)
 	MCFG_SOUND_ROUTE(1, "mono", 1.0)
@@ -2092,11 +2095,10 @@ static MACHINE_CONFIG_START( tmnt, tmnt_state )
 	MCFG_SCREEN_REFRESH_RATE(60)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(64*8, 32*8)
-	//MCFG_SCREEN_VISIBLE_AREA(13*8, (64-13)*8-1, 2*8, 30*8-1 )
-	MCFG_SCREEN_VISIBLE_AREA(12*8, (64-12)*8-1, 2*8, 30*8-1 )
+	MCFG_SCREEN_VISIBLE_AREA(12*8+8, (64-12)*8-1, 2*8, 30*8-1 )
+	// verified against real hardware
 	MCFG_SCREEN_UPDATE_DRIVER(tmnt_state, screen_update_tmnt)
 	MCFG_SCREEN_PALETTE("palette")
-	// We see something strange in the left 8 pixels and the right 8 pixels, but it is same as real PCB.
 
 	MCFG_PALETTE_ADD("palette", 1024)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
@@ -2118,6 +2120,8 @@ static MACHINE_CONFIG_START( tmnt, tmnt_state )
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
+
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 
 	MCFG_YM2151_ADD("ymsnd", XTAL_3_579545MHz)
 	MCFG_SOUND_ROUTE(0, "mono", 1.0)
@@ -2445,6 +2449,10 @@ static MACHINE_CONFIG_START( prmrsocr, tmnt_state )
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch2")
+	MCFG_GENERIC_LATCH_8_ADD("soundlatch3")
 
 	MCFG_DEVICE_ADD("k054539", K054539, XTAL_18_432MHz)
 	MCFG_K054539_TIMER_HANDLER(INPUTLINE("audiocpu", INPUT_LINE_NMI))
@@ -3489,6 +3497,34 @@ ROM_START( tmht22pe )
 	ROM_LOAD( "tmnt2_eba.nv", 0x0000, 0x080, CRC(c0a3ed50) SHA1(6deec720c7f1c607740076cb8b5b5becd175aed0) )
 ROM_END
 
+ROM_START( tmht24pe )
+	ROM_REGION( 0x100000, "maincpu", 0 ) /* 4*128k for 68000 code */
+	ROM_LOAD16_BYTE( "063eaa02.8e",  0x000000, 0x20000, CRC(665a68de) SHA1(3cefc2cb0f0a42f1044ef04862669fc7893005da) )
+	ROM_LOAD16_BYTE( "063eaa03.8g",  0x000001, 0x20000, CRC(7b7fb3af) SHA1(1c96283af8fc81c30136dfe2efbd113cb7dd3d66) )
+	ROM_LOAD16_BYTE( "063eaa04.10e", 0x040000, 0x20000, CRC(69f38e1d) SHA1(a63aa86a11f803fa3f07c5eb2fdbdb75bb850d55) )
+	ROM_LOAD16_BYTE( "063eaa05.10g", 0x040001, 0x20000, CRC(818032af) SHA1(60d416a58696add58493c0f2297b3a4af5f46d6d) )
+
+	ROM_REGION( 0x10000, "audiocpu", 0 )
+	ROM_LOAD( "063b01.2f", 0x0000, 0x10000, CRC(364f548a) SHA1(e0636e27d4fc48b2ccb1417b63d2b68d9e272c06) )
+
+	ROM_REGION( 0x100000, "k052109", 0 )    /* tiles */
+	ROM_LOAD32_WORD( "063b12.16k", 0x000000, 0x080000, CRC(d3283d19) SHA1(49e4daa9cbe4d99bf71fcee6237cb434a0d55312) )
+	ROM_LOAD32_WORD( "063b11.12k", 0x000002, 0x080000, CRC(6ebc0c15) SHA1(e6848405076937fbf8ec6d318293a0ff922725f4) )
+
+	ROM_REGION( 0x400000, "k053245", 0 )    /* sprites */
+	ROM_LOAD32_WORD( "063b09.7l", 0x000000, 0x100000, CRC(2d7a9d2a) SHA1(a26f9c1a07152bc8c7bcd797d4485bf848f5e2a0) )
+	ROM_LOAD32_WORD( "063b07.3l", 0x000002, 0x100000, CRC(d9bee7bf) SHA1(7bbb65138fbd216b80412783e6f0072742101440) )
+	ROM_LOAD32_WORD( "063b10.7k", 0x200000, 0x080000, CRC(f2dd296e) SHA1(a2aad10bfb0904dd73c2ee11049648c94de7f4d5) )
+	ROM_LOAD32_WORD( "063b08.3k", 0x200002, 0x080000, CRC(3b1ae36f) SHA1(9e69cae8b517497ac77c4d148f56f2bb6a23de89) )
+	/* second half empty */
+
+	ROM_REGION( 0x200000, "k053260", 0 )    /* samples for the 053260 */
+	ROM_LOAD( "063b06.1d",  0x0000, 0x200000, CRC(1e510aa5) SHA1(02b9bd6bb6b098026a620e4d671c40a31ad9e318) )
+
+	ROM_REGION( 0x80, "eeprom", 0 ) // default eeprom to prevent game booting with invisible error message
+	ROM_LOAD( "tmnt2_eaa.nv", 0x0000, 0x080, CRC(124af18f) SHA1(bbd0629663135fc6c08b000b886ea76a96592a9e) )
+ROM_END
+
 ROM_START( tmnt2a )
 	ROM_REGION( 0x100000, "maincpu", 0 ) /* 4*128k for 68000 code */
 	ROM_LOAD16_BYTE( "063ada02.8e",  0x000000, 0x20000, CRC(4f11b587) SHA1(111051da23ce7035405b4d12c0f18dcc1d6c8ddc) )
@@ -4199,6 +4235,7 @@ GAME( 1991, glfgreatj,   glfgreat, glfgreat, glfgreatj, driver_device, 0,       
 GAME( 1991, tmnt2,       0,        tmnt2,    ssridr4p,  driver_device, 0,        ROT0,   "Konami", "Teenage Mutant Ninja Turtles - Turtles in Time (4 Players ver UAA)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, tmnt2a,      tmnt2,    tmnt2,    ssrid4ps,  driver_device, 0,        ROT0,   "Konami", "Teenage Mutant Ninja Turtles - Turtles in Time (4 Players ver ADA)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, tmht22pe,    tmnt2,    tmnt2,    ssriders,  driver_device, 0,        ROT0,   "Konami", "Teenage Mutant Hero Turtles - Turtles in Time (2 Players ver EBA)",  MACHINE_SUPPORTS_SAVE )
+GAME( 1991, tmht24pe,    tmnt2,    tmnt2,    ssriders,  driver_device, 0,        ROT0,   "Konami", "Teenage Mutant Hero Turtles - Turtles in Time (4 Players ver EAA)",  MACHINE_SUPPORTS_SAVE )
 GAME( 1991, tmnt22pu,    tmnt2,    tmnt2,    ssriders,  driver_device, 0,        ROT0,   "Konami", "Teenage Mutant Ninja Turtles - Turtles in Time (2 Players ver UDA)", MACHINE_SUPPORTS_SAVE )
 
 GAME( 1993, qgakumon,    0,        tmnt2,    qgakumon,  driver_device, 0,        ROT0,   "Konami", "Quiz Gakumon no Susume (Japan ver. JA2 Type L)", MACHINE_SUPPORTS_SAVE )

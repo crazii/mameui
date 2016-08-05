@@ -796,6 +796,18 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/machine/fga002.h,MACHINES["FGA002"] = true
+---------------------------------------------------
+
+if (MACHINES["FGA002"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/fga002.cpp",
+		MAME_DIR .. "src/devices/machine/fga002.h",
+	}
+end
+
+---------------------------------------------------
+--
 --@src/devices/machine/hd63450.h,MACHINES["HD63450"] = true
 ---------------------------------------------------
 
@@ -1173,6 +1185,18 @@ if (MACHINES["LDV1000"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/machine/ldv1000.cpp",
 		MAME_DIR .. "src/devices/machine/ldv1000.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/ldp1000.h,MACHINES["LDP1000"] = true
+---------------------------------------------------
+
+if (MACHINES["LDP1000"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/ldp1000.cpp",
+		MAME_DIR .. "src/devices/machine/ldp1000.h",
 	}
 end
 
@@ -2034,6 +2058,18 @@ end
 
 ---------------------------------------------------
 --
+--@src/devices/machine/scnxx562.h,MACHINES["DUSCC"] = true
+---------------------------------------------------
+
+if (MACHINES["DUSCC"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/scnxx562.cpp",
+		MAME_DIR .. "src/devices/machine/scnxx562.h",
+	}
+end
+
+---------------------------------------------------
+--
 --@src/devices/machine/serflash.h,MACHINES["SERFLASH"] = true
 ---------------------------------------------------
 
@@ -2856,6 +2892,7 @@ if (MACHINES["APPLE_FDC"]~=null) then
 		MAME_DIR .. "src/devices/machine/applefdc.h",
 	}
 end
+
 ---------------------------------------------------
 --
 --@src/devices/machine/sonydriv.h,MACHINES["SONY_DRIVE"] = true
@@ -2864,5 +2901,27 @@ if (MACHINES["SONY_DRIVE"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/machine/sonydriv.cpp",
 		MAME_DIR .. "src/devices/machine/sonydriv.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/scnxx562.h,MACHINES["SCNXX562"] = true
+---------------------------------------------------
+if (MACHINES["SCNXX562"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/scnxx562.cpp",
+		MAME_DIR .. "src/devices/machine/scnxx562.h",
+	}
+end
+
+---------------------------------------------------
+--
+--@src/devices/machine/input_merger.h,MACHINES["INPUT_MERGER"] = true
+---------------------------------------------------
+if (MACHINES["INPUT_MERGER"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/machine/input_merger.cpp",
+		MAME_DIR .. "src/devices/machine/input_merger.h",
 	}
 end

@@ -227,8 +227,8 @@ static int MIN_HEIGHT = DBU_MIN_HEIGHT;
  externally defined global variables
  ***************************************************************************/
 extern const ICONDATA g_iconData[];
-extern const TCHAR g_szPlayGameString[];
-extern const char g_szGameCountString[];
+extern TCHAR g_szPlayGameString[];
+extern TCHAR g_szGameCountString[];
 extern void Layout_InitLocalization(HINSTANCE hInstance);
 UINT8 playopts_apply = 0;
 
@@ -856,11 +856,11 @@ public:
 			char buffer[1024];
 
 			// if we are in fullscreen mode, go to windowed mode
-			if ((video_config.windowed == 0) && !win_window_list.empty())
+			if ((video_config.windowed == 0) && !osd_common_t::s_window_list.empty())
 				winwindow_toggle_full_screen();
 
 			vsnprintf(buffer, ARRAY_LENGTH(buffer), msg, args);printf("%s\n",buffer);
-			win_message_box_utf8(!win_window_list.empty() ? win_window_list.front()->platform_window<HWND>() : hMain, buffer, MAMEUINAME, MB_ICONERROR | MB_OK);
+			win_message_box_utf8(!osd_common_t::s_window_list.empty() ? osd_common_t::s_window_list.front()->platform_window<HWND>() : hMain, buffer, MAMEUINAME, MB_ICONERROR | MB_OK);
 		}
 		else
 			chain_output(channel, msg, args);
@@ -1000,7 +1000,7 @@ int MameUIMain(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 			return 999;
 		for (i = 0; i < __argc; i++)
 		{
-			utf8_argv[i] = utf8_from_tstring(__targv[i]);
+			utf8_argv[i] = ui_utf8_from_wstring(__targv[i]);
 			if (utf8_argv[i] == NULL)
 			{
 				free(utf8_argv);
@@ -1214,7 +1214,7 @@ HICON LoadIconFromFile(const char *iconname)
 				sprintf(tmpStr, "%s/icons.7z", GetIconsDir());
 				sprintf(tmpIcoName, "%s.ico", iconname);
 
-				ziperr = util::archive_file::open_zip(tmpStr, zip);
+				ziperr = util::archive_file::open_7z(tmpStr, zip);
 				if (ziperr == util::archive_file::error::NONE)
 				{
 					res = zip->search(tmpIcoName, false);
@@ -1701,7 +1701,7 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 	HelpInit();
 
-	t_inpdir = tstring_from_utf8(GetInpDir());
+	t_inpdir = ui_wstring_from_utf8(GetInpDir());
 	if( ! t_inpdir )
 		return FALSE;
 
@@ -2866,7 +2866,7 @@ static void CopyToolTipText(LPTOOLTIPTEXT lpttt)
 			SendMessage(hStatusBar, SB_GETTEXT, (WPARAM)iButton, (LPARAM)&String );
 		else {
 			//for first pane we get the Status directly, to get the line breaks
-			t_gameinfostatus = tstring_from_utf8( GameInfoStatus(Picker_GetSelectedItem(hwndList), FALSE));
+			t_gameinfostatus = ui_wstring_from_utf8( GameInfoStatus(Picker_GetSelectedItem(hwndList), FALSE));
 			if( !t_gameinfostatus )
 				return;
 			_tcscpy(String, t_gameinfostatus);
@@ -2978,7 +2978,9 @@ static void UpdateStatusBar()
 	}
 
 	/* Show number of games in the current 'View' in the status bar */
-	SetStatusBarTextF(2, g_szGameCountString, games_shown);
+	char* countString = ui_utf8_from_wstring(g_szGameCountString);
+	SetStatusBarTextF(2, countString, games_shown);
+	osd_free(countString);
 
 	i = Picker_GetSelectedItem(hwndList);
 
@@ -3079,7 +3081,7 @@ static void EnableSelection(int nGame)
 	HMENU hMenu = GetMenu(hMain);
 	TCHAR* t_description;
 
-	t_description = tstring_from_utf8(ConvertAmpersandString(ModifyThe(driver_list::driver(nGame).description)));
+	t_description = ui_wstring_from_utf8(ConvertAmpersandString(ModifyThe(driver_list::driver(nGame).description)));
 	if( !t_description )
 		return;
 
@@ -3236,7 +3238,7 @@ static BOOL TreeViewNotify(LPNMHDR nm)
 		if (ptvdi->item.pszText == NULL || _tcslen(ptvdi->item.pszText) == 0)
 			return FALSE;
 
-		utf8_szText = utf8_from_tstring(ptvdi->item.pszText);
+		utf8_szText = ui_utf8_from_wstring(ptvdi->item.pszText);
 		if( !utf8_szText )
 			return FALSE;
 
@@ -3605,7 +3607,7 @@ static void PollGUIJoystick()
 			si.cb = sizeof(si);
 
 			exec_command = GetExecCommand();
-			t_exec_command = tstring_from_utf8(exec_command);
+			t_exec_command = ui_wstring_from_utf8(exec_command);
 			if( !t_exec_command )
 				return;
 			CreateProcess(NULL, t_exec_command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
@@ -4350,7 +4352,7 @@ static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 			if (as[t1] == '\\') as[t1]='\0';
 			t1 = as.find(':');
 			if (t1 > 0)
-				t_bgdir = tstring_from_utf8(as.c_str());
+				t_bgdir = ui_wstring_from_utf8(as.c_str());
 
 			OPENFILENAME OFN;
 			static TCHAR szFile[MAX_PATH] = TEXT("\0");
@@ -4381,7 +4383,7 @@ static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 			if (GetOpenFileName(&OFN))
 			{
 				osd_free(t_bgdir);
-				utf8_szFile = utf8_from_tstring(szFile);
+				utf8_szFile = ui_utf8_from_wstring(szFile);
 				if( !utf8_szFile )
 					return FALSE;
 
@@ -4697,7 +4699,7 @@ static const TCHAR *GamePicker_GetItemString(HWND hwndPicker, int nItem, int nCo
 
 	if( utf8_s )
 	{
-		TCHAR* t_s = tstring_from_utf8(utf8_s);
+		TCHAR* t_s = ui_wstring_from_utf8(utf8_s);
 		if( !t_s )
 			return s;
 
@@ -4780,7 +4782,7 @@ static void InitListView()
 
 	res = ListView_SetTextBkColor(hwndList, CLR_NONE);
 	res = ListView_SetBkColor(hwndList, CLR_NONE);
-	t_bgdir = tstring_from_utf8(GetBgDir());
+	t_bgdir = ui_wstring_from_utf8(GetBgDir());
 	if( !t_bgdir )
 		return;
 
@@ -5174,7 +5176,7 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 	char *utf8_filename;
 
 	// convert the filename to UTF-8 and copy into buffer
-	t_filename = tstring_from_utf8(filename);
+	t_filename = ui_wstring_from_utf8(filename);
 	if (t_filename)
 	{
 		_sntprintf(t_filename_buffer, ARRAY_LENGTH(t_filename_buffer), TEXT("%s"), t_filename);
@@ -5256,7 +5258,7 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 		dirname.resize(i);
 	if (dirname.empty())
 		dirname = ".";
-	ofn.lpstrInitialDir   = tstring_from_utf8(dirname.c_str());
+	ofn.lpstrInitialDir   = ui_wstring_from_utf8(dirname.c_str());
 
 	ofn.lpstrTitle        = NULL;
 	ofn.Flags             = OFN_EXPLORER | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
@@ -5273,7 +5275,7 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 		/*GetDirectory(filename,last_directory,sizeof(last_directory));*/
 	}
 
-	utf8_filename = utf8_from_tstring(t_filename_buffer);
+	utf8_filename = ui_utf8_from_wstring(t_filename_buffer);
 	if (utf8_filename)
 	{
 		snprintf(filename, MAX_PATH, "%s", utf8_filename);
@@ -5285,7 +5287,7 @@ BOOL CommonFileDialog(common_file_dialog_proc cfd, char *filename, int filetype)
 
 void SetStatusBarText(int part_index, const char *message)
 {
-	TCHAR* t_message = tstring_from_utf8(message);
+	TCHAR* t_message = ui_wstring_from_utf8(message);
 	if( !t_message )
 		return;
 	SendMessage(hStatusBar, SB_SETTEXT, (WPARAM) part_index, (LPARAM)(LPCTSTR) win_tstring_strdup(t_message));
@@ -5883,7 +5885,7 @@ static void UpdateMenu(HMENU hMenu)
 
 	if (have_selection)
 	{
-		t_description = tstring_from_utf8(ConvertAmpersandString(ModifyThe(driver_list::driver(nGame).description)));
+		t_description = ui_wstring_from_utf8(ConvertAmpersandString(ModifyThe(driver_list::driver(nGame).description)));
 		if( !t_description )
 			return;
 
@@ -5999,7 +6001,7 @@ void InitTreeContextMenu(HMENU hTreeMenu)
 
 	for (i=0;g_folderData[i].m_lpTitle;i++)
 	{
-		TCHAR* t_title = tstring_from_utf8(g_folderData[i].m_lpTitle);
+		TCHAR* t_title = ui_wstring_from_utf8(g_folderData[i].m_lpTitle);
 		if( !t_title )
 			return;
 
