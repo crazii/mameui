@@ -222,8 +222,8 @@ void ui_menu_custom_button::populate()
 		|| !core_stricmp(machine().system().source_file + 17, "neogeo_noslot.c");
 	int i;
 
-	item_append(_("Press 1-9 to Config"), NULL, FLAG_DISABLE, NULL);
-	item_append(MENU_SEPARATOR_ITEM, NULL, 0, NULL);
+	item_append(_("Press 1-9 to Config"), "", FLAG_DISABLE, NULL);
+	//item_append(MENU_SEPARATOR_ITEM, "", FLAG_DISABLE, NULL);
 
 	/* loop over the input ports and add autofire toggle items */
 	for (auto& pair : machine().ioport().ports() )

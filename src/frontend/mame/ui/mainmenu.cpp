@@ -56,7 +56,7 @@ void menu_main::populate()
 	item_append(_("Input (this Machine)"), "", 0, (void *)INPUT_SPECIFIC);
 
 #ifdef USE_CUSTOM_BUTTON
-	item_append(_("Custom Buttons"), NULL, 0, (void *)CUSTOM_BUTTON);
+	item_append(_("Custom Buttons"), "", 0, (void *)CUSTOM_BUTTON);
 #endif /* USE_CUSTOM_BUTTON */
 
 	/* add optional input-related menus */
