@@ -2,7 +2,7 @@
 // copyright-holders:Aaron Giles
 /***************************************************************************
 
-    audit.c
+    audit.cpp
 
     ROM set auditing functions.
 
@@ -14,7 +14,7 @@
 #include "chd.h"
 #include "drivenum.h"
 #include "sound/samples.h"
-#include "softlist.h"
+#include "softlist_dev.h"
 #include "util/unzip.h"
 #include <set>
 #include <map>
@@ -336,8 +336,7 @@ media_auditor::summary media_auditor::audit_device(device_t &device, const char 
 //-------------------------------------------------
 //  audit_software
 //-------------------------------------------------
-media_auditor::summary media_auditor::audit_software(const char *list_name, const software_info *swinfo, const char *validation/* = NULL*/)
-{
+media_auditor::summary media_auditor::audit_software(const std::string &list_name, const software_info *swinfo, const char *validation){
 	// start fresh
 	m_record_list.clear();
 
@@ -360,47 +359,13 @@ media_auditor::summary media_auditor::audit_software(const char *list_name, cons
 	}
 	m_searchpath = combinedpath.c_str();
 
-	int found = 0;
-	int required = 0;
+	std::size_t found = 0;
+	std::size_t required = 0;
 
 	// now iterate over software parts
 	for (const software_part &part : swinfo->parts())
-	{
-		// now iterate over regions
-		for ( const rom_entry *region = part.romdata(); region; region = rom_next_region( region ) )
-		{
-			// now iterate over rom definitions
-			for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
-			{
-				util::hash_collection hashes(ROM_GETHASHDATA(rom));
-
-				// count the number of files with hashes
-				if (!hashes.flag(util::hash_collection::FLAG_NO_DUMP) && !ROM_ISOPTIONAL(rom))
-				{
-					required++;
-				}
-
-				// audit a file
-				audit_record *record = nullptr;
-				if (ROMREGION_ISROMDATA(region))
-				{
-					record = &audit_one_rom(rom);
-				}
-				// audit a disk
-				else if (ROMREGION_ISDISKDATA(region))
-				{
-					record = &audit_one_disk(rom, locationtag.c_str());
-				}
-
-				// count the number of files that are found.
-				if (record != nullptr && (record->status() == media_auditor::audit_status::GOOD || record->status() == media_auditor::audit_status::FOUND_INVALID))
-				{
-					found++;
-				}
-			}
-		}
-	}
-
+		audit_regions(part.romdata().data(), locationtag.c_str(), found, required);
+	
 	if (found == 0 && required > 0)
 	{
 		m_record_list.clear();
@@ -408,7 +373,7 @@ media_auditor::summary media_auditor::audit_software(const char *list_name, cons
 	}
 
 	// return a summary
-	return summarize(list_name);
+	return summarize(list_name.c_str());
 }
 
 
@@ -579,99 +544,40 @@ media_auditor::summary media_auditor::summarize(const char *name, std::ostream *
 		}
 
 		// downgrade the overall status if necessary
-		overall_status = MAX(overall_status, best_new_status);
+		overall_status = (std::max)(overall_status, best_new_status);
 	}
 	return overall_status;
 }
 
-// WINUI - only report problems that the user can fix
-media_auditor::summary media_auditor::winui_summarize(const char *name, std::string *output)
+//-------------------------------------------------
+//  audit_regions - validate/count for regions
+//-------------------------------------------------
+
+void media_auditor::audit_regions(const rom_entry *region, const char *locationtag, std::size_t &found, std::size_t &required)
 {
-	if (m_record_list.size() == 0)
+	// now iterate over regions
+	for ( ; region; region = rom_next_region(region))
 	{
-		return NONE_NEEDED;
-	}
-
-	// loop over records
-	summary overall_status = CORRECT;
-	for (audit_record& _rcd : m_record_list)
-	{
-		audit_record *record = &_rcd;
-		summary best_new_status = INCORRECT;
-
-		// skip anything that's fine
-		if ( (record->substatus() == media_auditor::audit_substatus::GOOD)
-			|| (record->substatus() == media_auditor::audit_substatus::GOOD_NEEDS_REDUMP)
-			|| (record->substatus() == media_auditor::audit_substatus::NOT_FOUND_NODUMP)
-			|| (record->substatus() == media_auditor::audit_substatus::FOUND_NODUMP)
-			)
-			continue;
-
-		// output the game name, file name, and length (if applicable)
-		if (output)
+		// now iterate over rom definitions
+		for (const rom_entry *rom = rom_first_file(region); rom; rom = rom_next_file(rom))
 		{
-			output->append(string_format("%-12s: %s", name, record->name()));
-			if (record->expected_length() > 0)
-				output->append(string_format(" (%d bytes)", record->expected_length()));
-			output->append(" - ");
+			util::hash_collection const hashes(ROM_GETHASHDATA(rom));
+
+			// count the number of files with hashes
+			if (!hashes.flag(util::hash_collection::FLAG_NO_DUMP) && !ROM_ISOPTIONAL(rom))
+				required++;
+
+			audit_record const *record = nullptr;
+			if (ROMREGION_ISROMDATA(region))
+				record = &audit_one_rom(rom);
+			else if (ROMREGION_ISDISKDATA(region))
+				record = &audit_one_disk(rom, locationtag);
+
+			// count the number of files that are found.
+			if (record && ((record->status() == audit_status::GOOD) || (record->status() == audit_status::FOUND_INVALID)))
+				found++;
 		}
-
-		// use the substatus for finer details
-		switch (record->substatus())
-		{
-			case media_auditor::audit_substatus::GOOD_NEEDS_REDUMP:
-				if (output) output->append("NEEDS REDUMP\n");
-				best_new_status = BEST_AVAILABLE;
-				break;
-
-			//case media_auditor::audit_substatus::FOUND_NODUMP:
-			//	if (output) output->append("NO GOOD DUMP KNOWN\n");
-			//	best_new_status = BEST_AVAILABLE;
-			//	break;
-
-			case media_auditor::audit_substatus::FOUND_BAD_CHECKSUM:
-				if (output)
-				{
-					output->append("INCORRECT CHECKSUM:\n");
-					output->append(string_format("EXPECTED: %s\n", record->expected_hashes().macro_string().c_str()));
-					output->append(string_format("   FOUND: %s\n", record->actual_hashes().macro_string().c_str()));
-				}
-				break;
-
-			case media_auditor::audit_substatus::FOUND_WRONG_LENGTH:
-				if (output) output->append(string_format("INCORRECT LENGTH: %d bytes\n", record->actual_length()));
-				break;
-
-			case media_auditor::audit_substatus::NOT_FOUND:
-				if (output)
-				{
-					device_t *shared_device = record->shared_device();
-					if (shared_device)
-						output->append(string_format("NOT FOUND (%s)\n", shared_device->shortname()));
-					else
-						output->append("NOT FOUND\n");
-				}
-				best_new_status = NOTFOUND;
-				break;
-
-			//case media_auditor::audit_substatus::NOT_FOUND_NODUMP:
-			//	if (output) output->append("NOT FOUND - NO GOOD DUMP KNOWN\n");
-			//	best_new_status = BEST_AVAILABLE;
-			//	break;
-
-			case media_auditor::audit_substatus::NOT_FOUND_OPTIONAL:
-				if (output) output->append("NOT FOUND BUT OPTIONAL\n");
-				best_new_status = BEST_AVAILABLE;
-				break;
-
-			default:
-				break;
-		}
-
-		// downgrade the overall status if necessary
-		overall_status = MAX(overall_status, best_new_status);
 	}
-	return overall_status;
 }
 
 //-------------------------------------------------
@@ -685,7 +591,7 @@ media_auditor::audit_record& media_auditor::audit_one_rom(const rom_entry *rom)
 	audit_record &record = m_record_list.back();
 
 	// see if we have a CRC and extract it if so
-	UINT32 crc = 0;
+	uint32_t crc = 0;
 	bool has_crc = record.expected_hashes().crc(crc);
 
 	// find the file and checksum it, getting the file length along the way
@@ -803,7 +709,7 @@ void media_auditor::compute_status(audit_record &record, const rom_entry *rom, b
 //  shares a media entry with the same hashes
 //-------------------------------------------------
 
-device_t *media_auditor::find_shared_device(device_t &device, const char *name, const util::hash_collection &romhashes, UINT64 romlength)
+device_t *media_auditor::find_shared_device(device_t &device, const char *name, const util::hash_collection &romhashes, uint64_t romlength)
 {
 	bool dumped = !romhashes.flag(util::hash_collection::FLAG_NO_DUMP);
 
@@ -866,4 +772,80 @@ media_auditor::audit_record::audit_record(const char *name, media_type type)
 		m_length(0),
 		m_shared_device(nullptr)
 {
+}
+
+// MESSUI - only report problems that the user can fix
+media_auditor::summary media_auditor::winui_summarize(const char *name, std::string *output)
+{
+	if (m_record_list.empty())
+		return NONE_NEEDED;
+
+	// loop over records
+	summary overall_status = CORRECT;
+	for (audit_record const &record : m_record_list)
+	{
+		summary best_new_status = INCORRECT;
+
+		// skip anything that's fine
+		if ( (record.substatus() == audit_substatus::GOOD)
+			|| (record.substatus() == audit_substatus::GOOD_NEEDS_REDUMP)
+			|| (record.substatus() == audit_substatus::NOT_FOUND_NODUMP)
+			|| (record.substatus() == audit_substatus::FOUND_NODUMP)
+			)
+			continue;
+
+		// output the game name, file name, and length (if applicable)
+		//if (output)
+		{
+			output->append(string_format("%-12s: %s", name, record.name()));
+			if (record.expected_length() > 0)
+				output->append(string_format(" (%d bytes)", record.expected_length()));
+			output->append(" - ");
+		}
+
+		// use the substatus for finer details
+		switch (record.substatus())
+		{
+			case audit_substatus::FOUND_NODUMP:
+				if (output) output->append("NO GOOD DUMP KNOWN\n");
+				best_new_status = BEST_AVAILABLE;
+				break;
+
+			case audit_substatus::FOUND_BAD_CHECKSUM:
+				if (output)
+				{
+					output->append("INCORRECT CHECKSUM:\n");
+					output->append(string_format("EXPECTED: %s\n", record.expected_hashes().macro_string().c_str()));
+					output->append(string_format("   FOUND: %s\n", record.actual_hashes().macro_string().c_str()));
+				}
+				break;
+
+			case audit_substatus::FOUND_WRONG_LENGTH:
+				if (output) output->append(string_format("INCORRECT LENGTH: %d bytes\n", record.actual_length()));
+				break;
+
+			case audit_substatus::NOT_FOUND:
+				if (output)
+				{
+					device_t *shared_device = record.shared_device();
+					if (shared_device == NULL)
+						output->append("NOT FOUND\n");
+					else
+						output->append(string_format("NOT FOUND (%s)\n", shared_device->shortname()));
+				}
+				break;
+
+			case audit_substatus::NOT_FOUND_OPTIONAL:
+				if (output) output->append("NOT FOUND BUT OPTIONAL\n");
+				best_new_status = BEST_AVAILABLE;
+				break;
+
+			default:
+				break;
+		}
+
+		// downgrade the overall status if necessary
+		overall_status = (std::max)(overall_status, best_new_status);
+	}
+	return overall_status;
 }

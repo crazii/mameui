@@ -54,7 +54,7 @@ private:
 		QUIT_GAME
 	};
 
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 

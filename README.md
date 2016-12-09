@@ -9,13 +9,7 @@ How to compile?
 You can only build MAMEUI on a Windows computer. It won't compile on Unix. More info at docs/compile.doc
 
 ```
-make OSD=winui
-```
-
-or
-
-```
-make SUBTARGET=arcade OSD=winui
+make OSD=messui
 ```
 
 

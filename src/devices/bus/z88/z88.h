@@ -54,6 +54,9 @@
 #ifndef __Z88CART_H__
 #define __Z88CART_H__
 
+#include "softlist_dev.h"
+
+
 /***************************************************************************
     TYPE DEFINITIONS
 ***************************************************************************/
@@ -70,8 +73,8 @@ public:
 	// reading and writing
 	virtual DECLARE_READ8_MEMBER(read) { return 0xff; }
 	virtual DECLARE_WRITE8_MEMBER(write) { }
-	virtual UINT8* get_cart_base() { return nullptr; }
-	virtual UINT32 get_cart_size() { return 0; }
+	virtual uint8_t* get_cart_base() { return nullptr; }
+	virtual uint32_t get_cart_size() { return 0; }
 };
 
 
@@ -83,7 +86,7 @@ class z88cart_slot_device : public device_t,
 {
 public:
 	// construction/destruction
-	z88cart_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+	z88cart_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 	virtual ~z88cart_slot_device();
 
 	template<class _Object> static devcb_base &set_out_flp_callback(device_t &device, _Object object) { return downcast<z88cart_slot_device &>(device).m_out_flp_cb.set_callback(object); }
@@ -94,7 +97,7 @@ public:
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
 
 	// image-level overrides
-	virtual bool call_load() override;
+	virtual image_init_result call_load() override;
 	virtual void call_unload() override;
 	virtual const software_list_loader &get_software_list_loader() const override { return rom_software_list_loader::instance(); }
 

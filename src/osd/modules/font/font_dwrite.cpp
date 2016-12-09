@@ -1,7 +1,7 @@
 // license:BSD-3-Clause
 // copyright-holders:Aaron Giles, Brad Hughes
 /*
-* font_dwrite.c
+* font_dwrite.cpp
 *
 */
 
@@ -9,9 +9,7 @@
 #include "modules/osdmodule.h"
 #include "modules/lib/osdlib.h"
 
-// We take dependencies on WRL client headers and
-// we can only build with a high enough version
-#if defined(OSD_WINDOWS) && (_WIN32_WINNT >= 0x0602)
+#if defined(OSD_WINDOWS) || defined(OSD_UWP)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -68,19 +66,10 @@ static const float POINTS_PER_DIP = (3.0f / 4.0f);
 #define HR_RET0( CALL ) HR_RET(CALL, 0)
 #define HR_RET1( CALL ) HR_RET(CALL, 1)
 
-struct osd_deleter
-{
-	void operator () (void * osd_pointer) const
-	{
-		osd_free(osd_pointer);
-	}
-};
-
-typedef std::unique_ptr<char, osd_deleter> osd_utf8_ptr;
-
 // Typedefs for dynamically loaded functions
 typedef HRESULT (WINAPI *d2d_create_factory_fn)(D2D1_FACTORY_TYPE, REFIID, const D2D1_FACTORY_OPTIONS *, void **);
 typedef HRESULT (WINAPI *dwrite_create_factory_fn)(DWRITE_FACTORY_TYPE, REFIID, IUnknown **);
+typedef int (WINAPI *get_user_default_locale_name)(LPWSTR, int);
 
 // Debugging functions
 #ifdef DWRITE_DEBUGGING
@@ -158,13 +147,13 @@ HRESULT SaveBitmap2(bitmap_argb32 &bitmap, const WCHAR *filename)
 	HRESULT result;
 
 	// Convert the bitmap into a form we understand and save it
-	std::unique_ptr<UINT32> pBitmap(new UINT32[bitmap.width() * bitmap.height()]);
+	std::unique_ptr<uint32_t> pBitmap(new uint32_t[bitmap.width() * bitmap.height()]);
 	for (int y = 0; y < bitmap.height(); y++)
 	{
-		UINT32* pRow = pBitmap.get() + (y * bitmap.width());
+		uint32_t* pRow = pBitmap.get() + (y * bitmap.width());
 		for (int x = 0; x < bitmap.width(); x++)
 		{
-			UINT32 pixel = bitmap.pix32(y, x);
+			uint32_t pixel = bitmap.pix32(y, x);
 			pRow[x] = (pixel == 0xFFFFFFFF) ? rgb_t(0xFF, 0x00, 0x00, 0x00) : rgb_t(0xFF, 0xFF, 0xFF, 0xFF);
 		}
 	}
@@ -183,8 +172,8 @@ HRESULT SaveBitmap2(bitmap_argb32 &bitmap, const WCHAR *filename)
 		bitmap.width(),
 		bitmap.height(),
 		GUID_WICPixelFormat32bppRGBA,
-		bitmap.width() * sizeof(UINT32),
-		bitmap.width() * bitmap.height() * sizeof(UINT32),
+		bitmap.width() * sizeof(uint32_t),
+		bitmap.width() * bitmap.height() * sizeof(uint32_t),
 		(BYTE*)pBitmap.get(),
 		&bmp2);
 
@@ -203,19 +192,19 @@ HRESULT SaveBitmap2(bitmap_argb32 &bitmap, const WCHAR *filename)
 class FontDimension
 {
 private:
-	UINT16  m_designUnitsPerEm;
+	uint16_t  m_designUnitsPerEm;
 	float   m_emSizeInDip;
 	float   m_designUnits;
 
 public:
-	FontDimension(UINT16 designUnitsPerEm, float emSizeInDip, float designUnits)
+	FontDimension(uint16_t designUnitsPerEm, float emSizeInDip, float designUnits)
 	{
 		m_designUnitsPerEm = designUnitsPerEm;
 		m_emSizeInDip = emSizeInDip;
 		m_designUnits = designUnits;
 	}
 
-	UINT16 DesignUnitsPerEm() const
+	uint16_t DesignUnitsPerEm() const
 	{
 		return m_designUnitsPerEm;
 	}
@@ -297,7 +286,7 @@ public:
 class FontDimensionFactory
 {
 private:
-	UINT16 m_designUnitsPerEm;
+	uint16_t m_designUnitsPerEm;
 	float m_emSizeInDip;
 
 public:
@@ -306,7 +295,7 @@ public:
 		return m_emSizeInDip;
 	}
 
-	FontDimensionFactory(UINT16 designUnitsPerEm, float emSizeInDip)
+	FontDimensionFactory(uint16_t designUnitsPerEm, float emSizeInDip)
 	{
 		m_designUnitsPerEm = designUnitsPerEm;
 		m_emSizeInDip = emSizeInDip;
@@ -359,6 +348,8 @@ public:
 	{
 	}
 
+	virtual ~osd_font_dwrite() { osd_font_dwrite::close(); }
+
 	virtual bool open(std::string const &font_path, std::string const &_name, int &height) override
 	{
 		if (m_d2dfactory == nullptr || m_dwriteFactory == nullptr || m_wicFactory == nullptr)
@@ -368,16 +359,21 @@ public:
 
 		// accept qualifiers from the name
 		std::string name(_name);
-		if (name.compare("default") == 0) name = "Tahoma";
+		if (name.compare("default") == 0)
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+			name = "Tahoma";
+#else
+			name = "Segoe UI";
+#endif
 		bool bold = (strreplace(name, "[B]", "") + strreplace(name, "[b]", "") > 0);
 		bool italic = (strreplace(name, "[I]", "") + strreplace(name, "[i]", "") > 0);
 
 		// convert the face name
-		std::unique_ptr<WCHAR, void(*)(void *)> familyName(wstring_from_utf8(name.c_str()), osd_free);
+		std::wstring familyName = osd::text::to_wstring(name.c_str());
 
 		// find the font
 		HR_RET0(find_font(
-			familyName.get(),
+			familyName.c_str(),
 			bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STRETCH_NORMAL,
 			italic ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
@@ -411,7 +407,7 @@ public:
 	//  pixel of a black & white font
 	//-------------------------------------------------
 
-	virtual bool get_bitmap(unicode_char chnum, bitmap_argb32 &bitmap, std::int32_t &width, std::int32_t &xoffs, std::int32_t &yoffs) override
+	virtual bool get_bitmap(char32_t chnum, bitmap_argb32 &bitmap, std::int32_t &width, std::int32_t &xoffs, std::int32_t &yoffs) override
 	{
 		const int MEM_ALIGN_CONST = 31;
 		const int BITMAP_PAD = 50;
@@ -438,9 +434,9 @@ public:
 
 		FontDimensionFactory fdf(gdi_metrics.designUnitsPerEm, m_fontEmHeightInDips);
 
-		UINT32 tempChar = chnum;
-		UINT16 glyphIndex;
-		HR_RET0(face->GetGlyphIndicesW(&tempChar, 1, &glyphIndex));
+		uint32_t tempChar = chnum;
+		uint16_t glyphIndex;
+		HR_RET0(face->GetGlyphIndices(&tempChar, 1, &glyphIndex));
 
 		// get the width of this character
 		DWRITE_GLYPH_METRICS glyph_metrics = { 0 };
@@ -548,7 +544,7 @@ public:
 		for (actbounds.min_x = 0; actbounds.min_x < bmwidth; actbounds.min_x++)
 		{
 			BYTE *offs = pixels + actbounds.min_x;
-			UINT8 summary = 0;
+			uint8_t summary = 0;
 			for (int y = 0; y < bmheight; y++)
 				summary |= offs[y * bmwidth];
 			if (summary != 0)
@@ -562,7 +558,7 @@ public:
 		for (actbounds.max_x = bmwidth - 1; actbounds.max_x >= 0; actbounds.max_x--)
 		{
 			BYTE *offs = pixels + actbounds.max_x;
-			UINT8 summary = 0;
+			uint8_t summary = 0;
 
 			// Go through the entire column and build a summary
 			for (int y = 0; y < bmheight; y++)
@@ -581,8 +577,8 @@ public:
 			// copy the bits into it
 			for (int y = 0; y < bitmap.height(); y++)
 			{
-				UINT32 *dstrow = &bitmap.pix32(y);
-				UINT8 *srcrow = &pixels[(y + actbounds.min_y) * bmwidth];
+				uint32_t *dstrow = &bitmap.pix32(y);
+				uint8_t *srcrow = &pixels[(y + actbounds.min_y) * bmwidth];
 				for (int x = 0; x < bitmap.width(); x++)
 				{
 					int effx = x + actbounds.min_x;
@@ -657,18 +653,23 @@ private:
 class font_dwrite : public osd_module, public font_module
 {
 private:
-	osd::dynamic_module::ptr   m_d2d1_dll;
-	osd::dynamic_module::ptr   m_dwrite_dll;
-	d2d_create_factory_fn      m_pfnD2D1CreateFactory;
-	dwrite_create_factory_fn   m_pfnDWriteCreateFactory;
-	ComPtr<ID2D1Factory>       m_d2dfactory;
-	ComPtr<IDWriteFactory>     m_dwriteFactory;
-	ComPtr<IWICImagingFactory> m_wicFactory;
+	osd::dynamic_module::ptr     m_d2d1_dll;
+	osd::dynamic_module::ptr     m_dwrite_dll;
+	osd::dynamic_module::ptr     m_kernel32_dll;
+	d2d_create_factory_fn        m_pfnD2D1CreateFactory;
+	dwrite_create_factory_fn     m_pfnDWriteCreateFactory;
+	get_user_default_locale_name m_pfnGetUserDefaultLocaleName;
+	ComPtr<ID2D1Factory>         m_d2dfactory;
+	ComPtr<IDWriteFactory>       m_dwriteFactory;
+	ComPtr<IWICImagingFactory>   m_wicFactory;
 
 public:
 	font_dwrite() :
 		osd_module(OSD_FONT_PROVIDER, "dwrite"),
 		font_module(),
+		m_pfnD2D1CreateFactory(nullptr),
+		m_pfnDWriteCreateFactory(nullptr),
+		m_pfnGetUserDefaultLocaleName(nullptr),
 		m_d2dfactory(nullptr),
 		m_dwriteFactory(nullptr),
 		m_wicFactory(nullptr)
@@ -702,6 +703,13 @@ public:
 			osd_printf_error("ERROR: FontProvider: Failed to load DirectWrite functions.\n");
 			return -1;
 		}
+
+		// Init our kernel32 dynamic functions
+		m_kernel32_dll = osd::dynamic_module::open({ "Kernel32.dll" });
+		assert(m_kernel32_dll != nullptr);
+
+		// Attempt to map this function. It only exists on Vista+, so we don't fail if it can't be mapped
+		m_pfnGetUserDefaultLocaleName = m_kernel32_dll->bind<get_user_default_locale_name>("GetUserDefaultLocaleName");
 
 		// Create a Direct2D factory.
 		HR_RET1((*m_pfnD2D1CreateFactory)(
@@ -756,17 +764,12 @@ public:
 			std::unique_ptr<WCHAR[]> name = nullptr;
 			HR_RET0(get_localized_familyname(names, name));
 
-			auto utf8_name = osd_utf8_ptr(utf8_from_wstring(name.get()));
+			std::string utf8_name = osd::text::from_wstring(name.get());
 			name.reset();
 
 			// Review: should the config name, be unlocalized?
 			// maybe the english name?
-			fontresult.push_back(
-				make_pair(
-					std::string(utf8_name.get()),
-					std::string(utf8_name.get())));
-
-			utf8_name.reset();
+			fontresult.emplace_back(make_pair(utf8_name, utf8_name));
 		}
 
 		std::stable_sort(fontresult.begin(), fontresult.end());
@@ -774,13 +777,13 @@ public:
 	}
 
 private:
-	HRESULT get_family_for_locale(ComPtr<IDWriteLocalizedStrings> family_names, const WCHAR* locale, std::unique_ptr<WCHAR[]> &family_name) const
+	HRESULT get_family_for_locale(ComPtr<IDWriteLocalizedStrings> family_names, const std::wstring &locale, std::unique_ptr<WCHAR[]> &family_name) const
 	{
 		HRESULT result;
-		UINT32 index;
+		uint32_t index;
 		BOOL exists = false;
 
-		result = family_names->FindLocaleName(locale, &index, &exists);
+		result = family_names->FindLocaleName(locale.c_str(), &index, &exists);
 
 		// if the above find did not find a match, retry with US English
 		if (SUCCEEDED(result) && !exists)
@@ -791,7 +794,7 @@ private:
 			index = 0;
 
 		// Get the length and allocate our buffer
-		UINT32 name_length = 0;
+		uint32_t name_length = 0;
 		HR_RETHR(family_names->GetStringLength(index, &name_length));
 		auto name_buffer = std::make_unique<WCHAR[]>(name_length + 1);
 
@@ -802,16 +805,23 @@ private:
 		return S_OK;
 	}
 
-	HRESULT get_localized_familyname(ComPtr<IDWriteLocalizedStrings> family_names, std::unique_ptr<WCHAR[]> &family_name) const
+	HRESULT get_localized_familyname(ComPtr<IDWriteLocalizedStrings> family_names, std::unique_ptr<WCHAR[]> &family_name)
 	{
-		wchar_t localeName[LOCALE_NAME_MAX_LENGTH];
+		std::wstring locale_name;
 
-		// Get the default locale for this user.
-		int defaultLocaleSuccess = GetUserDefaultLocaleName(localeName, LOCALE_NAME_MAX_LENGTH);
+		// Get the default locale for this user if possible.
+		// GetUserDefaultLocaleName doesn't exist on XP, so don't assume.
+		if (m_pfnGetUserDefaultLocaleName)
+		{
+			wchar_t name_buffer[LOCALE_NAME_MAX_LENGTH];
+			int len = m_pfnGetUserDefaultLocaleName(name_buffer, LOCALE_NAME_MAX_LENGTH);
+			if (len != 0)
+				locale_name = name_buffer;
+		}
 
-		// If the default locale is returned, find that locale name, otherwise use "en-us".
-		if (defaultLocaleSuccess)
-			return get_family_for_locale(family_names, localeName, family_name);
+		// If the default locale is returned, find that locale name
+		if (!locale_name.empty())
+			return get_family_for_locale(family_names, locale_name, family_name);
 
 		// If locale can't be determined, fall back to US English
 		return get_family_for_locale(family_names, L"en-us", family_name);

@@ -8,10 +8,10 @@
 
 ***************************************************************************/
 
-#pragma once
-
 #ifndef MAME_FRONTEND_UI_MISCMENU_H
 #define MAME_FRONTEND_UI_MISCMENU_H
+
+#pragma once
 
 #include "crsshair.h"
 #include "emuopts.h"
@@ -28,7 +28,7 @@ public:
 	virtual ~menu_keyboard_mode();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 
@@ -39,7 +39,7 @@ public:
 	virtual ~menu_network_devices();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 
@@ -50,7 +50,7 @@ public:
 	virtual ~menu_bookkeeping();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 
 	attotime prevtime;
@@ -75,16 +75,16 @@ private:
 	/* internal crosshair menu item data */
 	struct crosshair_item_data
 	{
-		UINT8   type;
-		UINT8   player;
-		UINT8   min, max;
-		UINT8   cur;
-		UINT8   defvalue;
+		uint8_t   type;
+		uint8_t   player;
+		uint8_t   min, max;
+		uint8_t   cur;
+		uint8_t   defvalue;
 		char    last_name[CROSSHAIR_PIC_NAME_LENGTH + 1];
 		char    next_name[CROSSHAIR_PIC_NAME_LENGTH + 1];
 	};
 
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 
@@ -95,7 +95,7 @@ public:
 	virtual ~menu_quit_game();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 
@@ -106,7 +106,7 @@ public:
 	virtual ~menu_bios_selection();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 
@@ -115,7 +115,7 @@ class ui_menu_custom_button : public menu {
 public:
 	ui_menu_custom_button(mame_ui_manager &mui, render_container &container);
 	virtual ~ui_menu_custom_button();
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 };
 #endif /* USE_CUSTOM_BUTTON */
@@ -132,7 +132,7 @@ public:
 	virtual ~menu_export();
 
 private:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 
 	std::vector<const game_driver*> m_list;
@@ -166,7 +166,7 @@ private:
 		LAST = ADVANCED
 	};
 
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 
 	const game_driver *m_drv;
@@ -175,6 +175,7 @@ private:
 	s_bios m_bios;
 	std::size_t m_curbios;
 	void setup_bios();
+	bool m_fav_reset;
 };
 
 //-------------------------------------------------
@@ -188,7 +189,7 @@ public:
 	virtual ~menu_plugins_configure();
 
 protected:
-	virtual void populate() override;
+	virtual void populate(float &customtop, float &custombottom) override;
 	virtual void handle() override;
 
 	virtual void custom_render(void *selectedref, float top, float bottom, float x, float y, float x2, float y2) override;

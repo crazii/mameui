@@ -871,9 +871,9 @@ void vertex_program_simulator::compute_scalar_operation(float t_out[4], int inst
  * Graphics
  */
 
-UINT32 nv2a_renderer::dilate0(UINT32 value, int bits) // dilate first "bits" bits in "value"
+uint32_t nv2a_renderer::dilate0(uint32_t value, int bits) // dilate first "bits" bits in "value"
 {
-	UINT32 x, m1, m2, m3;
+	uint32_t x, m1, m2, m3;
 	int a;
 
 	x = value;
@@ -887,9 +887,9 @@ UINT32 nv2a_renderer::dilate0(UINT32 value, int bits) // dilate first "bits" bit
 	return x;
 }
 
-UINT32 nv2a_renderer::dilate1(UINT32 value, int bits) // dilate first "bits" bits in "value"
+uint32_t nv2a_renderer::dilate1(uint32_t value, int bits) // dilate first "bits" bits in "value"
 {
-	UINT32 x, m1, m2, m3;
+	uint32_t x, m1, m2, m3;
 	int a;
 
 	x = value;
@@ -917,12 +917,12 @@ void nv2a_renderer::computedilated(void)
 			dilatechose[(b << 4) + a] = (a < b ? a : b);
 }
 
-inline UINT8 *nv2a_renderer::direct_access_ptr(offs_t address)
+inline uint8_t *nv2a_renderer::direct_access_ptr(offs_t address)
 {
 	return basemempointer + address;
 }
 
-int nv2a_renderer::geforce_commandkind(UINT32 word)
+int nv2a_renderer::geforce_commandkind(uint32_t word)
 {
 	if ((word & 0x00000003) == 0x00000002)
 		return 7; // call
@@ -943,16 +943,16 @@ int nv2a_renderer::geforce_commandkind(UINT32 word)
 	return -1;
 }
 
-UINT32 nv2a_renderer::geforce_object_offset(UINT32 handle)
+uint32_t nv2a_renderer::geforce_object_offset(uint32_t handle)
 {
-	UINT32 h = ((((handle >> 11) ^ handle) >> 11) ^ handle) & 0x7ff;
-	UINT32 o = (pfifo[0x210 / 4] & 0x1ff) << 8; // 0x1ff is not certain
-	UINT32 e = o + h * 8; // at 0xfd000000+0x00700000
-	UINT32 w;
+	uint32_t h = ((((handle >> 11) ^ handle) >> 11) ^ handle) & 0x7ff;
+	uint32_t o = (pfifo[0x210 / 4] & 0x1ff) << 8; // 0x1ff is not certain
+	uint32_t e = o + h * 8; // at 0xfd000000+0x00700000
+	uint32_t w;
 
 	if (ramin[e / 4] != handle) {
 		// this should never happen
-		for (UINT32 aa = o / 4; aa < (sizeof(ramin) / 4); aa = aa + 2) {
+		for (uint32_t aa = o / 4; aa < (sizeof(ramin) / 4); aa = aa + 2) {
 			if (ramin[aa] == handle) {
 				e = aa * 4;
 			}
@@ -962,11 +962,11 @@ UINT32 nv2a_renderer::geforce_object_offset(UINT32 handle)
 	return (w & 0xffff) * 0x10; // 0xffff is not certain
 }
 
-void nv2a_renderer::geforce_read_dma_object(UINT32 handle, UINT32 &offset, UINT32 &size)
+void nv2a_renderer::geforce_read_dma_object(uint32_t handle, uint32_t &offset, uint32_t &size)
 {
-	//UINT32 objclass,pt_present,pt_linear,access,target,rorw;
-	UINT32 dma_adjust, dma_frame;
-	UINT32 o = geforce_object_offset(handle);
+	//uint32_t objclass,pt_present,pt_linear,access,target,rorw;
+	uint32_t dma_adjust, dma_frame;
+	uint32_t o = geforce_object_offset(handle);
 
 	o = o / 4;
 	//objclass=ramin[o] & 0xfff;
@@ -996,7 +996,7 @@ int xx1,yy1,xx2,yy2;
             yy2=t;
         }
         for (int y=yy1;y <= yy2;y++)
-            *((UINT32 *)bmp.raw_pixptr(y,xx1))= -1;
+            *((uint32_t *)bmp.raw_pixptr(y,xx1))= -1;
         } else if (yy1 == yy2) {
         if (xx1 > xx2) {
             int t=xx1;
@@ -1004,13 +1004,13 @@ int xx1,yy1,xx2,yy2;
             xx2=t;
         }
         for (int x=xx1;x <= xx2;x++)
-            *((UINT32 *)bmp.raw_pixptr(yy1,x))= -1;
+            *((uint32_t *)bmp.raw_pixptr(yy1,x))= -1;
     }
 }*/
 
-inline UINT32 convert_a4r4g4b4_a8r8g8b8(UINT32 a4r4g4b4)
+inline uint32_t convert_a4r4g4b4_a8r8g8b8(uint32_t a4r4g4b4)
 {
-	UINT32 a8r8g8b8;
+	uint32_t a8r8g8b8;
 	int ca, cr, cg, cb;
 
 	cb = pal4bit(a4r4g4b4 & 0x000f);
@@ -1021,9 +1021,9 @@ inline UINT32 convert_a4r4g4b4_a8r8g8b8(UINT32 a4r4g4b4)
 	return a8r8g8b8;
 }
 
-inline UINT32 convert_a1r5g5b5_a8r8g8b8(UINT32 a1r5g5b5)
+inline uint32_t convert_a1r5g5b5_a8r8g8b8(uint32_t a1r5g5b5)
 {
-	UINT32 a8r8g8b8;
+	uint32_t a8r8g8b8;
 	int ca, cr, cg, cb;
 
 	cb = pal5bit(a1r5g5b5 & 0x001f);
@@ -1034,9 +1034,9 @@ inline UINT32 convert_a1r5g5b5_a8r8g8b8(UINT32 a1r5g5b5)
 	return a8r8g8b8;
 }
 
-inline UINT32 convert_r5g6b5_r8g8b8(UINT32 r5g6b5)
+inline uint32_t convert_r5g6b5_r8g8b8(uint32_t r5g6b5)
 {
-	UINT32 r8g8b8;
+	uint32_t r8g8b8;
 	int cr, cg, cb;
 
 	cb = pal5bit(r5g6b5 & 0x001f);
@@ -1046,14 +1046,14 @@ inline UINT32 convert_r5g6b5_r8g8b8(UINT32 r5g6b5)
 	return r8g8b8;
 }
 
-UINT32 nv2a_renderer::texture_get_texel(int number, int x, int y)
+uint32_t nv2a_renderer::texture_get_texel(int number, int x, int y)
 {
-	UINT32 to, s, c, sa, ca;
-	UINT32 a4r4g4b4, a1r5g5b5, r5g6b5;
+	uint32_t to, s, c, sa, ca;
+	uint32_t a4r4g4b4, a1r5g5b5, r5g6b5;
 	int bx, by;
 	int color0, color1, color0m2, color1m2, alpha0, alpha1;
-	UINT32 codes;
-	UINT64 alphas;
+	uint32_t codes;
+	uint64_t alphas;
 	int cr, cg, cb;
 	int sizeu, sizev;
 
@@ -1077,16 +1077,16 @@ UINT32 nv2a_renderer::texture_get_texel(int number, int x, int y)
 	switch (texture[number].format) {
 	case NV2A_TEX_FORMAT::A8R8G8B8:
 		to = dilated0[texture[number].dilate][x] + dilated1[texture[number].dilate][y]; // offset of texel in texture memory
-		return *(((UINT32 *)texture[number].buffer) + to); // get texel color
+		return *(((uint32_t *)texture[number].buffer) + to); // get texel color
 	case NV2A_TEX_FORMAT::DXT1:
 		bx = x >> 2;
 		by = y >> 2;
 		x = x & 3;
 		y = y & 3;
 		to = bx + by*(sizeu >> 2);
-		color0 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 0);
-		color1 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 1);
-		codes = *((UINT32 *)(((UINT64 *)texture[number].buffer) + to) + 1);
+		color0 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 0);
+		color1 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 1);
+		codes = *((uint32_t *)(((uint64_t *)texture[number].buffer) + to) + 1);
 		s = (y << 3) + (x << 1);
 		c = (codes >> s) & 3;
 		c = c + (color0 > color1 ? 0 : 4);
@@ -1125,10 +1125,10 @@ UINT32 nv2a_renderer::texture_get_texel(int number, int x, int y)
 		x = x & 3;
 		y = y & 3;
 		to = (bx + by*(sizeu >> 2)) << 1;
-		color0 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 4);
-		color1 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 5);
-		codes = *((UINT32 *)(((UINT64 *)texture[number].buffer) + to) + 3);
-		alphas = *(((UINT64 *)texture[number].buffer) + to);
+		color0 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 4);
+		color1 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 5);
+		codes = *((uint32_t *)(((uint64_t *)texture[number].buffer) + to) + 3);
+		alphas = *(((uint64_t *)texture[number].buffer) + to);
 		s = (y << 3) + (x << 1);
 		sa = ((y << 2) + x) << 2;
 		c = (codes >> s) & 3;
@@ -1151,34 +1151,34 @@ UINT32 nv2a_renderer::texture_get_texel(int number, int x, int y)
 		}
 	case NV2A_TEX_FORMAT::A4R4G4B4:
 		to = dilated0[texture[number].dilate][x] + dilated1[texture[number].dilate][y]; // offset of texel in texture memory
-		a4r4g4b4 = *(((UINT16 *)texture[number].buffer) + to); // get texel color
+		a4r4g4b4 = *(((uint16_t *)texture[number].buffer) + to); // get texel color
 		return convert_a4r4g4b4_a8r8g8b8(a4r4g4b4);
 	case NV2A_TEX_FORMAT::A1R5G5B5:
 		to = dilated0[texture[number].dilate][x] + dilated1[texture[number].dilate][y]; // offset of texel in texture memory
-		a1r5g5b5 = *(((UINT16 *)texture[number].buffer) + to); // get texel color
+		a1r5g5b5 = *(((uint16_t *)texture[number].buffer) + to); // get texel color
 		return convert_a1r5g5b5_a8r8g8b8(a1r5g5b5);
 	case NV2A_TEX_FORMAT::R5G6B5:
 		to = dilated0[texture[number].dilate][x] + dilated1[texture[number].dilate][y]; // offset of texel in texture memory
-		r5g6b5 = *(((UINT16 *)texture[number].buffer) + to); // get texel color
+		r5g6b5 = *(((uint16_t *)texture[number].buffer) + to); // get texel color
 		return 0xff000000 + convert_r5g6b5_r8g8b8(r5g6b5);
 	case NV2A_TEX_FORMAT::R8G8B8_RECT:
 		to = texture[number].rectangle_pitch*y + (x << 2);
-		return *((UINT32 *)(((UINT8 *)texture[number].buffer) + to));
+		return *((uint32_t *)(((uint8_t *)texture[number].buffer) + to));
 	case NV2A_TEX_FORMAT::A8R8G8B8_RECT:
 		to = texture[number].rectangle_pitch*y + (x << 2);
-		return *((UINT32 *)(((UINT8 *)texture[number].buffer) + to));
+		return *((uint32_t *)(((uint8_t *)texture[number].buffer) + to));
 	case NV2A_TEX_FORMAT::DXT5:
 		bx = x >> 2;
 		by = y >> 2;
 		x = x & 3;
 		y = y & 3;
 		to = (bx + by*(sizeu >> 2)) << 1;
-		color0 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 4);
-		color1 = *((UINT16 *)(((UINT64 *)texture[number].buffer) + to) + 5);
-		codes = *((UINT32 *)(((UINT64 *)texture[number].buffer) + to) + 3);
-		alpha0 = *((UINT8 *)(((UINT64 *)texture[number].buffer) + to) + 0);
-		alpha1 = *((UINT8 *)(((UINT64 *)texture[number].buffer) + to) + 1);
-		alphas = *(((UINT64 *)texture[number].buffer) + to);
+		color0 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 4);
+		color1 = *((uint16_t *)(((uint64_t *)texture[number].buffer) + to) + 5);
+		codes = *((uint32_t *)(((uint64_t *)texture[number].buffer) + to) + 3);
+		alpha0 = *((uint8_t *)(((uint64_t *)texture[number].buffer) + to) + 0);
+		alpha1 = *((uint8_t *)(((uint64_t *)texture[number].buffer) + to) + 1);
+		alphas = *(((uint64_t *)texture[number].buffer) + to);
 		s = (y << 3) + (x << 1);
 		sa = ((y << 2) + x) * 3;
 		c = (codes >> s) & 3;
@@ -1255,13 +1255,13 @@ UINT32 nv2a_renderer::texture_get_texel(int number, int x, int y)
 	}
 }
 
-inline UINT8 *nv2a_renderer::read_pixel(int x, int y, INT32 c[4])
+inline uint8_t *nv2a_renderer::read_pixel(int x, int y, int32_t c[4])
 {
-	UINT32 offset;
-	UINT32 color;
-	UINT32 *addr;
-	UINT16 *addr16;
-	UINT8 *addr8;
+	uint32_t offset;
+	uint32_t color;
+	uint32_t *addr;
+	uint16_t *addr16;
+	uint8_t *addr8;
 
 	if (type_rendertarget == NV2A_RT_TYPE::SWIZZLED)
 		offset = (dilated0[dilate_rendertarget][x] + dilated1[dilate_rendertarget][y]) * bytespixel_rendertarget;
@@ -1269,33 +1269,33 @@ inline UINT8 *nv2a_renderer::read_pixel(int x, int y, INT32 c[4])
 		offset = pitch_rendertarget * y + x * bytespixel_rendertarget;
 	switch (colorformat_rendertarget) {
 	case NV2A_COLOR_FORMAT::R5G6B5:
-		addr16 = (UINT16 *)((UINT8 *)rendertarget + offset);
+		addr16 = (uint16_t *)((uint8_t *)rendertarget + offset);
 		color = *addr16;
 		c[3] = 0xff;
 		c[2] = pal5bit((color & 0xf800) >> 11);
 		c[1] = pal6bit((color & 0x07e0) >> 5);
 		c[0] = pal5bit(color & 0x1f);
-		return (UINT8 *)addr16;
+		return (uint8_t *)addr16;
 	case NV2A_COLOR_FORMAT::X8R8G8B8_Z8R8G8B8:
 	case NV2A_COLOR_FORMAT::X8R8G8B8_X8R8G8B8:
-		addr = (UINT32 *)((UINT8 *)rendertarget + offset);
+		addr = (uint32_t *)((uint8_t *)rendertarget + offset);
 		color = *addr;
 
 		c[3] = 0xff;
 		c[2] = (color >> 16) & 255;
 		c[1] = (color >> 8) & 255;
 		c[0] = color & 255;
-		return (UINT8 *)addr;
+		return (uint8_t *)addr;
 	case NV2A_COLOR_FORMAT::A8R8G8B8:
-		addr = (UINT32 *)((UINT8 *)rendertarget + offset);
+		addr = (uint32_t *)((uint8_t *)rendertarget + offset);
 		color = *addr;
 		c[3] = color >> 24;
 		c[2] = (color >> 16) & 255;
 		c[1] = (color >> 8) & 255;
 		c[0] = color & 255;
-		return (UINT8 *)addr;
+		return (uint8_t *)addr;
 	case NV2A_COLOR_FORMAT::B8:
-		addr8 = (UINT8 *)rendertarget + offset;
+		addr8 = (uint8_t *)rendertarget + offset;
 		c[0] = *addr8;
 		c[1] = c[2] = 0;
 		c[3] = 0xff;
@@ -1306,14 +1306,14 @@ inline UINT8 *nv2a_renderer::read_pixel(int x, int y, INT32 c[4])
 	return nullptr;
 }
 
-void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
+void nv2a_renderer::write_pixel(int x, int y, uint32_t color, int depth)
 {
-	UINT8 *addr;
-	UINT32 *daddr32;
-	UINT16 *daddr16;
-	UINT32 deptsten;
-	INT32 c[4], fb[4], s[4], d[4], cc[4];
-	UINT32 dep, sten, stenc, stenv;
+	uint8_t *addr;
+	uint32_t *daddr32;
+	uint16_t *daddr16;
+	uint32_t deptsten;
+	int32_t c[4], fb[4], s[4], d[4], cc[4];
+	uint32_t dep, sten, stenc, stenv;
 	bool stencil_passed;
 	bool depth_passed;
 
@@ -1331,7 +1331,7 @@ void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
 		daddr16 = nullptr;
 	}
 	else if (depthformat_rendertarget == NV2A_RT_DEPTH_FORMAT::Z16) {
-		daddr16 = (UINT16 *)depthbuffer + (pitch_depthbuffer / 2) * y + x;
+		daddr16 = (uint16_t *)depthbuffer + (pitch_depthbuffer / 2) * y + x;
 		deptsten = *daddr16;
 		dep = (deptsten << 8) | 0xff;
 		sten = 0;
@@ -1464,7 +1464,7 @@ void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
 			}
 			else if (depthformat_rendertarget == NV2A_RT_DEPTH_FORMAT::Z16) {
 				deptsten = dep >> 8;
-				*daddr16 = (UINT16)deptsten;
+				*daddr16 = (uint16_t)deptsten;
 			}
 			return;
 		}
@@ -1545,7 +1545,7 @@ void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
 			}
 			else if (depthformat_rendertarget == NV2A_RT_DEPTH_FORMAT::Z16) {
 				deptsten = dep >> 8;
-				*daddr16 = (UINT16)deptsten;
+				*daddr16 = (uint16_t)deptsten;
 			}
 			return;
 		}
@@ -1869,25 +1869,25 @@ void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
 		}
 	}
 	if (color_mask != 0) {
-		UINT32 ct,ft,w;
+		uint32_t ct,ft,w;
 
-		ct = ((UINT32)c[3] << 24) | ((UINT32)c[2] << 16) | ((UINT32)c[1] << 8) | (UINT32)c[0];
-		ft = ((UINT32)fb[3] << 24) | ((UINT32)fb[2] << 16) | ((UINT32)fb[1] << 8) | (UINT32)fb[0];
+		ct = ((uint32_t)c[3] << 24) | ((uint32_t)c[2] << 16) | ((uint32_t)c[1] << 8) | (uint32_t)c[0];
+		ft = ((uint32_t)fb[3] << 24) | ((uint32_t)fb[2] << 16) | ((uint32_t)fb[1] << 8) | (uint32_t)fb[0];
 		w = (ft & ~color_mask) | (ct & color_mask);
 		switch (colorformat_rendertarget) {
 		case NV2A_COLOR_FORMAT::R5G6B5:
 			w = ((w >> 8) & 0xf800) + ((w >> 5) & 0x7e0) + ((w >> 3) & 0x1f);
-			*((UINT16 *)addr) = (UINT16)w;
+			*((uint16_t *)addr) = (uint16_t)w;
 			break;
 		case NV2A_COLOR_FORMAT::X8R8G8B8_Z8R8G8B8:
 		case NV2A_COLOR_FORMAT::X8R8G8B8_X8R8G8B8:
-			*((UINT32 *)addr) = w;
+			*((uint32_t *)addr) = w;
 			break;
 		case NV2A_COLOR_FORMAT::A8R8G8B8:
-			*((UINT32 *)addr) = w;
+			*((uint32_t *)addr) = w;
 			break;
 		case NV2A_COLOR_FORMAT::B8:
-			*addr = (UINT8)w;
+			*addr = (uint8_t)w;
 			break;
 		default:
 			break;
@@ -1901,11 +1901,11 @@ void nv2a_renderer::write_pixel(int x, int y, UINT32 color, int depth)
 	}
 	else if (depthformat_rendertarget == NV2A_RT_DEPTH_FORMAT::Z16) {
 		deptsten = dep >> 8;
-		*daddr16 = (UINT16)deptsten;
+		*daddr16 = (uint16_t)deptsten;
 	}
 }
 
-void nv2a_renderer::render_color(INT32 scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
+void nv2a_renderer::render_color(int32_t scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
 {
 	int x;
 
@@ -1913,7 +1913,7 @@ void nv2a_renderer::render_color(INT32 scanline, const extent_t &extent, const n
 		return;
 	x = extent.stopx - extent.startx - 1; // number of pixels to draw
 	while (x >= 0) {
-		UINT32 a8r8g8b8;
+		uint32_t a8r8g8b8;
 		int z;
 		int ca, cr, cg, cb;
 		int xp = extent.startx + x; // x coordinate of current pixel
@@ -1929,10 +1929,10 @@ void nv2a_renderer::render_color(INT32 scanline, const extent_t &extent, const n
 	}
 }
 
-void nv2a_renderer::render_texture_simple(INT32 scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
+void nv2a_renderer::render_texture_simple(int32_t scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
 {
 	int x;
-	UINT32 a8r8g8b8;
+	uint32_t a8r8g8b8;
 	int z;
 
 	if (!objectdata.data->texture[0].enabled) {
@@ -1960,13 +1960,13 @@ void nv2a_renderer::render_texture_simple(INT32 scanline, const extent_t &extent
 	}
 }
 
-void nv2a_renderer::render_register_combiners(INT32 scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
+void nv2a_renderer::render_register_combiners(int32_t scanline, const extent_t &extent, const nvidia_object_data &objectdata, int threadid)
 {
 	int x, xp;
 	int up, vp;
 	int ca, cr, cg, cb;
-	UINT32 color[6];
-	UINT32 a8r8g8b8;
+	uint32_t color[6];
+	uint32_t a8r8g8b8;
 	int z;
 	int n;
 
@@ -2081,7 +2081,7 @@ const char *rc_scale_str[] = {
 };
 
 /* Dump the current setup of the register combiners */
-void dumpcombiners(UINT32 *m)
+void dumpcombiners(uint32_t *m)
 {
 	int a, b, n, v;
 
@@ -2169,7 +2169,7 @@ void dumpcombiners(UINT32 *m)
 
 void nv2a_renderer::read_vertex(address_space & space, offs_t address, vertex_nv &vertex, int attrib)
 {
-	UINT32 u;
+	uint32_t u;
 	int c, d, l;
 
 	l = vertexbuffer_size[attrib];
@@ -2210,10 +2210,10 @@ void nv2a_renderer::read_vertex(address_space & space, offs_t address, vertex_nv
 }
 
 /* Read vertices data from system memory. Method 0x1800 */
-int nv2a_renderer::read_vertices_0x1800(address_space & space, vertex_nv *destination, UINT32 address, int limit)
+int nv2a_renderer::read_vertices_0x1800(address_space & space, vertex_nv *destination, uint32_t address, int limit)
 {
-	UINT32 data;
-	UINT32 m, i, c;
+	uint32_t data;
+	uint32_t m, i, c;
 	int a, b;
 
 #ifdef MAME_DEBUG
@@ -2245,10 +2245,10 @@ int nv2a_renderer::read_vertices_0x1800(address_space & space, vertex_nv *destin
 }
 
 /* Read vertices data from system memory. Method 0x1808 */
-int nv2a_renderer::read_vertices_0x1808(address_space & space, vertex_nv *destination, UINT32 address, int limit)
+int nv2a_renderer::read_vertices_0x1808(address_space & space, vertex_nv *destination, uint32_t address, int limit)
 {
-	UINT32 data;
-	UINT32 m, i, c;
+	uint32_t data;
+	uint32_t m, i, c;
 	int a, b;
 
 #ifdef MAME_DEBUG
@@ -2281,7 +2281,7 @@ int nv2a_renderer::read_vertices_0x1808(address_space & space, vertex_nv *destin
 /* Read vertices data from system memory. Method 0x1810 */
 int nv2a_renderer::read_vertices_0x1810(address_space & space, vertex_nv *destination, int offset, int limit)
 {
-	UINT32 m;
+	uint32_t m;
 	int a, b;
 
 	for (m = 0; m < limit; m++) {
@@ -2298,9 +2298,9 @@ int nv2a_renderer::read_vertices_0x1810(address_space & space, vertex_nv *destin
 }
 
 /* Read vertices data from system memory. Method 0x1818 */
-int nv2a_renderer::read_vertices_0x1818(address_space & space, vertex_nv *destination, UINT32 address, int limit)
+int nv2a_renderer::read_vertices_0x1818(address_space & space, vertex_nv *destination, uint32_t address, int limit)
 {
-	UINT32 m, vwords;
+	uint32_t m, vwords;
 	int a, b;
 
 #ifdef MAME_DEBUG
@@ -2360,30 +2360,19 @@ void nv2a_renderer::convert_vertices_poly(vertex_nv *source, nv2avertex_t *desti
 {
 	vertex_nv vert[4];
 	int m, u;
-	float t[4],v[4];
+	float v[4];
 
 	// take each vertex with its attributes and obtain data for drawing
 	// should use either the vertex program or transformation matrices
 	if (vertex_pipeline == 4) {
 		// transformation matrices
-		// it is not implemented, so we pretend its always using screen coordinates
+		// this part needs more testing
 		for (m = 0; m < count; m++) {
-			for (int i = 0; i < 4; i++) {
-				t[i] = 0;
-				for (int j = 0; j < 4; j++)
-					t[i] += matrix.modelview[i][j] * source[m].attribute[0].fv[j];
-			};
 			for (int i = 0; i < 4; i++) {
 				v[i] = 0;
 				for (int j = 0; j < 4; j++)
-					v[i] += matrix.projection[i][j] * t[j];
+					v[i] += matrix.composite[i][j] * source[m].attribute[0].fv[j];
 			};
-			/*for (int i = 0; i < 3; i++) {
-			    v[i] *= matrix.scale[i];
-			}
-			for (int i = 0; i < 3; i++) {
-			    v[i] += matrix.translate[i];
-			}*/
 			destination[m].w = v[3];
 			destination[m].x = (v[0] / v[3])*supersample_factor_x; // source[m].attribute[0].fv[0];
 			destination[m].y = (v[1] / v[3])*supersample_factor_y; // source[m].attribute[0].fv[1];
@@ -2400,6 +2389,7 @@ void nv2a_renderer::convert_vertices_poly(vertex_nv *source, nv2avertex_t *desti
 		// vertex program
 		// run vertex program
 		vertexprogram.exec.process(vertexprogram.start_instruction, source, vert, count);
+		// the output of the vertex program has the perspective divide, viewport scale and offset already applied
 		// copy data for poly.c
 		for (m = 0; m < count; m++) {
 			destination[m].w = vert[m].attribute[0].fv[3];
@@ -2416,14 +2406,14 @@ void nv2a_renderer::convert_vertices_poly(vertex_nv *source, nv2avertex_t *desti
 	}
 }
 
-void nv2a_renderer::clear_render_target(int what, UINT32 value)
+void nv2a_renderer::clear_render_target(int what, uint32_t value)
 {
 	int xi, yi, xf, yf;
 	int x, y;
-	UINT32 color;
-	UINT8 *addr;
-	UINT32 mask;
-	UINT32 offset;
+	uint32_t color;
+	uint8_t *addr;
+	uint32_t mask;
+	uint32_t offset;
 
 	if (what == 0)
 		return;
@@ -2483,7 +2473,7 @@ void nv2a_renderer::clear_render_target(int what, UINT32 value)
 		offset = (dilated0[dilate_rendertarget][xf] + dilated1[dilate_rendertarget][yf]) * bytespixel_rendertarget;
 	else // type_rendertarget == LINEAR
 		offset = pitch_rendertarget * yf + xf * bytespixel_rendertarget;
-	addr = (UINT8 *)rendertarget + offset;
+	addr = (uint8_t *)rendertarget + offset;
 	if ((addr < basemempointer) || (addr > topmempointer))
 	{
 		machine().logerror("Bad memory pointer computed in clear_render_target !\n");
@@ -2498,20 +2488,20 @@ void nv2a_renderer::clear_render_target(int what, UINT32 value)
 				offset = pitch_rendertarget * y + x * bytespixel_rendertarget;
 			switch (colorformat_rendertarget) {
 			case NV2A_COLOR_FORMAT::R5G6B5:
-				addr = (UINT8 *)rendertarget + offset;
-				color = *((UINT16 *)addr);
+				addr = (uint8_t *)rendertarget + offset;
+				color = *((uint16_t *)addr);
 				break;
 			case NV2A_COLOR_FORMAT::X8R8G8B8_Z8R8G8B8:
 			case NV2A_COLOR_FORMAT::X8R8G8B8_X8R8G8B8:
-				addr = (UINT8 *)rendertarget + offset;
-				color = *((UINT32 *)addr);
+				addr = (uint8_t *)rendertarget + offset;
+				color = *((uint32_t *)addr);
 				break;
 			case NV2A_COLOR_FORMAT::A8R8G8B8:
-				addr = (UINT8 *)rendertarget + offset;
-				color = *((UINT32 *)addr);
+				addr = (uint8_t *)rendertarget + offset;
+				color = *((uint32_t *)addr);
 				break;
 			case NV2A_COLOR_FORMAT::B8:
-				addr = (UINT8 *)rendertarget + offset;
+				addr = (uint8_t *)rendertarget + offset;
 				color = *addr;
 				break;
 			default:
@@ -2520,14 +2510,14 @@ void nv2a_renderer::clear_render_target(int what, UINT32 value)
 			color = (color & ~mask) | (value & mask);
 			switch (colorformat_rendertarget) {
 			case NV2A_COLOR_FORMAT::R5G6B5:
-				*((UINT16 *)addr) = color;
+				*((uint16_t *)addr) = color;
 				break;
 			case NV2A_COLOR_FORMAT::X8R8G8B8_Z8R8G8B8:
 			case NV2A_COLOR_FORMAT::X8R8G8B8_X8R8G8B8:
-				*((UINT32 *)addr) = color;
+				*((uint32_t *)addr) = color;
 				break;
 			case NV2A_COLOR_FORMAT::A8R8G8B8:
-				*((UINT32 *)addr) = color;
+				*((uint32_t *)addr) = color;
 				break;
 			case NV2A_COLOR_FORMAT::B8:
 				*addr = color;
@@ -2541,15 +2531,15 @@ void nv2a_renderer::clear_render_target(int what, UINT32 value)
 #endif
 }
 
-void nv2a_renderer::clear_depth_buffer(int what, UINT32 value)
+void nv2a_renderer::clear_depth_buffer(int what, uint32_t value)
 {
 	int xi, yi, xf, yf;
 	int x, y;
-	UINT32 color;
-	UINT8 *addr;
-	UINT32 mask;
-	UINT32 offset;
-	UINT32 bpp;
+	uint32_t color;
+	uint8_t *addr;
+	uint32_t mask;
+	uint32_t offset;
+	uint32_t bpp;
 
 	if (what == 0)
 		return;
@@ -2591,7 +2581,7 @@ void nv2a_renderer::clear_depth_buffer(int what, UINT32 value)
 	if (yf > limits_rendertarget.bottom())
 		yf = limits_rendertarget.bottom();
 	offset = pitch_depthbuffer * yf + xf * bpp;
-	addr = (UINT8 *)depthbuffer + offset;
+	addr = (uint8_t *)depthbuffer + offset;
 	if ((addr < basemempointer) || (addr > topmempointer))
 	{
 		machine().logerror("Bad memory pointer computed in clear_depth_buffer !\n");
@@ -2603,12 +2593,12 @@ void nv2a_renderer::clear_depth_buffer(int what, UINT32 value)
 			offset = pitch_depthbuffer * y + x * bpp;
 			switch (depthformat_rendertarget) {
 			case NV2A_RT_DEPTH_FORMAT::Z16:
-				addr = (UINT8 *)depthbuffer + offset;
-				color = *((UINT16 *)addr);
+				addr = (uint8_t *)depthbuffer + offset;
+				color = *((uint16_t *)addr);
 				break;
 			case NV2A_RT_DEPTH_FORMAT::Z24S8:
-				addr = (UINT8 *)depthbuffer + offset;
-				color = *((UINT32 *)addr);
+				addr = (uint8_t *)depthbuffer + offset;
+				color = *((uint32_t *)addr);
 				break;
 			default:
 				return;
@@ -2616,12 +2606,12 @@ void nv2a_renderer::clear_depth_buffer(int what, UINT32 value)
 			color = (color & ~mask) | (value & mask);
 			switch (depthformat_rendertarget) {
 			case NV2A_RT_DEPTH_FORMAT::Z16:
-				addr = (UINT8 *)depthbuffer + offset;
-				*((UINT16 *)addr) = color;
+				addr = (uint8_t *)depthbuffer + offset;
+				*((uint16_t *)addr) = color;
 				break;
 			case NV2A_RT_DEPTH_FORMAT::Z24S8:
-				addr = (UINT8 *)depthbuffer + offset;
-				*((UINT32 *)addr) = color;
+				addr = (uint8_t *)depthbuffer + offset;
+				*((uint32_t *)addr) = color;
 				break;
 			default:
 				return;
@@ -2629,7 +2619,7 @@ void nv2a_renderer::clear_depth_buffer(int what, UINT32 value)
 		}
 }
 
-UINT32 nv2a_renderer::render_triangle_culling(const rectangle &cliprect, render_delegate callback, int paramcount, nv2avertex_t &_v1, nv2avertex_t &_v2, nv2avertex_t &_v3)
+uint32_t nv2a_renderer::render_triangle_culling(const rectangle &cliprect, render_delegate callback, int paramcount, nv2avertex_t &_v1, nv2avertex_t &_v2, nv2avertex_t &_v3)
 {
 	float areax2;
 	NV2A_GL_CULL_FACE face = NV2A_GL_CULL_FACE::FRONT;
@@ -2661,7 +2651,7 @@ UINT32 nv2a_renderer::render_triangle_culling(const rectangle &cliprect, render_
 	return 0;
 }
 
-UINT32 nv2a_renderer::render_triangle_clipping(const rectangle &cliprect, render_delegate callback, int paramcount, nv2avertex_t &_v1, nv2avertex_t &_v2, nv2avertex_t &_v3)
+uint32_t nv2a_renderer::render_triangle_clipping(const rectangle &cliprect, render_delegate callback, int paramcount, nv2avertex_t &_v1, nv2avertex_t &_v2, nv2avertex_t &_v3)
 {
 #if 0
 	nv2avertex_t *vi[3];
@@ -2680,6 +2670,15 @@ UINT32 nv2a_renderer::render_triangle_clipping(const rectangle &cliprect, render
 	vi[2] = &_v3;
 	for (int n=0;n < 3;n++)
 	{
+		// remove translate
+		vi[n]->x = vi[n]->x - translatex;
+		vi[n]->y = vi[n]->y - translatey;
+		vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] = vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] - translatez;
+		// remove scale
+		vi[n]->x = vi[n]->x / scalex;
+		vi[n]->y = vi[n]->y / scaley;
+		vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] = vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] / scalez;
+		// remove perspective divide
 		vi[n]->x = vi[n]->x * vi[n]->w;
 		vi[n]->y = vi[n]->y * vi[n]->w;
 		vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] = vi[n]->p[(int)VERTEX_PARAMETER::PARAM_Z] * vi[n]->w;
@@ -2715,16 +2714,26 @@ UINT32 nv2a_renderer::render_triangle_clipping(const rectangle &cliprect, render
 	}
 	for (int n = 0; n < idx; n++)
 	{
+		// apply perspective divide
 		vo[n].x = vo[n].x / vo[n].w;
 		vo[n].y = vo[n].y / vo[n].w;
 		vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] = vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] / vo[n].w;
+		// apply scale
+		vo[n].x = vo[n].x * scalex;
+		vo[n].y = vo[n].y * scaley;
+		vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] = vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] * scalez;
+		// apply translate
+		vo[n].x = vo[n].x + translatex;
+		vo[n].y = vo[n].y + translatey;
+		vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] = vo[n].p[(int)VERTEX_PARAMETER::PARAM_Z] + translatez;
 	}
-	if (idx > 2)
-		render_triangle_culling(cliprect, callback, paramcount, vo[0], vo[1], vo[2]);
-	if (idx > 3)
-		render_triangle_culling(cliprect, callback, paramcount, vo[0], vo[2], vo[3]);
-	if (idx > 4)
-		exit(0);
+	for (int n = 0; n < (idx-2); n++)
+	{
+		if ((n & 1) == 0)
+			render_triangle_culling(cliprect, callback, paramcount, vo[n], vo[n + 1], vo[n + 2]);
+		else
+			render_triangle_culling(cliprect, callback, paramcount, vo[n], vo[n + 2], vo[n + 1]);
+	}
 #endif
 	return 0;
 }
@@ -2840,9 +2849,9 @@ void nv2a_renderer::assemble_primitive(vertex_nv *source, int count, render_dele
 	}
 }
 
-void nv2a_renderer::compute_limits_rendertarget(UINT32 chanel, UINT32 subchannel)
+void nv2a_renderer::compute_limits_rendertarget(uint32_t chanel, uint32_t subchannel)
 {
-	UINT32 data;
+	uint32_t data;
 	int x, w;
 	int y, h;
 
@@ -2860,16 +2869,16 @@ void nv2a_renderer::compute_limits_rendertarget(UINT32 chanel, UINT32 subchannel
 	limits_rendertarget.sety(y, y + h - 1);
 }
 
-int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UINT32 subchannel, UINT32 method, UINT32 address, int &countlen)
+int nv2a_renderer::geforce_exec_method(address_space & space, uint32_t chanel, uint32_t subchannel, uint32_t method, uint32_t address, int &countlen)
 {
-	UINT32 maddress;
-	UINT32 data;
+	uint32_t maddress;
+	uint32_t data;
 
 	maddress = method * 4;
 	data = space.read_dword(address);
 	channel[chanel][subchannel].object.method[method] = data;
 #ifdef LOG_NV2A
-	printf("A:%08X MTHD:%08X D:%08X\n\r",address,maddress,data);
+	//printf("A:%08X MTHD:%08X D:%08X\n\r",address,maddress,data);
 #endif
 	if (maddress == 0x17fc) {
 #if 0 // useful while debugging to see what coordinates have been used
@@ -2891,20 +2900,20 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 		primitive_type = (NV2A_BEGIN_END)data;
 		if (data != 0) {
 			if (((channel[chanel][subchannel].object.method[0x1e60 / 4] & 7) > 0) && (combiner.used != 0)) {
-				render_spans_callback = render_delegate(FUNC(nv2a_renderer::render_register_combiners), this);
+				render_spans_callback = render_delegate(&nv2a_renderer::render_register_combiners, this);
 			}
 			else if (texture[0].enabled) {
-				render_spans_callback = render_delegate(FUNC(nv2a_renderer::render_texture_simple), this);
+				render_spans_callback = render_delegate(&nv2a_renderer::render_texture_simple, this);
 			}
 			else
-				render_spans_callback = render_delegate(FUNC(nv2a_renderer::render_color), this);
+				render_spans_callback = render_delegate(&nv2a_renderer::render_color, this);
 		}
 		countlen--;
 	}
 	if (maddress == 0x1810) {
 		// draw vertices
 		int offset, count;
-		UINT32 n;
+		uint32_t n;
 
 		offset = data & 0xffffff;
 		count = (data >> 24) & 0xff;
@@ -3000,11 +3009,11 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 	{
 		int v = maddress - 0x1900; // 16 dwords,2 values per dword
 		int attr = v >> 2;
-		UINT16 d1 = data & 0xffff;
-		UINT16 d2 = data >> 16;
+		uint16_t d1 = data & 0xffff;
+		uint16_t d2 = data >> 16;
 
-		persistvertexattr.attribute[attr].fv[0] = (float)((INT16)d1);
-		persistvertexattr.attribute[attr].fv[1] = (float)((INT16)d2);
+		persistvertexattr.attribute[attr].fv[0] = (float)((int16_t)d1);
+		persistvertexattr.attribute[attr].fv[1] = (float)((int16_t)d2);
 		persistvertexattr.attribute[attr].fv[2] = 0;
 		persistvertexattr.attribute[attr].fv[3] = 1;
 		if (attr == 0)
@@ -3014,10 +3023,10 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 	{
 		int v = maddress - 0x1940; // 16 dwords,4 values per dword
 		int attr = v >> 2;
-		UINT8 d1 = data & 255;
-		UINT8 d2 = (data >> 8) & 255;
-		UINT8 d3 = (data >> 16) & 255;
-		UINT8 d4 = data >> 24;
+		uint8_t d1 = data & 255;
+		uint8_t d2 = (data >> 8) & 255;
+		uint8_t d3 = (data >> 16) & 255;
+		uint8_t d4 = data >> 24;
 
 		persistvertexattr.attribute[attr].fv[0] = (float)d1;
 		persistvertexattr.attribute[attr].fv[1] = (float)d2;
@@ -3031,11 +3040,11 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 		int v = maddress - 0x1980; // 16 couples,4 values per couple
 		int attr = v >> 3;
 		int comp = (v >> 1) & 2;
-		UINT16 d1 = data & 0xffff;
-		UINT16 d2 = data >> 16;
+		uint16_t d1 = data & 0xffff;
+		uint16_t d2 = data >> 16;
 
-		persistvertexattr.attribute[attr].fv[comp] = (float)((INT16)d1);
-		persistvertexattr.attribute[attr].fv[comp+1] = (float)((INT16)d2);
+		persistvertexattr.attribute[attr].fv[comp] = (float)((int16_t)d1);
+		persistvertexattr.attribute[attr].fv[comp+1] = (float)((int16_t)d2);
 		if (comp == 2)
 			if (attr == 0)
 				assemble_primitive(&persistvertexattr, 1, render_spans_callback);
@@ -3124,8 +3133,8 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 	}
 	if (maddress == 0x1d70) {
 		// with 1d70 write the value at offest [1d6c] inside dma object [1a4]
-		UINT32 offset, base;
-		UINT32 dmahand, dmaoff, smasiz;
+		uint32_t offset, base;
+		uint32_t dmahand, dmaoff, smasiz;
 
 		offset = channel[chanel][subchannel].object.method[0x1d6c / 4];
 		dmahand = channel[chanel][subchannel].object.method[0x1a4 / 4];
@@ -3260,7 +3269,7 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 	}
 	if (maddress == 0x0210) {
 		// framebuffer offset ?
-		rendertarget = (UINT32 *)direct_access_ptr(data);
+		rendertarget = (uint32_t *)direct_access_ptr(data);
 #ifdef LOG_NV2A
 		printf("Render target at %08X\n\r", data);
 #endif
@@ -3268,7 +3277,7 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 	}
 	if (maddress == 0x0214) {
 		// zbuffer offset ?
-		depthbuffer = (UINT32 *)direct_access_ptr(data);
+		depthbuffer = (uint32_t *)direct_access_ptr(data);
 #ifdef LOG_NV2A
 		printf("Depth buffer at %08X\n\r",data);
 #endif
@@ -3314,7 +3323,7 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 		color_mask = data;
 	}
 	if (maddress == 0x035c) {
-		UINT32 g = channel[chanel][subchannel].object.method[0x0214 / 4];
+		uint32_t g = channel[chanel][subchannel].object.method[0x0214 / 4];
 		depth_write_enabled = data != 0;
 		if ((g == 0) || (g > 0x7ffffffc))
 			depth_write_enabled = false;
@@ -3372,8 +3381,8 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 		//off=maddress & 0xc0;
 		maddress = maddress & ~0xc0;
 		if (maddress == 0x1b00) {
-			UINT32 offset;//,base;
-			//UINT32 dmahand,dmaoff,dmasiz;
+			uint32_t offset;//,base;
+			//uint32_t dmahand,dmaoff,dmasiz;
 
 			offset = data;
 			texture[unit].buffer = direct_access_ptr(offset);
@@ -3465,38 +3474,71 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 		}
 		countlen--;
 	}
+	// projection matrix
+	if ((maddress >= 0x0440) && (maddress < 0x0480)) {
+		maddress = (maddress - 0x0440) / 4;
+		*(uint32_t *)(&matrix.projection[maddress >> 2][maddress & 3]) = data;
+		countlen--;
+	}
 	// modelview matrix
 	if ((maddress >= 0x0480) && (maddress < 0x04c0)) {
 		maddress = (maddress - 0x0480) / 4;
-		*(UINT32 *)(&matrix.modelview[maddress >> 2][maddress & 3]) = data;
+		/* the modelview matrix is obtained by direct3d by multiplying the world matrix and the view matrix
+		    modelview = world * view
+		   given a point in 3d space with coordinates x y and z, to find te transformed coordinates
+		   first create a row vector with components (x,y,z,1) then multiply the vector by the matrix
+		    transformed = rowvector * matrix
+		   in direct3d the matrix is stored as the sequence (first digit row, second digit column)
+		    11 12 13 14
+		    21 22 23 24
+		    31 32 33 34
+		    41 42 43 44
+		   but it is sent transposed as the sequence
+		    11 21 31 41 12 22 32 42 13 23 33 43 14 24 34 44
+		   so in matrix.modelview[x][y] x is the column and y is the row of the direct3d matrix
+		*/
+		*(uint32_t *)(&matrix.modelview[maddress >> 2][maddress & 3]) = data;
 		countlen--;
 	}
 	// inverse modelview matrix
 	if ((maddress >= 0x0580) && (maddress < 0x05c0)) {
 		maddress = (maddress - 0x0580) / 4;
-		*(UINT32 *)(&matrix.modelview_inverse[maddress >> 2][maddress & 3]) = data;
+		*(uint32_t *)(&matrix.modelview_inverse[maddress >> 2][maddress & 3]) = data;
 		countlen--;
 	}
-	// projection matrix
+	// composite matrix
 	if ((maddress >= 0x0680) && (maddress < 0x06c0)) {
 		maddress = (maddress - 0x0680) / 4;
-		*(UINT32 *)(&matrix.projection[maddress >> 2][maddress & 3]) = data;
+		/* the composite matrix is computed by direct3d by multiplying the
+		   world, view, projection and viewport matrices
+		    composite = world * view * projection * viewport
+		   the viewport matrix applies the viewport scale and offset
+		 */
+		*(uint32_t *)(&matrix.composite[maddress >> 2][maddress & 3]) = data;
 		countlen--;
 	}
 	// viewport translate
 	if ((maddress >= 0x0a20) && (maddress < 0x0a30)) {
 		maddress = (maddress - 0x0a20) / 4;
-		*(UINT32 *)(&matrix.translate[maddress]) = data;
+		*(uint32_t *)(&matrix.translate[maddress]) = data;
 		// set corresponding vertex shader constant too
 		vertexprogram.exec.c_constant[59].iv[maddress] = data; // constant -37
+#ifdef LOG_NV2A
+		if (maddress == 3)
+			machine().logerror("viewport translate = {%f %f %f %f}\n", matrix.translate[0], matrix.translate[1], matrix.translate[2], matrix.translate[3]);
+#endif
 		countlen--;
 	}
 	// viewport scale
 	if ((maddress >= 0x0af0) && (maddress < 0x0b00)) {
 		maddress = (maddress - 0x0af0) / 4;
-		*(UINT32 *)(&matrix.scale[maddress]) = data;
+		*(uint32_t *)(&matrix.scale[maddress]) = data;
 		// set corresponding vertex shader constant too
 		vertexprogram.exec.c_constant[58].iv[maddress] = data; // constant -38
+#ifdef LOG_NV2A
+		if (maddress == 3)
+			machine().logerror("viewport scale = {%f %f %f %f}\n", matrix.scale[0], matrix.scale[1], matrix.scale[2], matrix.scale[3]);
+#endif
 		countlen--;
 	}
 	// Vertex program (shader)
@@ -3557,6 +3599,15 @@ int nv2a_renderer::geforce_exec_method(address_space & space, UINT32 chanel, UIN
 			machine().logerror("Need to increase size of vertexprogram.parameter to %d\n\r", vertexprogram.upload_parameter_index);
 		vertexprogram.upload_parameter_component++;
 		if (vertexprogram.upload_parameter_component >= 4) {
+#ifdef LOG_NV2A
+			if ((vertexprogram.upload_parameter_index == 58) || (vertexprogram.upload_parameter_index == 59))
+				machine().logerror("vp constant %d (%s) = {%f %f %f %f}\n", vertexprogram.upload_parameter_index,
+					vertexprogram.upload_parameter_index == 58 ? "viewport scale" : "viewport translate",
+					vertexprogram.exec.c_constant[vertexprogram.upload_parameter_index].fv[0],
+					vertexprogram.exec.c_constant[vertexprogram.upload_parameter_index].fv[1],
+					vertexprogram.exec.c_constant[vertexprogram.upload_parameter_index].fv[2],
+					vertexprogram.exec.c_constant[vertexprogram.upload_parameter_index].fv[3]);
+#endif
 			vertexprogram.upload_parameter_component = 0;
 			vertexprogram.upload_parameter_index++;
 		}
@@ -3705,7 +3756,7 @@ void nv2a_renderer::debug_grab_texture(int type, const char *filename)
 	strncpy(debug_grab_textfile, filename, 127);
 }
 
-void nv2a_renderer::debug_grab_vertex_program_slot(int slot, UINT32 *instruction)
+void nv2a_renderer::debug_grab_vertex_program_slot(int slot, uint32_t *instruction)
 {
 	if (slot >= 1024 / 4)
 		return;
@@ -3715,7 +3766,7 @@ void nv2a_renderer::debug_grab_vertex_program_slot(int slot, UINT32 *instruction
 	instruction[3] = vertexprogram.exec.op[slot].i[3];
 }
 
-void nv2a_renderer::combiner_argb8_float(UINT32 color, float reg[4])
+void nv2a_renderer::combiner_argb8_float(uint32_t color, float reg[4])
 {
 	reg[0] = (float)(color & 0xff) / 255.0f;
 	reg[1] = (float)((color >> 8) & 0xff) / 255.0f;
@@ -3723,9 +3774,9 @@ void nv2a_renderer::combiner_argb8_float(UINT32 color, float reg[4])
 	reg[3] = (float)((color >> 24) & 0xff) / 255.0f;
 }
 
-UINT32 nv2a_renderer::combiner_float_argb8(float reg[4])
+uint32_t nv2a_renderer::combiner_float_argb8(float reg[4])
 {
-	UINT32 r, g, b, a;
+	uint32_t r, g, b, a;
 
 	a = reg[3] * 255.0f;
 	r = reg[2] * 255.0f;
@@ -3851,18 +3902,18 @@ float nv2a_renderer::combiner_map_input_function(int code, float value)
 
 	switch (code) {
 	case 0:
-		return MAX(0.0f, value);
+		return std::max(0.0f, value);
 	case 1:
-		t = MAX(value, 0.0f);
-		return 1.0f - MIN(t, 1.0f);
+		t = std::max(value, 0.0f);
+		return 1.0f - std::min(t, 1.0f);
 	case 2:
-		return 2.0f * MAX(0.0f, value) - 1.0f;
+		return 2.0f * std::max(0.0f, value) - 1.0f;
 	case 3:
-		return -2.0f * MAX(0.0f, value) + 1.0f;
+		return -2.0f * std::max(0.0f, value) + 1.0f;
 	case 4:
-		return MAX(0.0f, value) - 0.5f;
+		return std::max(0.0f, value) - 0.5f;
 	case 5:
-		return -MAX(0.0f, value) + 0.5f;
+		return -std::max(0.0f, value) + 0.5f;
 	case 6:
 		return value;
 	case 7:
@@ -3880,37 +3931,37 @@ void nv2a_renderer::combiner_map_input_function3(int code, float *data)
 
 	switch (code) {
 	case 0:
-		data[0] = MAX(0.0f, data[0]);
-		data[1] = MAX(0.0f, data[1]);
-		data[2] = MAX(0.0f, data[2]);
+		data[0] = std::max(0.0f, data[0]);
+		data[1] = std::max(0.0f, data[1]);
+		data[2] = std::max(0.0f, data[2]);
 		break;
 	case 1:
-		t = MAX(data[0], 0.0f);
-		data[0] = 1.0f - MIN(t, 1.0f);
-		t = MAX(data[1], 0.0f);
-		data[1] = 1.0f - MIN(t, 1.0f);
-		t = MAX(data[2], 0.0f);
-		data[2] = 1.0f - MIN(t, 1.0f);
+		t = std::max(data[0], 0.0f);
+		data[0] = 1.0f - std::min(t, 1.0f);
+		t = std::max(data[1], 0.0f);
+		data[1] = 1.0f - std::min(t, 1.0f);
+		t = std::max(data[2], 0.0f);
+		data[2] = 1.0f - std::min(t, 1.0f);
 		break;
 	case 2:
-		data[0] = 2.0f * MAX(0.0f, data[0]) - 1.0f;
-		data[1] = 2.0f * MAX(0.0f, data[1]) - 1.0f;
-		data[2] = 2.0f * MAX(0.0f, data[2]) - 1.0f;
+		data[0] = 2.0f * std::max(0.0f, data[0]) - 1.0f;
+		data[1] = 2.0f * std::max(0.0f, data[1]) - 1.0f;
+		data[2] = 2.0f * std::max(0.0f, data[2]) - 1.0f;
 		break;
 	case 3:
-		data[0] = -2.0f * MAX(0.0f, data[0]) + 1.0f;
-		data[1] = -2.0f * MAX(0.0f, data[1]) + 1.0f;
-		data[2] = -2.0f * MAX(0.0f, data[2]) + 1.0f;
+		data[0] = -2.0f * std::max(0.0f, data[0]) + 1.0f;
+		data[1] = -2.0f * std::max(0.0f, data[1]) + 1.0f;
+		data[2] = -2.0f * std::max(0.0f, data[2]) + 1.0f;
 		break;
 	case 4:
-		data[0] = MAX(0.0f, data[0]) - 0.5f;
-		data[1] = MAX(0.0f, data[1]) - 0.5f;
-		data[2] = MAX(0.0f, data[2]) - 0.5f;
+		data[0] = std::max(0.0f, data[0]) - 0.5f;
+		data[1] = std::max(0.0f, data[1]) - 0.5f;
+		data[2] = std::max(0.0f, data[2]) - 0.5f;
 		break;
 	case 5:
-		data[0] = -MAX(0.0f, data[0]) + 0.5f;
-		data[1] = -MAX(0.0f, data[1]) + 0.5f;
-		data[2] = -MAX(0.0f, data[2]) + 0.5f;
+		data[0] = -std::max(0.0f, data[0]) + 0.5f;
+		data[1] = -std::max(0.0f, data[1]) + 0.5f;
+		data[2] = -std::max(0.0f, data[2]) + 0.5f;
 		break;
 	case 6:
 		return;
@@ -3923,7 +3974,7 @@ void nv2a_renderer::combiner_map_input_function3(int code, float *data)
 	}
 }
 
-void nv2a_renderer::combiner_initialize_registers(UINT32 argb8[6])
+void nv2a_renderer::combiner_initialize_registers(uint32_t argb8[6])
 {
 	combiner_argb8_float(argb8[0], combiner.register_primarycolor);
 	combiner_argb8_float(argb8[1], combiner.register_secondarycolor);
@@ -4088,13 +4139,13 @@ void nv2a_renderer::combiner_map_final_input()
 	combiner.variable_EF[1] = combiner.variable_E[1] * combiner.variable_F[1];
 	combiner.variable_EF[2] = combiner.variable_E[2] * combiner.variable_F[2];
 	// sumclamp
-	combiner.variable_sumclamp[0] = MAX(0, combiner.register_spare0[0]) + MAX(0, combiner.register_secondarycolor[0]);
-	combiner.variable_sumclamp[1] = MAX(0, combiner.register_spare0[1]) + MAX(0, combiner.register_secondarycolor[1]);
-	combiner.variable_sumclamp[2] = MAX(0, combiner.register_spare0[2]) + MAX(0, combiner.register_secondarycolor[2]);
+	combiner.variable_sumclamp[0] = std::max(0.0f, combiner.register_spare0[0]) + std::max(0.0f, combiner.register_secondarycolor[0]);
+	combiner.variable_sumclamp[1] = std::max(0.0f, combiner.register_spare0[1]) + std::max(0.0f, combiner.register_secondarycolor[1]);
+	combiner.variable_sumclamp[2] = std::max(0.0f, combiner.register_spare0[2]) + std::max(0.0f, combiner.register_secondarycolor[2]);
 	if (combiner.final.color_sum_clamp != 0) {
-		combiner.variable_sumclamp[0] = MIN(combiner.variable_sumclamp[0], 1.0f);
-		combiner.variable_sumclamp[1] = MIN(combiner.variable_sumclamp[1], 1.0f);
-		combiner.variable_sumclamp[2] = MIN(combiner.variable_sumclamp[2], 1.0f);
+		combiner.variable_sumclamp[0] = std::min(combiner.variable_sumclamp[0], 1.0f);
+		combiner.variable_sumclamp[1] = std::min(combiner.variable_sumclamp[1], 1.0f);
+		combiner.variable_sumclamp[2] = std::min(combiner.variable_sumclamp[2], 1.0f);
 	}
 	// A
 	pv = combiner_map_input_select3(combiner.final.mapin_rgbA_input);
@@ -4142,9 +4193,9 @@ void nv2a_renderer::combiner_final_output()
 	combiner.output[0] = combiner.variable_A[0] * combiner.variable_B[0] + (1.0f - combiner.variable_A[0])*combiner.variable_C[0] + combiner.variable_D[0];
 	combiner.output[1] = combiner.variable_A[1] * combiner.variable_B[1] + (1.0f - combiner.variable_A[1])*combiner.variable_C[1] + combiner.variable_D[1];
 	combiner.output[2] = combiner.variable_A[2] * combiner.variable_B[2] + (1.0f - combiner.variable_A[2])*combiner.variable_C[2] + combiner.variable_D[2];
-	combiner.output[0] = MIN(combiner.output[0], 1.0f);
-	combiner.output[1] = MIN(combiner.output[1], 1.0f);
-	combiner.output[2] = MIN(combiner.output[2], 1.0f);
+	combiner.output[0] = std::min(combiner.output[0], 1.0f);
+	combiner.output[1] = std::min(combiner.output[1], 1.0f);
+	combiner.output[2] = std::min(combiner.output[2], 1.0f);
 	// a
 	combiner.output[3] = combiner_map_input_function(combiner.final.mapin_aG_mapping, combiner.variable_G);
 }
@@ -4225,26 +4276,26 @@ void nv2a_renderer::combiner_compute_rgb_outputs(int stage_number)
 		m = 0;
 		combiner_function_AB(combiner.function_RGBop1);
 	}
-	combiner.function_RGBop1[0] = MAX(MIN((combiner.function_RGBop1[0] + biasrgb) * scalergb, 1.0f), -1.0f);
-	combiner.function_RGBop1[1] = MAX(MIN((combiner.function_RGBop1[1] + biasrgb) * scalergb, 1.0f), -1.0f);
-	combiner.function_RGBop1[2] = MAX(MIN((combiner.function_RGBop1[2] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop1[0] = std::max(std::min((combiner.function_RGBop1[0] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop1[1] = std::max(std::min((combiner.function_RGBop1[1] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop1[2] = std::max(std::min((combiner.function_RGBop1[2] + biasrgb) * scalergb, 1.0f), -1.0f);
 	if (combiner.stage[n].mapout_rgbCD_dotproduct) {
 		m = m | 1;
 		combiner_function_CdotD(combiner.function_RGBop2);
 	}
 	else
 		combiner_function_CD(combiner.function_RGBop2);
-	combiner.function_RGBop2[0] = MAX(MIN((combiner.function_RGBop2[0] + biasrgb) * scalergb, 1.0f), -1.0f);
-	combiner.function_RGBop2[1] = MAX(MIN((combiner.function_RGBop2[1] + biasrgb) * scalergb, 1.0f), -1.0f);
-	combiner.function_RGBop2[2] = MAX(MIN((combiner.function_RGBop2[2] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop2[0] = std::max(std::min((combiner.function_RGBop2[0] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop2[1] = std::max(std::min((combiner.function_RGBop2[1] + biasrgb) * scalergb, 1.0f), -1.0f);
+	combiner.function_RGBop2[2] = std::max(std::min((combiner.function_RGBop2[2] + biasrgb) * scalergb, 1.0f), -1.0f);
 	if (m == 0) {
 		if (combiner.stage[n].mapout_rgb_muxsum)
 			combiner_function_ABmuxCD(combiner.function_RGBop3);
 		else
 			combiner_function_ABsumCD(combiner.function_RGBop3);
-		combiner.function_RGBop3[0] = MAX(MIN((combiner.function_RGBop3[0] + biasrgb) * scalergb, 1.0f), -1.0f);
-		combiner.function_RGBop3[1] = MAX(MIN((combiner.function_RGBop3[1] + biasrgb) * scalergb, 1.0f), -1.0f);
-		combiner.function_RGBop3[2] = MAX(MIN((combiner.function_RGBop3[2] + biasrgb) * scalergb, 1.0f), -1.0f);
+		combiner.function_RGBop3[0] = std::max(std::min((combiner.function_RGBop3[0] + biasrgb) * scalergb, 1.0f), -1.0f);
+		combiner.function_RGBop3[1] = std::max(std::min((combiner.function_RGBop3[1] + biasrgb) * scalergb, 1.0f), -1.0f);
+		combiner.function_RGBop3[2] = std::max(std::min((combiner.function_RGBop3[2] + biasrgb) * scalergb, 1.0f), -1.0f);
 	}
 }
 
@@ -4273,9 +4324,9 @@ void nv2a_renderer::combiner_compute_a_outputs(int stage_number)
 		break;
 	}
 	combiner.function_Aop1 = combiner.variable_A[3] * combiner.variable_B[3];
-	combiner.function_Aop1 = MAX(MIN((combiner.function_Aop1 + biasa) * scalea, 1.0f), -1.0f);
+	combiner.function_Aop1 = std::max(std::min((combiner.function_Aop1 + biasa) * scalea, 1.0f), -1.0f);
 	combiner.function_Aop2 = combiner.variable_C[3] * combiner.variable_D[3];
-	combiner.function_Aop2 = MAX(MIN((combiner.function_Aop2 + biasa) * scalea, 1.0f), -1.0f);
+	combiner.function_Aop2 = std::max(std::min((combiner.function_Aop2 + biasa) * scalea, 1.0f), -1.0f);
 	if (combiner.stage[n].mapout_a_muxsum) {
 		if (combiner.register_spare0[3] >= 0.5f)
 			combiner.function_Aop3 = combiner.variable_A[3] * combiner.variable_B[3];
@@ -4284,7 +4335,7 @@ void nv2a_renderer::combiner_compute_a_outputs(int stage_number)
 	}
 	else
 		combiner.function_Aop3 = combiner.variable_A[3] * combiner.variable_B[3] + combiner.variable_C[3] * combiner.variable_D[3];
-	combiner.function_Aop3 = MAX(MIN((combiner.function_Aop3 + biasa) * scalea, 1.0f), -1.0f);
+	combiner.function_Aop3 = std::max(std::min((combiner.function_Aop3 + biasa) * scalea, 1.0f), -1.0f);
 }
 
 void nv2a_renderer::vblank_callback(screen_device &screen, bool state)
@@ -4328,11 +4379,11 @@ bool nv2a_renderer::update_interrupts()
 		return false;
 }
 
-UINT32 nv2a_renderer::screen_update_callback(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
+uint32_t nv2a_renderer::screen_update_callback(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect)
 {
 	if (displayedtarget != nullptr) {
 		bitmap_rgb32 bm(displayedtarget, 640, 480, 640);
-		UINT32 *dst = (UINT32 *)bitmap.raw_pixptr(0, 0);
+		uint32_t *dst = (uint32_t *)bitmap.raw_pixptr(0, 0);
 
 		//printf("updatescreen %08X\n\r",pcrtc[0x800/4]);
 		memcpy(dst, displayedtarget, bitmap.rowbytes()*bitmap.height());
@@ -4340,7 +4391,7 @@ UINT32 nv2a_renderer::screen_update_callback(screen_device &screen, bitmap_rgb32
 	return 0;
 }
 
-void nv2a_renderer::geforce_assign_object(address_space & space, UINT32 chanel, UINT32 subchannel, UINT32 address)
+void nv2a_renderer::geforce_assign_object(address_space & space, uint32_t chanel, uint32_t subchannel, uint32_t address)
 {
 	int handle, objclass;
 
@@ -4362,12 +4413,12 @@ TIMER_CALLBACK_MEMBER(nv2a_renderer::puller_timer_work)
 {
 	int chanel;
 	int method, count;
-	UINT32 *dmaput, *dmaget;
-	UINT32 cmd, cmdtype;
+	uint32_t *dmaput, *dmaget;
+	uint32_t cmd, cmdtype;
 	int countlen;
 	int ret;
 	address_space *space = puller_space;
-	UINT32 subch;
+	uint32_t subch;
 
 	for (chanel = 0; chanel < 32; chanel++) {
 		dmaput = &channel[chanel][0].regs[0x40 / 4];
@@ -4523,7 +4574,7 @@ READ32_MEMBER(nv2a_renderer::geforce_r)
 
 WRITE32_MEMBER(nv2a_renderer::geforce_w)
 {
-	UINT32 old;
+	uint32_t old;
 	bool update_int;
 
 	update_int = false;
@@ -4532,21 +4583,21 @@ WRITE32_MEMBER(nv2a_renderer::geforce_w)
 	}
 	else if ((offset >= 0x00002000 / 4) && (offset < 0x00004000 / 4)) {
 		int e = offset - 0x00002000 / 4;
-		if (e >= (sizeof(pfifo) / sizeof(UINT32)))
+		if (e >= (sizeof(pfifo) / sizeof(uint32_t)))
 			return;
 		COMBINE_DATA(pfifo + e);
 		//machine().logerror("NV_2A: read PFIFO[%06X]=%08X\n",offset*4-0x00002000,data & mem_mask); // 2210 pfifo ramht & 1f0 << 12
 	}
 	else if ((offset >= 0x00700000 / 4) && (offset < 0x00800000 / 4)) {
 		int e = offset - 0x00700000 / 4;
-		if (e >= (sizeof(ramin) / sizeof(UINT32)))
+		if (e >= (sizeof(ramin) / sizeof(uint32_t)))
 			return;
 		COMBINE_DATA(ramin + e);
 		//machine().logerror("NV_2A: write PRAMIN[%06X]=%08X\n",offset*4-0x00700000,data & mem_mask);
 	}
 	else if ((offset >= 0x00400000 / 4) && (offset < 0x00402000 / 4)) {
 		int e = offset - 0x00400000 / 4;
-		if (e >= (sizeof(pgraph) / sizeof(UINT32)))
+		if (e >= (sizeof(pgraph) / sizeof(uint32_t)))
 			return;
 		old = pgraph[e];
 		COMBINE_DATA(pgraph + e);
@@ -4571,7 +4622,7 @@ WRITE32_MEMBER(nv2a_renderer::geforce_w)
 	}
 	else if ((offset >= 0x00600000 / 4) && (offset < 0x00601000 / 4)) {
 		int e = offset - 0x00600000 / 4;
-		if (e >= (sizeof(pcrtc) / sizeof(UINT32)))
+		if (e >= (sizeof(pcrtc) / sizeof(uint32_t)))
 			return;
 		old = pcrtc[e];
 		COMBINE_DATA(pcrtc + e);
@@ -4582,7 +4633,7 @@ WRITE32_MEMBER(nv2a_renderer::geforce_w)
 		if (e == 0x140 / 4)
 			update_int = true;
 		if (e == 0x800 / 4) {
-			displayedtarget = (UINT32 *)direct_access_ptr(pcrtc[e]);
+			displayedtarget = (uint32_t *)direct_access_ptr(pcrtc[e]);
 #ifdef LOG_NV2A
 			printf("crtc buffer %08X\n\r", data);
 #endif
@@ -4591,7 +4642,7 @@ WRITE32_MEMBER(nv2a_renderer::geforce_w)
 	}
 	else if ((offset >= 0x00000000 / 4) && (offset < 0x00001000 / 4)) {
 		int e = offset - 0x00000000 / 4;
-		if (e >= (sizeof(pmc) / sizeof(UINT32)))
+		if (e >= (sizeof(pmc) / sizeof(uint32_t)))
 			return;
 		COMBINE_DATA(pmc + e);
 		//machine().logerror("NV_2A: write PMC[%06X]=%08X\n",offset*4-0x00000000,data & mem_mask);
@@ -4610,12 +4661,18 @@ WRITE32_MEMBER(nv2a_renderer::geforce_w)
 		if (suboffset >= 0x80 / 4)
 			return;
 		if ((suboffset == 0x40 / 4) || (suboffset == 0x44 / 4)) { // DMA_PUT or DMA_GET
-			UINT32 *dmaput, *dmaget;
+			uint32_t *dmaput, *dmaget;
 
 			dmaput = &channel[chanel][0].regs[0x40 / 4];
 			dmaget = &channel[chanel][0].regs[0x44 / 4];
 			//printf("dmaget %08X dmaput %08X\n\r",*dmaget,*dmaput);
 			if (((*dmaput == 0x048cf000) && (*dmaget == 0x07f4d000)) || // only for outr2
+				((*dmaput == 0x045cd000) && (*dmaget == 0x07f4d000)) || // only for scg06nt
+				((*dmaput == 0x0494c000) && (*dmaget == 0x07f4d000)) || // only for wangmid
+				((*dmaput == 0x05acd000) && (*dmaget == 0x07f4d000)) || // only for ghostsqu
+				((*dmaput == 0x0574d000) && (*dmaget == 0x07f4d000)) || // only for mj2c
+				((*dmaput == 0x07ca3000) && (*dmaget == 0x07f4d000)) || // only for hotd3
+				((*dmaput == 0x063cd000) && (*dmaget == 0x07f4d000)) || // only for vcop3
 				((*dmaput == 0x07dca000) && (*dmaget == 0x07f4d000))) // only for crtaxihr
 			{
 				*dmaget = *dmaput;
@@ -4648,7 +4705,7 @@ void nv2a_renderer::savestate_items()
 
 void nv2a_renderer::start(address_space *cpu_space)
 {
-	basemempointer = (UINT8 *)cpu_space->get_read_ptr(0);
+	basemempointer = (uint8_t *)cpu_space->get_read_ptr(0);
 	topmempointer = basemempointer + 512 * 1024 * 1024 - 1;
 	puller_timer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(nv2a_renderer::puller_timer_work), this), (void *)"NV2A Puller Timer");
 	puller_timer->enable(false);

@@ -136,7 +136,7 @@ Q-0900^76203F0161063005080E492DCD4890597877103F020E75105A0A0C1E89F4101879
 
 READ8_MEMBER( vc4000_state::vc4000_key_r )
 {
-	UINT8 data=0;
+	uint8_t data=0;
 	switch(offset & 0x0f)
 	{
 	case 0x08:
@@ -400,9 +400,9 @@ QUICKLOAD_LOAD_MEMBER( vc4000_state,vc4000)
 	int i;
 	int exec_addr;
 	int quick_length;
-	dynamic_buffer quick_data;
+	std::vector<uint8_t> quick_data;
 	int read_;
-	int result = IMAGE_INIT_FAIL;
+	image_init_result result = image_init_result::FAIL;
 
 	quick_length = image.length();
 	quick_data.resize(quick_length);
@@ -414,7 +414,7 @@ QUICKLOAD_LOAD_MEMBER( vc4000_state,vc4000)
 	}
 	else
 	{
-		if (core_stricmp(image.filetype(), "tvc")==0)
+		if (image.is_filetype("tvc"))
 		{
 			if (quick_data[0] != 2)
 			{
@@ -450,12 +450,12 @@ QUICKLOAD_LOAD_MEMBER( vc4000_state,vc4000)
 
 						// Start the quickload
 						m_maincpu->set_state_int(S2650_PC, exec_addr);
-						result = IMAGE_INIT_PASS;
+						result = image_init_result::PASS;
 					}
 			}
 		}
 		else
-			if (core_stricmp(image.filetype(), "pgm")==0)
+			if (image.is_filetype("pgm"))
 			{
 				if (quick_data[0] != 0)
 				{
@@ -508,7 +508,7 @@ QUICKLOAD_LOAD_MEMBER( vc4000_state,vc4000)
 
 								// Start the quickload
 								m_maincpu->set_state_int(S2650_PC, exec_addr);
-								result = IMAGE_INIT_PASS;
+								result = image_init_result::PASS;
 							}
 				}
 			}

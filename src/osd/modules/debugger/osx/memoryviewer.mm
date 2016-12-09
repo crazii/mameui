@@ -20,10 +20,10 @@
 @implementation MAMEMemoryViewer
 
 - (id)initWithMachine:(running_machine &)m console:(MAMEDebugConsole *)c {
-	NSScrollView	*memoryScroll;
-	NSView			*expressionContainer;
-	NSPopUpButton	*actionButton;
-	NSRect			expressionFrame;
+	NSScrollView    *memoryScroll;
+	NSView          *expressionContainer;
+	NSPopUpButton   *actionButton;
+	NSRect          expressionFrame;
 
 	if (!(self = [super initWithMachine:m title:@"Memory" console:c]))
 		return nil;
@@ -53,7 +53,7 @@
 
 	// adjust sizes to make it fit nicely
 	expressionFrame = [expressionField frame];
-	expressionFrame.size.height = MAX(expressionFrame.size.height, [subviewButton frame].size.height);
+	expressionFrame.size.height = std::max(expressionFrame.size.height, [subviewButton frame].size.height);
 	expressionFrame.size.width = (contentBounds.size.width - expressionFrame.size.height) / 2;
 	[expressionField setFrame:expressionFrame];
 	expressionFrame.origin.x = expressionFrame.size.width;

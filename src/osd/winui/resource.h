@@ -64,6 +64,16 @@
 #define IDS_TAB_PCB						124
 #define IDS_TAB_HISTORY					125
 #define IDS_MENUTEXT_PLAY				126
+#define IDS_MESSUI_SWFILES				127
+#define IDS_MESSUI_MEDIAVIEW			128
+#define IDS_MESSUI_SWITEMS				129
+#define IDS_MESSUI_FILENAME				130
+#define IDS_MESSUI_SLC_NAME				131
+#define IDS_MESSUI_SLC_LIST				132
+#define IDS_MESSUI_SLC_DESC				133
+#define IDS_MESSUI_SLC_YEAR				134
+#define IDS_MESSUI_SLC_PUBLSHER			135
+#define IDS_MESSUI_SLC_USAGE			136
 #define IDD_MAIN                        101
 #define IDA_TAB_KEYS                    106
 #define IDI_MAMEUI_ICON                 107
@@ -451,8 +461,7 @@
 #define ID_TOGGLE_TAB_PCB               40077
 #define ID_TOGGLE_TAB_HISTORY           40078
 #define ID_VIEW_FULLSCREEN              40079
-#define ID_CONTEXT_RESET_PLAYTIME       40080
-#define ID_CONTEXT_RESET_PLAYCOUNT      40081
+#define ID_CONTEXT_RESET_PLAYSTATS      40081
 #define ID_FOLDER_PROPERTIES            40082
 #define ID_FOLDER_AUDIT                 40083
 #define ID_UI_UP                        40084

@@ -14,14 +14,16 @@
 #define _HP_OPTROM_H_
 
 #include "emu.h"
+#include "softlist_dev.h"
+
 
 class hp_optrom_cart_device : public device_t,
 								public device_slot_card_interface
 {
 public:
 		// construction/destruction
-		hp_optrom_cart_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, const char *source);
-		hp_optrom_cart_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+		hp_optrom_cart_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, uint32_t clock, const char *shortname, const char *source);
+		hp_optrom_cart_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 
 		// device-level overrides
 		virtual void device_start() override {}
@@ -33,7 +35,7 @@ class hp_optrom_slot_device : public device_t,
 {
 public:
 		// construction/destruction
-		hp_optrom_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+		hp_optrom_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 		virtual ~hp_optrom_slot_device();
 
 		// device-level overrides
@@ -41,7 +43,7 @@ public:
 		virtual void device_config_complete() override;
 
 		// image-level overrides
-		virtual bool call_load() override;
+		virtual image_init_result call_load() override;
 		virtual void call_unload() override;
 		virtual const software_list_loader &get_software_list_loader() const override { return rom_software_list_loader::instance(); }
 
@@ -59,7 +61,7 @@ public:
 
 protected:
 		hp_optrom_cart_device *m_cart;
-		dynamic_buffer m_content;
+		std::vector<uint8_t> m_content;
 		offs_t m_base_addr;
 		offs_t m_end_addr;
 };

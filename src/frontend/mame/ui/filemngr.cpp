@@ -40,7 +40,7 @@ menu_file_manager::menu_file_manager(mame_ui_manager &mui, render_container &con
 	else
 		m_warnings.clear();
 
-	m_curr_selected = FALSE;
+	m_curr_selected = false;
 }
 
 
@@ -103,7 +103,7 @@ void menu_file_manager::fill_image_line(device_image_interface *img, std::string
 //  populate
 //-------------------------------------------------
 
-void menu_file_manager::populate()
+void menu_file_manager::populate(float &customtop, float &custombottom)
 {
 	std::string tmp_inst, tmp_name;
 	bool first_entry = true;
@@ -170,7 +170,7 @@ void menu_file_manager::handle()
 	const event *event = process(0);
 	if (event != nullptr && event->itemref != nullptr && event->iptkey == IPT_UI_SELECT)
 	{
-		if ((FPTR)event->itemref == 1)
+		if ((uintptr_t)event->itemref == 1)
 		{
 			if (m_curr_selected)
 				machine().schedule_hard_reset();
@@ -180,7 +180,7 @@ void menu_file_manager::handle()
 			selected_device = (device_image_interface *) event->itemref;
 			if (selected_device != nullptr)
 			{
-				m_curr_selected = TRUE;
+				m_curr_selected = true;
 				floppy_image_device *floppy_device = dynamic_cast<floppy_image_device *>(selected_device);
 				if (floppy_device != nullptr)
 				{

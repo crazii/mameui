@@ -77,7 +77,7 @@ void widgets_manager::render_triangle(bitmap_argb32 &dest, bitmap_argb32 &source
 	for (y = 0; y < height; y++)
 	{
 		int linewidth = (y * (halfwidth - 1) + (height / 2)) * 255 * 2 / height;
-		UINT32 *target = &dest.pix32(y, halfwidth);
+		uint32_t *target = &dest.pix32(y, halfwidth);
 
 		// don't antialias if height < 12
 		if (dest.height() < 12)
@@ -95,14 +95,14 @@ void widgets_manager::render_triangle(bitmap_argb32 &dest, bitmap_argb32 &source
 			// first column we only consume one pixel
 			if (x == 0)
 			{
-				dalpha = MIN(0xff, linewidth);
+				dalpha = std::min(0xff, linewidth);
 				target[x] = rgb_t(dalpha, 0xff, 0xff, 0xff);
 			}
 
 			// remaining columns consume two pixels, one on each side
 			else
 			{
-				dalpha = MIN(0x1fe, linewidth);
+				dalpha = std::min(0x1fe, linewidth);
 				target[x] = target[-x] = rgb_t(dalpha / 2, 0xff, 0xff, 0xff);
 			}
 

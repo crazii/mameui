@@ -12,6 +12,7 @@
 #define CASSETTE_H
 
 #include "formats/cassimg.h"
+#include "softlist_dev.h"
 
 
 enum cassette_state
@@ -46,7 +47,7 @@ class cassette_image_device :   public device_t,
 {
 public:
 	// construction/destruction
-	cassette_image_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
+	cassette_image_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock);
 	virtual ~cassette_image_device();
 
 	static void static_set_formats(device_t &device, const struct CassetteFormat*  const *formats) { downcast<cassette_image_device &>(device).m_formats = formats; }
@@ -55,8 +56,8 @@ public:
 	static void static_set_interface(device_t &device, const char *_interface) { downcast<cassette_image_device &>(device).m_interface = _interface; }
 
 	// image-level overrides
-	virtual bool call_load() override;
-	virtual bool call_create(int format_type, util::option_resolution *format_options) override;
+	virtual image_init_result call_load() override;
+	virtual image_init_result call_create(int format_type, util::option_resolution *format_options) override;
 	virtual void call_unload() override;
 	virtual std::string call_display() override;
 	virtual const software_list_loader &get_software_list_loader() const override { return image_software_list_loader::instance(); }
@@ -95,12 +96,14 @@ protected:
 	// device-level overrides
 	virtual void device_config_complete() override;
 	virtual void device_start() override;
+	virtual const bool use_software_list_file_extension_for_filetype() const override { return true; }
+
 private:
 	cassette_image  *m_cassette;
 	cassette_state  m_state;
 	double          m_position;
 	double          m_position_time;
-	INT32           m_value;
+	int32_t           m_value;
 	int             m_channel;
 	double          m_speed; // speed multiplier for tape speeds other than standard 1.875ips (used in adam driver)
 	int             m_direction; // direction select
@@ -109,6 +112,8 @@ private:
 	const struct CassetteOptions    *m_create_opts;
 	cassette_state                  m_default_state;
 	const char *                    m_interface;
+
+	image_init_result internal_load(bool is_create);
 };
 
 // device type definition

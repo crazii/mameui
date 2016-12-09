@@ -22,7 +22,7 @@
    * expansion carts do not contain the required game data => main PRG must be in the main cart
      so to remain connected even when an expansion is inserted (differently from Datach, where
      the base unit contains no PRG)
-   * bankswicth writes with bit3=0 (to access expansion) when no expansion is present should do
+   * bankswitch writes with bit3=0 (to access expansion) when no expansion is present should do
      nothing
 
  ***********************************************************************************************************/
@@ -71,7 +71,7 @@ READ8_MEMBER(kstudio_cart_interface::read)
 
 const device_type NES_KSEXPANSION_SLOT = &device_creator<nes_kstudio_slot_device>;
 
-nes_kstudio_slot_device::nes_kstudio_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock) :
+nes_kstudio_slot_device::nes_kstudio_slot_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock) :
 							device_t(mconfig, NES_KSEXPANSION_SLOT, "NES Karaoke Studio Expansion Slot", tag, owner, clock, "nes_ks_slot", __FILE__),
 							device_image_interface(mconfig, *this),
 							device_slot_interface(mconfig, *this), m_cart(nullptr)
@@ -96,33 +96,33 @@ READ8_MEMBER(nes_kstudio_slot_device::read)
 	return 0xff;
 }
 
-bool nes_kstudio_slot_device::call_load()
+image_init_result nes_kstudio_slot_device::call_load()
 {
 	if (m_cart)
 	{
-		UINT8 *ROM = m_cart->get_cart_base();
+		uint8_t *ROM = m_cart->get_cart_base();
 
 		if (!ROM)
-			return IMAGE_INIT_FAIL;
+			return image_init_result::FAIL;
 
 		// Existing exapnsion carts are all 128K, so we only load files of this size
 		if (software_entry() == nullptr)
 		{
 			if (length() != 0x20000)
-				return IMAGE_INIT_FAIL;
+				return image_init_result::FAIL;
 
 			fread(&ROM, 0x20000);
 		}
 		else
 		{
 			if (get_software_region_length("rom") != 0x20000)
-				return IMAGE_INIT_FAIL;
+				return image_init_result::FAIL;
 
 			memcpy(ROM, get_software_region("rom"), 0x20000);
 		}
 	}
 
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 }
 
 
@@ -144,7 +144,7 @@ ROM_END
 
 const device_type NES_KSEXPANSION_ROM = &device_creator<nes_kstudio_rom_device>;
 
-nes_kstudio_rom_device::nes_kstudio_rom_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+nes_kstudio_rom_device::nes_kstudio_rom_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 							: device_t(mconfig, NES_KSEXPANSION_ROM, "NES Karaoke Studio Expansion ROM", tag, owner, clock, "nes_ks_rom", __FILE__),
 								kstudio_cart_interface( mconfig, *this )
 {
@@ -152,7 +152,7 @@ nes_kstudio_rom_device::nes_kstudio_rom_device(const machine_config &mconfig, co
 
 void nes_kstudio_rom_device::device_start()
 {
-	m_rom = (UINT8*)memregion("exrom")->base();
+	m_rom = (uint8_t*)memregion("exrom")->base();
 	save_item(NAME(m_bank));
 }
 
@@ -161,12 +161,12 @@ void nes_kstudio_rom_device::device_reset()
 	m_bank = 0;
 }
 
-const rom_entry *nes_kstudio_rom_device::device_rom_region() const
+const tiny_rom_entry *nes_kstudio_rom_device::device_rom_region() const
 {
 	return ROM_NAME( ks_exp_rom );
 }
 
-UINT8 *nes_kstudio_rom_device::get_cart_base()
+uint8_t *nes_kstudio_rom_device::get_cart_base()
 {
 	return m_rom;
 }
@@ -181,7 +181,7 @@ UINT8 *nes_kstudio_rom_device::get_cart_base()
 const device_type NES_KARAOKESTUDIO = &device_creator<nes_karaokestudio_device>;
 
 
-nes_karaokestudio_device::nes_karaokestudio_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+nes_karaokestudio_device::nes_karaokestudio_device(const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock)
 					: nes_nrom_device(mconfig, NES_KARAOKESTUDIO, "NES Cart Bandai Karaoke Studio PCB", tag, owner, clock, "nes_karaoke", __FILE__), m_exp_active(0),
 					m_subslot(*this, "exp_slot"),
 					m_mic_ipt(*this, "MIC")

@@ -215,15 +215,15 @@ WRITE8_MEMBER( spectrum_state::ts2068_port_ff_w )
  *******************************************************************/
 void spectrum_state::ts2068_update_memory()
 {
-	UINT8 *messram = nullptr;
+	uint8_t *messram = nullptr;
 	if (m_ram) messram = m_ram->pointer();
 	address_space &space = m_maincpu->space(AS_PROGRAM);
-	UINT8 *DOCK = nullptr;
+	uint8_t *DOCK = nullptr;
 	if (m_dock_crt) DOCK = m_dock_crt->base();
 
 
-	UINT8 *ExROM = memregion("maincpu")->base() + 0x014000;
-	UINT8 *ChosenROM;
+	uint8_t *ExROM = memregion("maincpu")->base() + 0x014000;
+	uint8_t *ChosenROM;
 
 	if (m_port_f4_data & 0x01)
 	{
@@ -588,7 +588,7 @@ ADDRESS_MAP_END
 
 MACHINE_RESET_MEMBER(spectrum_state,tc2048)
 {
-	UINT8 *messram = m_ram->pointer();
+	uint8_t *messram = m_ram->pointer();
 
 	membank("bank1")->set_base(messram);
 	membank("bank2")->set_base(messram);
@@ -600,24 +600,24 @@ MACHINE_RESET_MEMBER(spectrum_state,tc2048)
 
 DEVICE_IMAGE_LOAD_MEMBER( spectrum_state, timex_cart )
 {
-	UINT32 size = m_dock->common_get_size("rom");
+	uint32_t size = m_dock->common_get_size("rom");
 
 	if (image.software_entry() == nullptr)
 	{
-		UINT8 *DOCK;
+		uint8_t *DOCK;
 		int chunks_in_file = 0;
-		dynamic_buffer header;
+		std::vector<uint8_t> header;
 		header.resize(9);
 
 		if (size % 0x2000 != 9)
 		{
 			image.seterror(IMAGE_ERROR_UNSPECIFIED, "File corrupted");
-			return IMAGE_INIT_FAIL;
+			return image_init_result::FAIL;
 		}
 		if (image.software_entry() != nullptr)
 		{
 			image.seterror(IMAGE_ERROR_UNSPECIFIED, "Loading from softlist is not supported yet");
-			return IMAGE_INIT_FAIL;
+			return image_init_result::FAIL;
 		}
 
 		m_dock->rom_alloc(0x10000, GENERIC_ROM8_WIDTH, ENDIANNESS_LITTLE);
@@ -632,7 +632,7 @@ DEVICE_IMAGE_LOAD_MEMBER( spectrum_state, timex_cart )
 		if (chunks_in_file * 0x2000 + 0x09 != size)
 		{
 			image.seterror(IMAGE_ERROR_UNSPECIFIED, "File corrupted");
-			return IMAGE_INIT_FAIL;
+			return image_init_result::FAIL;
 		}
 
 		switch (header[0])
@@ -656,7 +656,7 @@ DEVICE_IMAGE_LOAD_MEMBER( spectrum_state, timex_cart )
 
 			default:
 				image.seterror(IMAGE_ERROR_UNSPECIFIED, "Cart type not supported");
-				return IMAGE_INIT_FAIL;
+				return image_init_result::FAIL;
 		}
 
 		logerror ("Cart loaded [Chunks %02x]\n", m_ram_chunks);
@@ -667,7 +667,7 @@ DEVICE_IMAGE_LOAD_MEMBER( spectrum_state, timex_cart )
 		memcpy(m_dock->get_rom_base(), image.get_software_region("rom"), size);
 	}
 
-	return IMAGE_INIT_PASS;
+	return image_init_result::PASS;
 }
 
 

@@ -20,6 +20,8 @@
 #include "win/memorywininfo.h"
 #include "win/pointswininfo.h"
 #include "win/uimetrics.h"
+#undef min
+#undef max
 
 #include "emu.h"
 #include "debugger.h"
@@ -241,7 +243,7 @@ void debugger_windows::show_all()
 
 void debugger_windows::hide_all()
 {
-	SetForegroundWindow(osd_common_t::s_window_list.front()->platform_window<HWND>());
+	SetForegroundWindow(std::static_pointer_cast<win_window_info>(osd_common_t::s_window_list.front())->platform_window());
 	for (auto &info : m_window_list)
 		info->hide();
 }

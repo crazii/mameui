@@ -230,6 +230,11 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/winui/treeview.cpp",
 		MAME_DIR .. "src/osd/winui/winui.cpp",
 		MAME_DIR .. "src/osd/winui/win_options.cpp",
+		MAME_DIR .. "src/osd/winui/messui.cpp",
+		MAME_DIR .. "src/osd/winui/softwarelist.cpp",
+		MAME_DIR .. "src/osd/winui/devview.cpp",
+		MAME_DIR .. "src/osd/winui/softwarepicker.cpp",
+		MAME_DIR .. "src/osd/winui/swconfig.cpp",
 	}
 
 project ("ocore_" .. _OPTIONS["osd"])
