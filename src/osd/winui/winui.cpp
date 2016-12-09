@@ -59,7 +59,7 @@
 #include "directdraw.h"
 #include "directinput.h"
 #include "dijoystick.h"     /* For DIJoystick availability. */
-//#include "softwarelist.h"
+#include "softwarelist.h"
 #include "messui.h"
 #include "winui.h"
 #include "drivenum.h"
@@ -738,12 +738,12 @@ static const int CommandToString[] =
 	-1
 };
 
-// static const int s_nPickers[] =
-// {
-	// IDC_LIST,
-	// IDC_SWLIST,
-	// IDC_SOFTLIST
-// };
+static const int s_nPickers[] =
+{
+	IDC_LIST,
+	IDC_SWLIST,
+	IDC_SOFTLIST
+};
 
 
 /* How to resize toolbar sub window */
@@ -762,15 +762,15 @@ static ResizeItem main_resize_items[] =
 	{ RA_HWND, { 0 },            FALSE, RA_LEFT  | RA_RIGHT  | RA_BOTTOM,  NULL },
 	{ RA_ID,   { IDC_DIVIDER },  FALSE, RA_LEFT  | RA_RIGHT  | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_TREE },     TRUE,	RA_LEFT  | RA_BOTTOM | RA_TOP,     NULL },
-	//{ RA_ID,   { IDC_LIST },     TRUE,	RA_ALL,                            NULL },
+	{ RA_ID,   { IDC_LIST },     TRUE,	RA_ALL,                            NULL },
 	{ RA_ID,   { IDC_SPLITTER }, FALSE,	RA_LEFT  | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_SPLITTER2 },FALSE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_SSFRAME },  FALSE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_SSPICTURE },FALSE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_HISTORY },  TRUE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_SSTAB },    FALSE,	RA_RIGHT | RA_TOP,                 NULL },
-	//{ RA_ID,   { IDC_SWLIST },    TRUE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
-	//{ RA_ID,   { IDC_SOFTLIST },  TRUE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
+	{ RA_ID,   { IDC_SWLIST },    TRUE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
+	{ RA_ID,   { IDC_SOFTLIST },  TRUE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_ID,   { IDC_SPLITTER3 },FALSE,	RA_RIGHT | RA_BOTTOM | RA_TOP,     NULL },
 	{ RA_END,  { 0 },            FALSE, 0,                                 NULL }
 };
@@ -860,17 +860,17 @@ public:
 	}
 };
 
-// static std::wstring s2ws(const std::string& s)
-// {
-	// int len;
-	// int slength = (int)s.length() + 1;
-	// len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0); 
-	// wchar_t* buf = new wchar_t[len];
-	// MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-	// std::wstring r(buf);
-	// delete[] buf;
-	// return r;
-// }
+static std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0); 
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
 
 
 /***************************************************************************
@@ -880,7 +880,7 @@ static DWORD RunMAME(int nGameIndex, const play_options *playopts)
 {
 	time_t start = 0, end = 0;
 	double elapsedtime = 0;
-	//int i = 0;
+	int i = 0;
 	windows_options global_opts;
 	std::string error_string;
 
@@ -912,20 +912,20 @@ static DWORD RunMAME(int nGameIndex, const play_options *playopts)
 			global_opts.set_value(OPTION_AVIWRITE, playopts->aviwrite, OPTION_PRIORITY_CMDLINE,error_string);
 	}
 
-	// if (g_szSelectedSoftware[0] && g_szSelectedDevice[0])
-	// {
-		// global_opts.set_value(g_szSelectedDevice, g_szSelectedSoftware, OPTION_PRIORITY_CMDLINE,error_string);
-		// // Add params and clear so next start of driver is without parameters
-		// g_szSelectedSoftware[0] = 0;
-		// g_szSelectedDevice[0] = 0;
-	// }
+	if (g_szSelectedSoftware[0] && g_szSelectedDevice[0])
+	{
+		global_opts.set_value(g_szSelectedDevice, g_szSelectedSoftware, OPTION_PRIORITY_CMDLINE,error_string);
+		// Add params and clear so next start of driver is without parameters
+		g_szSelectedSoftware[0] = 0;
+		g_szSelectedDevice[0] = 0;
+	}
 	// Mame will parse all the needed .ini files.
 
 	// prepare to run the game
 	ShowWindow(hMain, SW_HIDE);
 
-	// for (i = 0; i < ARRAY_LENGTH(s_nPickers); i++)
-		// Picker_ClearIdle(GetDlgItem(hMain, s_nPickers[i]));
+	for (i = 0; i < ARRAY_LENGTH(s_nPickers); i++)
+		Picker_ClearIdle(GetDlgItem(hMain, s_nPickers[i]));
 
 	// run the emulation
 	time(&start);
@@ -968,8 +968,8 @@ static DWORD RunMAME(int nGameIndex, const play_options *playopts)
 	playopts_apply = 0;
 
 	// the emulation is complete; continue
-	// for (i = 0; i < ARRAY_LENGTH(s_nPickers); i++)
-		// Picker_ResetIdle(GetDlgItem(hMain, s_nPickers[i]));
+	for (i = 0; i < ARRAY_LENGTH(s_nPickers); i++)
+		Picker_ResetIdle(GetDlgItem(hMain, s_nPickers[i]));
 	ShowWindow(hMain, SW_SHOW);
 	SetForegroundWindow(hMain);
 
@@ -1346,48 +1346,48 @@ void UpdateSoftware(void)
 
 	ResizeTreeAndListViews(FALSE);
 
-	// if (GetShowSoftware())
-	// {
-		// int nTab;
-		// HWND hwndSoftwarePicker;
-		// HWND hwndSoftwareDevView;
-		// HWND hwndSoftwareList;
+	 if (GetShowSoftware())
+	 {
+		 int nTab;
+		 HWND hwndSoftwarePicker;
+		 HWND hwndSoftwareDevView;
+		 HWND hwndSoftwareList;
 
-		// //ShowWindow(GetDlgItem(hMain,IDC_SWTAB),SW_SHOW);
+		 ShowWindow(GetDlgItem(hMain, IDC_SWTAB), SW_SHOW);
 
-		// // hwndSoftwarePicker = GetDlgItem(GetMainWindow(), IDC_SWLIST);
-		// // hwndSoftwareDevView = GetDlgItem(GetMainWindow(), IDC_SWDEVVIEW);
-		// // hwndSoftwareList = GetDlgItem(GetMainWindow(), IDC_SOFTLIST);
+		 hwndSoftwarePicker = GetDlgItem(GetMainWindow(), IDC_SWLIST);
+		 hwndSoftwareDevView = GetDlgItem(GetMainWindow(), IDC_SWDEVVIEW);
+		 hwndSoftwareList = GetDlgItem(GetMainWindow(), IDC_SOFTLIST);
 
-		// // nTab = TabView_GetCurrentTab(GetDlgItem(GetMainWindow(), IDC_SWTAB));
+		 nTab = TabView_GetCurrentTab(GetDlgItem(GetMainWindow(), IDC_SWTAB));
 
-		// switch(nTab)
-		// {
-			// case 0:
-				// ShowWindow(hwndSoftwarePicker, SW_SHOW);
-				// ShowWindow(hwndSoftwareDevView, SW_HIDE);
-				// ShowWindow(hwndSoftwareList, SW_HIDE);
-				// break;
+		 switch(nTab)
+		 {
+			 case 0:
+				 ShowWindow(hwndSoftwarePicker, SW_SHOW);
+				 ShowWindow(hwndSoftwareDevView, SW_HIDE);
+				 ShowWindow(hwndSoftwareList, SW_HIDE);
+				 break;
 
-			// case 1:
-				// ShowWindow(hwndSoftwarePicker, SW_HIDE);
-				// ShowWindow(hwndSoftwareDevView, SW_SHOW);
-				// ShowWindow(hwndSoftwareList, SW_HIDE);
-				// break;
-			// case 2:
-				// ShowWindow(hwndSoftwarePicker, SW_HIDE);
-				// ShowWindow(hwndSoftwareDevView, SW_HIDE);
-				// ShowWindow(hwndSoftwareList, SW_SHOW);
-				// break;
-		// }
-	// }
-	// else
-	// {
-		// ShowWindow(GetDlgItem(hMain,IDC_SWLIST),SW_HIDE);
-		// ShowWindow(GetDlgItem(hMain,IDC_SWDEVVIEW),SW_HIDE);
-		// ShowWindow(GetDlgItem(hMain,IDC_SOFTLIST),SW_HIDE);
-		// ShowWindow(GetDlgItem(hMain,IDC_SWTAB),SW_HIDE);
-	// }
+			 case 1:
+				 ShowWindow(hwndSoftwarePicker, SW_HIDE);
+				 ShowWindow(hwndSoftwareDevView, SW_SHOW);
+				 ShowWindow(hwndSoftwareList, SW_HIDE);
+				 break;
+			 case 2:
+				 ShowWindow(hwndSoftwarePicker, SW_HIDE);
+				 ShowWindow(hwndSoftwareDevView, SW_HIDE);
+				 ShowWindow(hwndSoftwareList, SW_SHOW);
+				 break;
+		 }
+	 }
+	 else
+	 {
+		 ShowWindow(GetDlgItem(hMain,IDC_SWLIST),SW_HIDE);
+		 ShowWindow(GetDlgItem(hMain,IDC_SWDEVVIEW),SW_HIDE);
+		 ShowWindow(GetDlgItem(hMain,IDC_SOFTLIST),SW_HIDE);
+		 ShowWindow(GetDlgItem(hMain,IDC_SWTAB),SW_HIDE);
+	 }
 }
 
 /* Adjust the list view and screenshot button based on GetShowScreenShot() */
@@ -1723,7 +1723,7 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 		column_names[COLUMN_ROMS] = locale_columns[offset];
 		#endif
 		Layout_InitLocalization(hInstance);
-		//Messui_InitLocalization(hInstance);
+		Messui_InitLocalization(hInstance);
 		
 		static TCHAR locale_tooltips[NUM_TOOLTIPS][LOCALE_BUFFER_SIZE];
 		for(int i = 0; i < NUM_TOOLTIPS; ++i)
@@ -1756,7 +1756,7 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 	RegisterClass(&wndclass);
 
-	//DevView_RegisterClass();
+	DevView_RegisterClass();
 
 	InitCommonControls();
 
@@ -1930,7 +1930,7 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 	dprintf("did init tree\n");
 
 	/* Initialize listview columns */
-	//InitMessPicker();
+	InitMessPicker();
 	InitListView();
 	SetFocus(hwndList);
 
@@ -2045,7 +2045,7 @@ static BOOL Win32UI_init(HINSTANCE hInstance, LPWSTR lpCmdLine, int nCmdShow)
 
 static void Win32UI_exit()
 {
-	//MySoftwareListClose();
+	MySoftwareListClose();
 
 	if (g_pJoyGUI != NULL)
 		g_pJoyGUI->exit();
@@ -2222,8 +2222,8 @@ static LRESULT CALLBACK MameWindowProc(HWND hWnd, UINT message, WPARAM wParam, L
 				SetSplitterPos(i, nSplitterOffset[i]);
 			SetWindowState(state);
 
-			// for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
-				// Picker_SaveColumnWidths(GetDlgItem(hMain, s_nPickers[i]));
+			for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
+				Picker_SaveColumnWidths(GetDlgItem(hMain, s_nPickers[i]));
 
 			GetWindowRect(hWnd, &rect);
 			area.x		= rect.left;
@@ -3174,7 +3174,7 @@ static void EnableSelection(int nGame)
 	HMENU hMenu = GetMenu(hMain);
 	TCHAR* t_description;
 
-	//MyFillSoftwareList(nGame, FALSE);
+	MyFillSoftwareList(nGame, FALSE);
 
 	t_description = ui_wstring_from_utf8(ConvertAmpersandString(ModifyThe(driver_list::driver(nGame).description)));
 	if( !t_description )
@@ -3195,7 +3195,7 @@ static void EnableSelection(int nGame)
 	SetStatusBarText(1, pText);
 
 	// Show number of software_list items in box at bottom right.
-	int items = 0;//SoftwareList_GetNumberOfItems();
+	int items = SoftwareList_GetNumberOfItems();
 	if (items)
 	{
 		sprintf((char *)pText, "%d", items);
@@ -3310,7 +3310,7 @@ static BOOL TreeViewNotify(LPNMHDR nm)
 				if (bListReady)
 				{
 					ResetListView();
-					//MessUpdateSoftwareList();
+					MessUpdateSoftwareList();
 					UpdateScreenShot();
 				}
 			}
@@ -3732,27 +3732,27 @@ static void PollGUIJoystick()
 
 static void SetView(int menu_id)
 {
-	//BOOL force_reset = FALSE;
-	//int i = 0;
+	BOOL force_reset = FALSE;
+	int i = 0;
 
 	// first uncheck previous menu item, check new one
 	CheckMenuRadioItem(GetMenu(hMain), ID_VIEW_LARGE_ICON, ID_VIEW_GROUPED, menu_id, MF_CHECKED);
 	ToolBar_CheckButton(s_hToolBar, menu_id, MF_CHECKED);
 
-	// if (Picker_GetViewID(hwndList) == VIEW_GROUPED || menu_id == ID_VIEW_GROUPED)
-	// {
-		// // this changes the sort order, so redo everything
-		// force_reset = TRUE;
-	// }
+	 if (Picker_GetViewID(hwndList) == VIEW_GROUPED || menu_id == ID_VIEW_GROUPED)
+	 {
+		 // this changes the sort order, so redo everything
+		 force_reset = TRUE;
+	 }
 
-	// for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
-		// Picker_SetViewID(GetDlgItem(hMain, s_nPickers[i]), menu_id - ID_VIEW_LARGE_ICON);
+	 for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
+		 Picker_SetViewID(GetDlgItem(hMain, s_nPickers[i]), menu_id - ID_VIEW_LARGE_ICON);
 
-	// if (force_reset)
-	// {
-		// for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
-			// Picker_Sort(GetDlgItem(hMain, s_nPickers[i]));
-	// }
+	 if (force_reset)
+	 {
+		 for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
+			 Picker_Sort(GetDlgItem(hMain, s_nPickers[i]));
+	 }
 }
 
 static void ResetListView()
@@ -3984,7 +3984,7 @@ static void PickCloneColor(void)
 
 static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 {
-	//int i = 0;
+	int i = 0;
 	LPTREEFOLDER folder;
 	char* utf8_szFile;
 	BOOL res = 0;
@@ -4318,7 +4318,7 @@ static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 				if (g_bModifiedSoftwarePaths)
 				{
 					g_bModifiedSoftwarePaths = FALSE;
-					//MessUpdateSoftwareList();
+					MessUpdateSoftwareList();
 				}
 			}
 		}
@@ -4411,10 +4411,10 @@ static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 
 			BOOL bUpdateRoms    = ((nResult & DIRDLG_ROMS) == DIRDLG_ROMS) ? TRUE : FALSE;
 			BOOL bUpdateSamples = ((nResult & DIRDLG_SAMPLES) == DIRDLG_SAMPLES) ? TRUE : FALSE;
-			//BOOL bUpdateSoftware = ((nResult & DIRDLG_SL) == DIRDLG_SL) ? TRUE : FALSE;
+			BOOL bUpdateSoftware = ((nResult & DIRDLG_SL) == DIRDLG_SL) ? TRUE : FALSE;
 
-			// if (bUpdateSoftware)
-				// MessUpdateSoftwareList();
+			 if (bUpdateSoftware)
+				MessUpdateSoftwareList();
 
 			if (s_pWatcher)
 			{
@@ -4635,31 +4635,31 @@ static BOOL MameCommand(HWND hwnd,int id, HWND hwndCtl, UINT codeNotify)
 			ToggleShowFolder(id - ID_CONTEXT_SHOW_FOLDER_START);
 			break;
 		}
-		// for (i = 0; g_helpInfo[i].nMenuItem > 0; i++)
-		// {
-			// if (g_helpInfo[i].nMenuItem == id)
-			// {
-				// printf("%X: %ls\n",g_helpInfo[i].bIsHtmlHelp, g_helpInfo[i].lpFile);
-				// if (i == 1) // get current whatsnew.txt from mamedev.org
-				// {
-					// std::string version = std::string(GetVersionString()); // turn version string into std
-					// version.erase(1,1); // take out the decimal point
-					// version.erase(4, std::string::npos); // take out the date
-					// std::string url = "http://mamedev.org/releases/whatsnew_" + version + ".txt"; // construct url
-					// std::wstring stemp = s2ws(url); // convert to wide string (yeah, typical c++ mess)
-					// LPCWSTR result = stemp.c_str(); // then convert to const wchar_t*
-					// ShellExecute(hMain, TEXT("open"), result, TEXT(""), NULL, SW_SHOWNORMAL); // show web page
-				// }
-				// else
-				// if (g_helpInfo[i].bIsHtmlHelp)
-// //					HelpFunction(hMain, g_helpInfo[i].lpFile, HH_DISPLAY_TOPIC, 0);
-					// ShellExecute(hMain, TEXT("open"), g_helpInfo[i].lpFile, TEXT(""), NULL, SW_SHOWNORMAL);
-// //				else
-// //					DisplayTextFile(hMain, g_helpInfo[i].lpFile);
-				// return FALSE;
-			// }
-		// }
-		// return MessCommand(hwnd, id, hwndCtl, codeNotify);
+		 for (i = 0; g_helpInfo[i].nMenuItem > 0; i++)
+		 {
+			 if (g_helpInfo[i].nMenuItem == id)
+			 {
+				 printf("%X: %ls\n",g_helpInfo[i].bIsHtmlHelp, g_helpInfo[i].lpFile);
+				 if (i == 1) // get current whatsnew.txt from mamedev.org
+				 {
+					 std::string version = std::string(GetVersionString()); // turn version string into std
+					 version.erase(1,1); // take out the decimal point
+					 version.erase(4, std::string::npos); // take out the date
+					 std::string url = "http://mamedev.org/releases/whatsnew_" + version + ".txt"; // construct url
+					 std::wstring stemp = s2ws(url); // convert to wide string (yeah, typical c++ mess)
+					 LPCWSTR result = stemp.c_str(); // then convert to const wchar_t*
+					 ShellExecute(hMain, TEXT("open"), result, TEXT(""), NULL, SW_SHOWNORMAL); // show web page
+				 }
+				 else
+				 if (g_helpInfo[i].bIsHtmlHelp)
+ //					HelpFunction(hMain, g_helpInfo[i].lpFile, HH_DISPLAY_TOPIC, 0);
+					 ShellExecute(hMain, TEXT("open"), g_helpInfo[i].lpFile, TEXT(""), NULL, SW_SHOWNORMAL);
+ //				else
+ //					DisplayTextFile(hMain, g_helpInfo[i].lpFile);
+				 return FALSE;
+			 }
+		 }
+		 return MessCommand(hwnd, id, hwndCtl, codeNotify);
 	}
 	res++;
 	return FALSE;
@@ -4815,8 +4815,8 @@ static void GamePicker_LeavingItem(HWND hwndPicker, int nItem)
 {
 	// leaving item
 	// printf("leaving %s\n",driver_list::driver(nItem).name);
-	//g_szSelectedSoftware[0] = 0;
-	//g_szSelectedDevice[0] = 0;
+	g_szSelectedSoftware[0] = 0;
+	g_szSelectedDevice[0] = 0;
 	g_szSelectedItem[0] = 0;
 }
 
@@ -4825,7 +4825,7 @@ static void GamePicker_EnteringItem(HWND hwndPicker, int nItem)
 	// printf("entering %s\n",driver_list::driver(nItem).name);
 
 	EnableSelection(nItem);
-	//MessReadMountedSoftware(nItem);
+	MessReadMountedSoftware(nItem);
 	// decide if it is valid to load a savestate
 	if (driver_list::driver(nItem).flags & MACHINE_SUPPORTS_SAVE)
 		EnableMenuItem(GetMenu(hMain), ID_FILE_LOADSTATE, MFS_ENABLED);
@@ -5062,7 +5062,7 @@ static void CreateIcons(void)
 	HICON hIcon;
 	int icon_count = 0;
 	DWORD dwStyle;
-	//int i = 0;
+	int i = 0;
 	int grow = 5000;
 
 	while(g_iconData[icon_count].icon_name)
@@ -5104,7 +5104,7 @@ static void CreateIcons(void)
 	// restore our view
 	SetWindowLong(hwndList,GWL_STYLE,dwStyle);
 
-	//CreateMessIcons();
+	CreateMessIcons();
 
 	// Now set up header specific stuff
 	hHeaderImages = ImageList_Create(8,8,ILC_COLORDDB | ILC_MASK,2,2);
@@ -5113,8 +5113,8 @@ static void CreateIcons(void)
 	hIcon = LoadIcon(hInst,MAKEINTRESOURCE(IDI_HEADER_DOWN));
 	ImageList_AddIcon(hHeaderImages,hIcon);
 
-	// for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
-		// Picker_SetHeaderImageList(GetDlgItem(hMain, s_nPickers[i]), hHeaderImages);
+	for (i = 0; i < sizeof(s_nPickers) / sizeof(s_nPickers[0]); i++)
+		Picker_SetHeaderImageList(GetDlgItem(hMain, s_nPickers[i]), hHeaderImages);
 }
 
 
@@ -5681,8 +5681,8 @@ static void MamePlayGameWithOptions(int nGame, const play_options *playopts)
 	DWORD dwExitCode = 0;
 	BOOL res = 0;
 
-	// if (!MessApproveImageList(hMain, nGame))
-		// return;
+	if (!MessApproveImageList(hMain, nGame))
+		return;
 
 	if (g_pJoyGUI != NULL)
 		KillTimer(hMain, JOYGUI_TIMER);

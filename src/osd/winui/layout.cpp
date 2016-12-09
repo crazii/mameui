@@ -62,7 +62,7 @@ extern const FOLDERDATA g_folderData[] =
 //	{"Sound",           "sound",             FOLDER_SND,          IDI_FOLDER,               0,             0,            CreateSoundFolders },
 	{"Imperfect",       "imperfect",         FOLDER_DEFICIENCY,   IDI_FOLDER,               0,             0,            CreateDeficiencyFolders },
 //	{"Dumping Status",  "dumping",           FOLDER_DUMPING,      IDI_FOLDER,               0,             0,            CreateDumpingFolders },
-//	{"BIOS",            "bios",              FOLDER_BIOS,         IDI_FOLDER,               0,             0,            CreateBIOSFolders,          DriverIsBios,            TRUE },
+	{"BIOS",            "bios",              FOLDER_BIOS,         IDI_FOLDER,               0,             0,            CreateBIOSFolders,          DriverIsBios,            TRUE },
 	{"CHD",             "harddisk",          FOLDER_HARDDISK,     IDI_HARDDISK,             0,             0,            NULL,                       DriverIsHarddisk,        TRUE },
 	{"Samples",         "samples",           FOLDER_SAMPLES,      IDI_FOLDER,               0,             0,            NULL,                       DriverUsesSamples,       TRUE },
 	{"Working",         "working",           FOLDER_WORKING,      IDI_WORKING,              F_WORKING,     F_NONWORKING, NULL,                       DriverIsBroken,          FALSE },

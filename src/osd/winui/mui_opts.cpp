@@ -235,7 +235,7 @@ const options_entry winui_options::s_option_entries[] =
 	{ MUIOPTION_SHOW_IMAGE_SECTION,           "1",        OPTION_BOOLEAN,    NULL },
 	{ MUIOPTION_FULL_SCREEN,                  "0",        OPTION_BOOLEAN,    NULL },
 	{ MUIOPTION_CURRENT_TAB,                  "0",        OPTION_STRING,                 NULL },
-	//{ MESSUI_SOFTWARE_TAB,                    "0",        OPTION_STRING, NULL },
+	{ MESSUI_SOFTWARE_TAB,                    "0",        OPTION_STRING, NULL },
 	{ MUIOPTION_SHOW_TOOLBAR,                 "1",        OPTION_BOOLEAN,    NULL },
 	{ MUIOPTION_SHOW_STATUS_BAR,              "1",        OPTION_BOOLEAN,    NULL },
 	{ MUIOPTION_HIDE_FOLDERS,                 "",         OPTION_STRING,                 NULL },
@@ -261,16 +261,16 @@ const options_entry winui_options::s_option_entries[] =
 	{ MUIOPTION_COLUMN_WIDTHS,                "185,78,84,84,64,88,74,108,60,144,84,40,40", OPTION_STRING, NULL },
 	{ MUIOPTION_COLUMN_ORDER,                 "0,1,2,3,4,5,6,7,8,9,10,11,12", OPTION_STRING, NULL },
 	{ MUIOPTION_COLUMN_SHOWN,                 "1,1,1,1,1,1,1,1,1,1,1,1,0", OPTION_STRING,  NULL },
-	//{ MESSUI_SL_COLUMN_WIDTHS,                "100,75,223,46,120,120", OPTION_STRING, NULL },
-	//{ MESSUI_SL_COLUMN_ORDER,                 "0,1,2,3,4,5", OPTION_STRING, NULL }, // order of columns
-	//{ MESSUI_SL_COLUMN_SHOWN,                 "1,1,1,1,1,1", OPTION_STRING, NULL }, // 0=hide,1=show
-	//{ MESSUI_SL_SORT_COLUMN,                  "0", OPTION_INTEGER, NULL },
-	//{ MESSUI_SL_SORT_REVERSED,                "0", OPTION_BOOLEAN, NULL },
-	//{ MESSUI_SW_COLUMN_WIDTHS,                "400", OPTION_STRING, NULL },
-	//{ MESSUI_SW_COLUMN_ORDER,                 "0", OPTION_STRING, NULL }, // 1= dummy column
-	//{ MESSUI_SW_COLUMN_SHOWN,                 "1", OPTION_STRING, NULL }, // 0=don't show it
-	//{ MESSUI_SW_SORT_COLUMN,                  "0", OPTION_INTEGER, NULL },
-	//{ MESSUI_SW_SORT_REVERSED,                "0", OPTION_BOOLEAN, NULL },
+	{ MESSUI_SL_COLUMN_WIDTHS,                "100,75,223,46,120,120", OPTION_STRING, NULL },
+	{ MESSUI_SL_COLUMN_ORDER,                 "0,1,2,3,4,5", OPTION_STRING, NULL }, // order of columns
+	{ MESSUI_SL_COLUMN_SHOWN,                 "1,1,1,1,1,1", OPTION_STRING, NULL }, // 0=hide,1=show
+	{ MESSUI_SL_SORT_COLUMN,                  "0", OPTION_INTEGER, NULL },
+	{ MESSUI_SL_SORT_REVERSED,                "0", OPTION_BOOLEAN, NULL },
+	{ MESSUI_SW_COLUMN_WIDTHS,                "400", OPTION_STRING, NULL },
+	{ MESSUI_SW_COLUMN_ORDER,                 "0", OPTION_STRING, NULL }, // 1= dummy column
+	{ MESSUI_SW_COLUMN_SHOWN,                 "1", OPTION_STRING, NULL }, // 0=don't show it
+	{ MESSUI_SW_SORT_COLUMN,                  "0", OPTION_INTEGER, NULL },
+	{ MESSUI_SW_SORT_REVERSED,                "0", OPTION_BOOLEAN, NULL },
 	{ NULL,                                   NULL,       OPTION_HEADER,     "INTERFACE OPTIONS" },
 	{ MUIOPTION_CHECK_GAME,                   "0",        OPTION_BOOLEAN,    NULL },
 	{ MUIOPTION_JOYSTICK_IN_INTERFACE,        "1",        OPTION_BOOLEAN,    NULL },
@@ -288,7 +288,7 @@ const options_entry winui_options::s_option_entries[] =
 	{ MUIOPTION_BACKGROUND_DIRECTORY,         "bkground", OPTION_STRING,                 NULL },
 	{ MUIOPTION_ICONS_DIRECTORY,              "icons",    OPTION_STRING,                 NULL },
 	{ MUIOPTION_DATS_DIRECTORY,               "dats",     OPTION_STRING,                 NULL },
-	//{ MESSUI_SLPATH,                          "software", OPTION_STRING, NULL },
+	{ MESSUI_SLPATH,                          "software", OPTION_STRING, NULL },
 	{ NULL,                                   NULL,       OPTION_HEADER,     "NAVIGATION KEY CODES" },
 	{ MUIOPTION_UI_KEY_UP,                    "KEYCODE_UP",                        OPTION_STRING,          NULL },
 	{ MUIOPTION_UI_KEY_DOWN,                  "KEYCODE_DOWN",                     OPTION_STRING,          NULL },
@@ -2646,14 +2646,14 @@ void SetSLColumnOrder(int order[])
 	char column_order_string[80];
 	ColumnEncodeStringWithCount(order, column_order_string, SL_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SL_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SL_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSLColumnOrder(int order[])
 {
-	//const char *column_order_string;
-	//column_order_string = MameUISettings().value(MESSUI_SL_COLUMN_ORDER);
-	//ColumnDecodeStringWithCount(column_order_string, order, SL_COLUMN_MAX);
+	const char *column_order_string;
+	column_order_string = MameUISettings().value(MESSUI_SL_COLUMN_ORDER);
+	ColumnDecodeStringWithCount(column_order_string, order, SL_COLUMN_MAX);
 }
 
 void SetSLColumnShown(int shown[])
@@ -2661,14 +2661,14 @@ void SetSLColumnShown(int shown[])
 	char column_shown_string[80];
 	ColumnEncodeStringWithCount(shown, column_shown_string, SL_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SL_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SL_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSLColumnShown(int shown[])
 {
-	//const char *column_shown_string;
-	//column_shown_string = MameUISettings().value(MESSUI_SL_COLUMN_SHOWN);
-	//ColumnDecodeStringWithCount(column_shown_string, shown, SL_COLUMN_MAX);
+	const char *column_shown_string;
+	column_shown_string = MameUISettings().value(MESSUI_SL_COLUMN_SHOWN);
+	ColumnDecodeStringWithCount(column_shown_string, shown, SL_COLUMN_MAX);
 }
 
 void SetSLColumnWidths(int width[])
@@ -2676,38 +2676,36 @@ void SetSLColumnWidths(int width[])
 	char column_width_string[80];
 	ColumnEncodeStringWithCount(width, column_width_string, SL_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SL_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SL_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSLColumnWidths(int width[])
 {
-	//const char *column_width_string;
-	//column_width_string = MameUISettings().value(MESSUI_SL_COLUMN_WIDTHS);
-	//ColumnDecodeStringWithCount(column_width_string, width, SL_COLUMN_MAX);
+	const char *column_width_string;
+	column_width_string = MameUISettings().value(MESSUI_SL_COLUMN_WIDTHS);
+	ColumnDecodeStringWithCount(column_width_string, width, SL_COLUMN_MAX);
 }
 
 void SetSLSortColumn(int column)
 {
-	//std::string error_string;
-	//MameUISettings().set_value(MESSUI_SL_SORT_COLUMN, column, OPTION_PRIORITY_CMDLINE,error_string);
+	std::string error_string;
+	MameUISettings().set_value(MESSUI_SL_SORT_COLUMN, column, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 int GetSLSortColumn(void)
 {
-	//return MameUISettings().int_value(MESSUI_SL_SORT_COLUMN);
-	return 0;
+	return MameUISettings().int_value(MESSUI_SL_SORT_COLUMN);
 }
 
 void SetSLSortReverse(BOOL reverse)
 {
 	std::string error_string;
-	//MameUISettings().set_value( MESSUI_SL_SORT_REVERSED, reverse, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value( MESSUI_SL_SORT_REVERSED, reverse, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 BOOL GetSLSortReverse(void)
 {
-	return FALSE;
-	//return MameUISettings().bool_value(MESSUI_SL_SORT_REVERSED);
+	return MameUISettings().bool_value(MESSUI_SL_SORT_REVERSED);
 }
 
 void SetSWColumnOrder(int order[])
@@ -2715,14 +2713,14 @@ void SetSWColumnOrder(int order[])
 	char column_order_string[80];
 	ColumnEncodeStringWithCount(order, column_order_string, SW_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SW_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SW_COLUMN_ORDER, column_order_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSWColumnOrder(int order[])
 {
-	//const char *column_order_string;
-	//column_order_string = MameUISettings().value(MESSUI_SW_COLUMN_ORDER);
-	//ColumnDecodeStringWithCount(column_order_string, order, SW_COLUMN_MAX);
+	const char *column_order_string;
+	column_order_string = MameUISettings().value(MESSUI_SW_COLUMN_ORDER);
+	ColumnDecodeStringWithCount(column_order_string, order, SW_COLUMN_MAX);
 }
 
 void SetSWColumnShown(int shown[])
@@ -2730,14 +2728,14 @@ void SetSWColumnShown(int shown[])
 	char column_shown_string[80];
 	ColumnEncodeStringWithCount(shown, column_shown_string, SW_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SW_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SW_COLUMN_SHOWN, column_shown_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSWColumnShown(int shown[])
 {
-	//const char *column_shown_string;
-	//column_shown_string = MameUISettings().value(MESSUI_SW_COLUMN_SHOWN);
-	//ColumnDecodeStringWithCount(column_shown_string, shown, SW_COLUMN_MAX);
+	const char *column_shown_string;
+	column_shown_string = MameUISettings().value(MESSUI_SW_COLUMN_SHOWN);
+	ColumnDecodeStringWithCount(column_shown_string, shown, SW_COLUMN_MAX);
 }
 
 void SetSWColumnWidths(int width[])
@@ -2745,38 +2743,36 @@ void SetSWColumnWidths(int width[])
 	char column_width_string[80];
 	ColumnEncodeStringWithCount(width, column_width_string, SW_COLUMN_MAX);
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SW_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SW_COLUMN_WIDTHS, column_width_string, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 void GetSWColumnWidths(int width[])
 {
-	//const char *column_width_string;
-	//column_width_string = MameUISettings().value(MESSUI_SW_COLUMN_WIDTHS);
-	//ColumnDecodeStringWithCount(column_width_string, width, SW_COLUMN_MAX);
+	const char *column_width_string;
+	column_width_string = MameUISettings().value(MESSUI_SW_COLUMN_WIDTHS);
+	ColumnDecodeStringWithCount(column_width_string, width, SW_COLUMN_MAX);
 }
 
 void SetSWSortColumn(int column)
 {
-	//std::string error_string;
-	//MameUISettings().set_value(MESSUI_SW_SORT_COLUMN, column, OPTION_PRIORITY_CMDLINE,error_string);
+	std::string error_string;
+	MameUISettings().set_value(MESSUI_SW_SORT_COLUMN, column, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 int GetSWSortColumn(void)
 {
-	//return MameUISettings().int_value(MESSUI_SW_SORT_COLUMN);
-	return 0;
+	return MameUISettings().int_value(MESSUI_SW_SORT_COLUMN);
 }
 
 void SetSWSortReverse(BOOL reverse)
 {
 	std::string error_string;
-	//MameUISettings().set_value( MESSUI_SW_SORT_REVERSED, reverse, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value( MESSUI_SW_SORT_REVERSED, reverse, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 BOOL GetSWSortReverse(void)
 {
-	return FALSE;
-	//return MameUISettings().bool_value(MESSUI_SW_SORT_REVERSED);
+	return MameUISettings().bool_value(MESSUI_SW_SORT_REVERSED);
 }
 
 void SetSelectedSoftware(int driver_index, const machine_config *config, const device_image_interface *dev, const char *software)
@@ -2798,24 +2794,22 @@ void SetSelectedSoftware(int driver_index, const machine_config *config, const d
 void SetCurrentSoftwareTab(const char *shortname)
 {
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SOFTWARE_TAB, shortname, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SOFTWARE_TAB, shortname, OPTION_PRIORITY_CMDLINE,error_string);
 }
 
 const char *GetCurrentSoftwareTab(void)
 {
-	return "";
-	//return MameUISettings().value(MESSUI_SOFTWARE_TAB);
+	return MameUISettings().value(MESSUI_SOFTWARE_TAB);
 }
 
 const char* GetSLDir(void)
 {
-	return "";
-	//return MameUISettings().value(MESSUI_SLPATH);
+	return MameUISettings().value(MESSUI_SLPATH);
 }
 
 void SetSLDir(const char* paths)
 {
 	std::string error_string;
-	//MameUISettings().set_value(MESSUI_SLPATH, paths, OPTION_PRIORITY_CMDLINE,error_string);
+	MameUISettings().set_value(MESSUI_SLPATH, paths, OPTION_PRIORITY_CMDLINE,error_string);
 }
 

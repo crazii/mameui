@@ -13,7 +13,7 @@
 #include "drivenum.h"
 
 // Make sure all MESS features are included
-//#define MESS
+#define MESS
 
 #define MAMENAME "MAME"
 #define UI_INI_FILENAME "MAMEUI.ini"
